@@ -62,7 +62,7 @@ def savePlot(name):
     fig = plt.gcf()
     ax = plt.gca()
     gitMetadata = get_git_metadata()
-    informationText = 'By Deep Ray@EPFL<deep.ray@gmail.com>\nand Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>\nCommit: %s\nRepo: %s\nHostname: %s' % (gitMetadata['git_commit'], gitMetadata['git_remote_url'], socket.gethostname())
+    informationText = 'By Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>\nand Siddhartha Mishra@ETHZ <siddhartha.mishra@sam.math.ethz.ch>\nand Deep Ray@EPFL<deep.ray@gmail.com>\nCommit: %s\nRepo: %s\nHostname: %s' % (gitMetadata['git_commit'], gitMetadata['git_remote_url'], socket.gethostname())
 
     ax.text(0.95, 0.01, informationText,
          fontsize=3, color='gray',
