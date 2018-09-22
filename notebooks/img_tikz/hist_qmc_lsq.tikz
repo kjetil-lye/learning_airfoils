@@ -109,7 +109,7 @@ ymin=0, ymax=2.86876759748471
 ]{ By Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>
 and Siddhartha Mishra@ETHZ <siddhartha.mishra@sam.math.ethz.ch>
 and Deep Ray@EPFL<deep.ray@gmail.com>
-Commit: 6686ff8830a2c828cc11b84bec5233de5d68ecf9
+Commit: 36a0f2f6f7ba84aadfbe8a77ce7a0d1b4b366c84
 Repo: git@github.com:kjetil-lye/learning_airfoils.git
 Hostname: maschke};
 \end{axis}
