@@ -14,9 +14,9 @@ tick pos=left,
 title={Comparison QMC with 8192 and QMC with 128 samples
 integrated area: $[0.550000,0.350000]\times [0.250000,0.250000]$},
 width=\figurewidth,
-x grid style={white!69.01960784313725!black},
+x grid style={white!69.019607843137251!black},
 xmin=1.03005784663857, xmax=2.10950665608913,
-y grid style={white!69.01960784313725!black},
+y grid style={white!69.019607843137251!black},
 ymin=0, ymax=3.59197737444179
 ]
 \addlegendimage{ybar,ybar legend,fill=color0,draw opacity=0,fill opacity=0.5};
@@ -104,15 +104,15 @@ ymin=0, ymax=3.59197737444179
 \node at (axis cs:0.95,0.01)[
   scale=0.15,
   anchor=south east,
-  text=white!50.19607843137255!black,
+  text=white!50.196078431372548!black,
   rotate=0.0,
   align=right
 ]{ By Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>
 and Siddhartha Mishra@ETHZ <siddhartha.mishra@sam.math.ethz.ch>
 and Deep Ray@EPFL<deep.ray@gmail.com>
-Commit: 32632f8c5e14929145837d2dd834c6e6aa0cdea5
+Commit: 903f2d08b408c730369cdc49c1327397727e3c02
 Repo: git@github.com:kjetil-lye/learning_airfoils.git
-Hostname: maschke};
+Hostname: nid01959};
 \end{axis}
 
 \end{tikzpicture}
