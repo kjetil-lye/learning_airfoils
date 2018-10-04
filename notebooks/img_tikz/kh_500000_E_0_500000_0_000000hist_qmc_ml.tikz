@@ -1,0 +1,119 @@
+% This file was created by matplotlib2tikz v0.6.18.
+\begin{tikzpicture}
+
+\definecolor{color0}{rgb}{0.12156862745098,0.466666666666667,0.705882352941177}
+\definecolor{color1}{rgb}{1,0.498039215686275,0.0549019607843137}
+
+\begin{axis}[
+height=\figureheight,
+legend cell align={left},
+legend entries={{QMC 8192 samples},{ML(128 samples)}},
+legend style={draw=white!80.0!black},
+tick align=outside,
+tick pos=left,
+title={Comparison QMC and Machine learning
+integrated area: $[0.500000,0.750000]\times [0.000000,0.250000]$
+epochs=500000},
+width=\figurewidth,
+x grid style={white!69.01960784313725!black},
+xmin=5.53536384105682, xmax=7.55648596286774,
+y grid style={white!69.01960784313725!black},
+ymin=0, ymax=2.58037363628042
+]
+\addlegendimage{ybar,ybar legend,fill=color0,draw opacity=0,fill opacity=0.5};
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:5.8473936849189,0) rectangle (axis cs:5.87923381174121,0.0115015539838667);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:5.87923381174121,0) rectangle (axis cs:5.91107393856352,0.00383385132795546);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:5.91107393856352,0) rectangle (axis cs:5.94291406538584,0.0115015539838667);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:5.94291406538584,0) rectangle (axis cs:5.97475419220815,0.0115015539838664);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:5.97475419220815,0) rectangle (axis cs:6.00659431903047,0.0230031079677334);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.00659431903047,0) rectangle (axis cs:6.03843444585278,0.0421723646075101);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.03843444585278,0) rectangle (axis cs:6.07027457267509,0.0690093239032002);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.07027457267509,0) rectangle (axis cs:6.10211469949741,0.153354053118218);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.10211469949741,0) rectangle (axis cs:6.13395482631972,0.195526417725734);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.13395482631972,0) rectangle (axis cs:6.16579495314204,0.249200336317105);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.16579495314204,0) rectangle (axis cs:6.19763507996435,0.360382024827823);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.19763507996435,0) rectangle (axis cs:6.22947520678666,0.486899118650344);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.22947520678666,0) rectangle (axis cs:6.26131533360898,0.693927090359958);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.26131533360898,0) rectangle (axis cs:6.29315546043129,0.839613440822246);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.29315546043129,0) rectangle (axis cs:6.3249955872536,1.07347837182756);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.32499558725361,0) rectangle (axis cs:6.35683571407592,1.38785418071988);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.35683571407592,0) rectangle (axis cs:6.38867584089823,1.53737438251018);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.38867584089823,0) rectangle (axis cs:6.42051596772055,1.86325174538635);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.42051596772055,0) rectangle (axis cs:6.45235609454286,2.0626120144401);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.45235609454286,0) rectangle (axis cs:6.48419622136517,2.32331390474101);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.48419622136517,0) rectangle (axis cs:6.51603634818749,2.37698782333245);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.51603634818749,0) rectangle (axis cs:6.5478764750098,2.36165241802063);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.5478764750098,0) rectangle (axis cs:6.57971660183212,2.45749870121945);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.57971660183212,0) rectangle (axis cs:6.61155672865443,2.15845829763893);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.61155672865443,0) rectangle (axis cs:6.64339685547674,2.00127039319281);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.64339685547674,0) rectangle (axis cs:6.67523698229906,1.68689458430045);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.67523698229906,0) rectangle (axis cs:6.70707710912137,1.38785418071988);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.70707710912137,0) rectangle (axis cs:6.73891723594368,1.1041491824512);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.73891723594368,0) rectangle (axis cs:6.770757362766,0.812776481526558);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.770757362766,0) rectangle (axis cs:6.80259748958831,0.609582361144935);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.80259748958831,0) rectangle (axis cs:6.83443761641063,0.452394456698745);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.83443761641063,0) rectangle (axis cs:6.86627774323294,0.256868038973023);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.86627774323294,0) rectangle (axis cs:6.89811787005525,0.187858715069818);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.89811787005525,0) rectangle (axis cs:6.92995799687757,0.053673918591378);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.92995799687757,0) rectangle (axis cs:6.96179812369988,0.049840067263421);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.96179812369988,0) rectangle (axis cs:6.99363825052219,0.0306708106236446);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:6.9936382505222,0) rectangle (axis cs:7.02547837734451,0.00383385132795546);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:7.02547837734451,0) rectangle (axis cs:7.05731850416682,0.00766770265591114);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:7.05731850416682,0) rectangle (axis cs:7.08915863098914,0.00383385132795557);
+\draw[fill=color0,draw opacity=0,fill opacity=0.5] (axis cs:7.08915863098914,0) rectangle (axis cs:7.12099875781145,0.00383385132795546);
+\addlegendimage{ybar,ybar legend,fill=color1,draw opacity=0,fill opacity=0.5};
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:5.62723302841187,0) rectangle (axis cs:5.67316762208939,0.00265748105571551);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:5.67316762208939,0) rectangle (axis cs:5.71910221576691,0.00265748105571546);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:5.71910221576691,0) rectangle (axis cs:5.76503680944443,0.00797244316714654);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:5.76503680944443,0) rectangle (axis cs:5.81097140312195,0.00797244316714638);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:5.81097140312195,0) rectangle (axis cs:5.85690599679947,0.0132874052785776);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:5.85690599679947,0) rectangle (axis cs:5.90284059047699,0.0372047347800172);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:5.90284059047699,0) rectangle (axis cs:5.94877518415451,0.0504921400585938);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:5.94877518415451,0) rectangle (axis cs:5.99470977783203,0.0823819127271809);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:5.99470977783203,0) rectangle (axis cs:6.04064437150955,0.11692916645148);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.04064437150955,0) rectangle (axis cs:6.08657896518707,0.164763825454362);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.08657896518707,0) rectangle (axis cs:6.13251355886459,0.356102461465879);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.13251355886459,0) rectangle (axis cs:6.17844815254211,0.465059184750206);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.17844815254211,0) rectangle (axis cs:6.22438274621963,0.611220642814568);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.22438274621963,0) rectangle (axis cs:6.27031733989716,0.845078975717517);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.27031733989716,0) rectangle (axis cs:6.31625193357468,0.988582952726171);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.31625193357468,0) rectangle (axis cs:6.3621865272522,1.24901609618629);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.3621865272522,0) rectangle (axis cs:6.40812112092972,1.60777603870785);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.40812112092972,0) rectangle (axis cs:6.45405571460724,1.67155558404506);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.45405571460724,0) rectangle (axis cs:6.49999030828476,1.96387850017373);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.49999030828476,0) rectangle (axis cs:6.54592490196228,1.83897689055513);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.54592490196228,0) rectangle (axis cs:6.5918594956398,1.92401628433803);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.5918594956398,0) rectangle (axis cs:6.63779408931732,1.74596505360506);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.63779408931732,0) rectangle (axis cs:6.68372868299484,1.49616183436783);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.68372868299484,0) rectangle (axis cs:6.72966327667236,1.18257906979338);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.72966327667236,0) rectangle (axis cs:6.77559787034988,1.00718532011618);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.77559787034988,0) rectangle (axis cs:6.8215324640274,0.781299430380361);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.8215324640274,0) rectangle (axis cs:6.86746705770493,0.536811173254523);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.86746705770493,0) rectangle (axis cs:6.91340165138245,0.332185131964439);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.91340165138245,0) rectangle (axis cs:6.95933624505997,0.212598484457237);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:6.95933624505997,0) rectangle (axis cs:7.00527083873749,0.193996117067232);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.00527083873749,0) rectangle (axis cs:7.05120543241501,0.122244128562914);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.05120543241501,0) rectangle (axis cs:7.09714002609253,0.0770669506157484);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.09714002609253,0) rectangle (axis cs:7.14307461977005,0.0345472537243017);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.14307461977005,0) rectangle (axis cs:7.18900921344757,0.0212598484457237);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.18900921344757,0) rectangle (axis cs:7.23494380712509,0.00531496211143102);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.23494380712509,0) rectangle (axis cs:7.28087840080261,0.00531496211143102);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.28087840080261,0) rectangle (axis cs:7.32681299448013,0);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.32681299448013,0) rectangle (axis cs:7.37274758815765,0.00265748105571551);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.37274758815765,0) rectangle (axis cs:7.41868218183517,0.00265748105571546);
+\draw[fill=color1,draw opacity=0,fill opacity=0.5] (axis cs:7.41868218183517,0) rectangle (axis cs:7.4646167755127,0.00265748105571551);
+\node at (axis cs:0.95,0.01)[
+  scale=0.15,
+  anchor=south east,
+  text=white!50.19607843137255!black,
+  rotate=0.0,
+  align=right
+]{ By Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>
+and Siddhartha Mishra@ETHZ <siddhartha.mishra@sam.math.ethz.ch>
+and Deep Ray@EPFL<deep.ray@gmail.com>
+Commit: 903f2d08b408c730369cdc49c1327397727e3c02
+Repo: git@github.com:kjetil-lye/learning_airfoils.git
+Hostname: maschke};
+\end{axis}
+
+\end{tikzpicture}
