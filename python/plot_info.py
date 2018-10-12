@@ -74,7 +74,7 @@ def savePlot(name):
            show_info = False)
 
     savenamepng = 'img/' + name + '.png'
-    plt.savefig(savenamepng)
+    plt.savefig(savenamepng, bbox_inches='tight')
 
     writeMetadata(savenamepng, {'Copyright' : 'Copyright, Deep Ray@EPFL<deep.ray@gmail.com> and Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>'
                                })
