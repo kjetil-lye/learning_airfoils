@@ -12,7 +12,7 @@ legend style={at={(0.03,0.97)}, anchor=north west, draw=white!80.0!black},
 tick align=outside,
 tick pos=left,
 title={Comparison QMC with least squares
-integrated area: $[0.250000,0.500000]\times [0.500000,0.750000]$},
+integrated area: $[0.25,0.50]\times [0.50,0.75]$},
 width=\figurewidth,
 x grid style={white!69.01960784313725!black},
 xmin=1.15829597963428, xmax=2.19816699224752,
@@ -110,7 +110,7 @@ ymin=0, ymax=4.37530233106658
 ]{ By Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>
 and Siddhartha Mishra@ETHZ <siddhartha.mishra@sam.math.ethz.ch>
 and Deep Ray@EPFL<deep.ray@gmail.com>
-Commit: 903f2d08b408c730369cdc49c1327397727e3c02
+Commit: c9826116ee97698de16b928c13a3b3587999e9cf
 Repo: git@github.com:kjetil-lye/learning_airfoils.git
 Hostname: maschke};
 \end{axis}
