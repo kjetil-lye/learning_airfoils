@@ -8222,7 +8222,7 @@ x                      y\\
 ]{ By Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>
 and Siddhartha Mishra@ETHZ <siddhartha.mishra@sam.math.ethz.ch>
 and Deep Ray@EPFL<deep.ray@gmail.com>
-Commit: c26430b380fb18d3b581f5b2b87089829a75c37d
+Commit: d27087b78159080d6e8403ddfb8bf8e9bcdda3cd
 Repo: git@github.com:kjetil-lye/learning_airfoils.git
 Hostname: maschke};
 \end{axis}
