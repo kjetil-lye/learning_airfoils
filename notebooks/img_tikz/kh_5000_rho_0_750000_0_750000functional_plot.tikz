@@ -11,7 +11,7 @@ xmin=0, xmax=1,
 y grid style={white!69.01960784313725!black},
 ymin=0, ymax=1
 ]
-\addplot graphics [includegraphics cmd=\pgfimage,xmin=0, xmax=1, ymin=0, ymax=1] {kh_5000_rho_0_750000_0_750000functional_plot-002.png};
+\addplot graphics [includegraphics cmd=\pgfimage,xmin=0, xmax=1, ymin=0, ymax=1] {kh_5000_rho_0_750000_0_750000functional_plot-000.png};
 \node at (axis cs:0.95,0.01)[
   scale=0.15,
   anchor=south east,
@@ -21,9 +21,9 @@ ymin=0, ymax=1
 ]{ By Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>
 and Siddhartha Mishra@ETHZ <siddhartha.mishra@sam.math.ethz.ch>
 and Deep Ray@EPFL<deep.ray@gmail.com>
-Commit: d27087b78159080d6e8403ddfb8bf8e9bcdda3cd
-Repo: git@github.com:kjetil-lye/learning_airfoils.git
-Hostname: maschke};
+Commit: unknown
+Repo: unknown
+Hostname: 6d0e8bfa2219};
 \end{axis}
 
 \end{tikzpicture}
