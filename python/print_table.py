@@ -53,7 +53,8 @@ def make_classical_table_multicolumn(data, start):
     for r in data:
         for k in range(len(r)):
             if type(r[k]) == str:
-                r[k] = r[k].replace("_", "\_")
+                pass
+                #r[k] = r[k].replace("_", "\_")
 
 
 
