@@ -321,8 +321,8 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     norms = [1, 2]
     norm_names = ["$L^1$", "$L^2$"]
     for norm, norm_name in zip(norms, norm_names):
-        prediction_error = np.sum(np.norm(data - model.predict(parameters), ord=norm, axis=1))/data.shape[0]
-        prediction_error_lsq = np.sum(np.norm(data - evaluated_lsq, ord=norm, axis=1))/data.shape[0]
+        prediction_error = np.sum(np.linalg.norm(data - model.predict(parameters), ord=norm, axis=1))/data.shape[0]
+        prediction_error_lsq = np.sum(np.linalg.norm(data - evaluated_lsq, ord=norm, axis=1))/data.shape[0]
 
 
 
