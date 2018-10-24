@@ -29,6 +29,13 @@ import scipy.stats
 
 import os
 from print_table import *
+import resource
+import gc
+def print_memory_usage():
+    gc.collect()
+    
+
+    print("Memory usage: %s" %  resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
 
 class NetworkInformation(object):
@@ -36,7 +43,8 @@ class NetworkInformation(object):
                  train_size, validation_size,
                  activation='relu',
                  error_length=1000,
-                 loss='mean_squared_error'):
+                 loss='mean_squared_error',
+                 tries=5):
         self.network = network
         self.optimizer = optimizer
         self.epochs = epochs
@@ -45,6 +53,7 @@ class NetworkInformation(object):
         self.activation=activation
         self.error_length = 1000
         self.loss = loss
+        self.tries=tries
 
 
 class Tables(object):
@@ -102,7 +111,7 @@ def get_network(parameters, data, *, network_information, output_information):
 
     tries = 5
     start_total_learning = time.time()
-    for trylearn in range(tries):
+    for trylearn in range(network_information.tries):
         model = Sequential()
         model.add(Dense(network_information.network[0],
             input_shape=(input_size,),
@@ -151,6 +160,8 @@ def get_network(parameters, data, *, network_information, output_information):
         plt.ylabel('Loss')
         plt.title("Training and validation loss\n%s\n(epochs=%d)" % (title, epochs))
         plt.show()
+
+        gc.collect()
 
     end_total_learning = time.time()
 
@@ -205,6 +216,8 @@ def get_network(parameters, data, *, network_information, output_information):
     model.summary()
     print("Number of parameters: %d"% model.count_params())
 
+    gc.collect()
+
     return  model, data, parameters
 
 
@@ -257,7 +270,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     predicted = predicted.reshape(parameters.shape[0])
     variance_diff_ml = myvar(data- predicted)
 
-
+    
     bilevel_speedup_table.set_header(["Functional", "DLbQMC Speedup"])
     bilevel_speedup_table.add_row([output_information.short_title, variance_top/variance_diff_ml])
 
@@ -288,7 +301,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
 
     print(parameters.shape)
-
+    gc.collect()
 
     plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
     plt.title("Comparison QMC and DLQMC\n%s\nepochs=%d"% (title, epochs))
@@ -320,24 +333,27 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     prediction_error_table.set_header(["Functional", "Deep learning", "Least squares"])
     norms = [1, 2]
     norm_names = ["$L^1$", "$L^2$"]
+
+    print_memory_usage()
     for norm, norm_name in zip(norms, norm_names):
-        prediction_error = np.sum(np.linalg.norm(data - model.predict(parameters), ord=norm))/data.shape[0]
-        prediction_error_lsq = np.sum(np.linalg.norm(data - evaluated_lsq, ord=norm))/data.shape[0]
+        prediction_error = np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=norm))/data.shape[0]
+        prediction_error_lsq = np.sum(np.linalg.norm(data - np.reshape(evaluated_lsq, data.shape), ord=norm))/data.shape[0]
 
 
 
         prediction_error_table.add_row(["{} ({})".format(output_information.short_title,
             norm_name), prediction_error, prediction_error_lsq])
 
+    print_memory_usage()
 
 
 
-
-
+    gc.collect()
 
     samples = range(0,data.shape[0])
     stats = {}
     for stat in ['mean', 'var']:
+        gc.collect()
         stats[stat]={}
         stats[stat]['sources']={}
         if stat == 'mean':
@@ -393,6 +409,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
         stats[stat]['sources']['QMC %d' % train_size]['representative'] = stats[stat]['sources']['QMC']['data'][train_size]
     sources = [source for source in stats['mean']['sources'].keys()]
     datatable = [[],[],[]]
+    print_memory_usage()
     for source in sources:
         datatable[0].append(source)
     comparison_table.set_upper_header(datatable[0])
