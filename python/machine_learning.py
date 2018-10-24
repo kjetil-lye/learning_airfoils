@@ -2,6 +2,20 @@
 # coding: utf-8
 
 
+import numpy.random
+import tensorflow
+import os
+import random
+def seed_random_number(seed):
+    # see https://stackoverflow.com/a/52897216
+    numpy.random.seed(seed)
+    tensorflow.set_random_seed(seed)
+    os.environ['PYTHONHASHSEED']=str(seed)
+    random.seed(seed)
+random_seed = 42
+
+
+seed_random_number(random_seed)
 
 import sys
 import time
@@ -10,16 +24,6 @@ from plot_info import *
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 import keras
-random_seed = 42
-
-import numpy.random
-import tensorflow
-
-def seed_random_number(seed):
-    numpy.random.seed(seed)
-    tensorflow.set_random_seed(seed)
-
-seed_random_number(random_seed)
 import matplotlib
 import matplotlib.pyplot as plt
 import netCDF4
@@ -350,7 +354,12 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
     gc.collect()
 
-    samples = range(0,data.shape[0])
+    samples = 2**np.arange(2,int(log2(data.shape[0]))+1)
+    if samples[-1] != data.shape[0]:
+        samples = [k for k in samples]
+        samples.append(data.shape[0])
+        samples=np.array(samples)
+        
     stats = {}
     for stat in ['mean', 'var']:
         gc.collect()
@@ -406,7 +415,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
         plt.legend()
         showAndSave('function_of_samples_airfoil_%s_%s'  % (stat, title))
         stats[stat]['sources']['QMC %d' % train_size] = {}
-        stats[stat]['sources']['QMC %d' % train_size]['representative'] = stats[stat]['sources']['QMC']['data'][train_size]
+        stats[stat]['sources']['QMC %d' % train_size]['representative'] = stats[stat]['compute'](data[:train_size])#stats[stat]['sources']['QMC']['data'][train_size]
     sources = [source for source in stats['mean']['sources'].keys()]
     datatable = [[],[],[]]
     print_memory_usage()
@@ -460,8 +469,8 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     for stat in ['mean', 'var']:
         errors_qmc = []
 
-        for k in samples[1:-2]:
-            errors_qmc.append(abs(stats[stat]['sources']['QMC']['representative']-                                      stats[stat]['sources']['QMC']['data'][k]))
+        for k in range(len(samples[1:-2])):
+            errors_qmc.append(abs(stats[stat]['sources']['QMC']['representative']-                                      stats[stat]['sources']['QMC']['data'][k+1]))
         plt.loglog(samples[1:-2], errors_qmc, label='QMC error')
         plt.axvline(x=train_size, linestyle='--', color='grey')
 
