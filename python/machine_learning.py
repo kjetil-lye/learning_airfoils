@@ -35,7 +35,8 @@ class NetworkInformation(object):
     def __init__(self, *, optimizer, epochs, network,
                  train_size, validation_size,
                  activation='relu',
-                 error_length=1000):
+                 error_length=1000,
+                 loss='mean_squared_error'):
         self.network = network
         self.optimizer = optimizer
         self.epochs = epochs
@@ -43,6 +44,9 @@ class NetworkInformation(object):
         self.validation_size = validation_size
         self.activation=activation
         self.error_length = 1000
+        self.loss = loss
+
+
 class Tables(object):
     def __init__(self, tables):
         self.tables = tables
@@ -111,7 +115,7 @@ def get_network(parameters, data, *, network_information, output_information):
 
 
         model.compile(optimizer=optimizer(lr=0.01),
-                      loss='mean_squared_error')
+                      loss=network_information.loss)
 
         weights = np.copy(model.get_weights())
 
@@ -309,15 +313,21 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     showAndSave('hist_qmc_lsq')
 
 
-    prediction_error = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
-        model.predict(parameters))))/data.shape[0]
-    prediction_error_lsq = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
-        evaluated_lsq)))/data.shape[0]
-
-
+    #prediction_error = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
+    #    model.predict(parameters))))/data.shape[0]
+    #prediction_error_lsq = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
+    #    evaluated_lsq)))/data.shape[0]
     prediction_error_table.set_header(["Functional", "Deep learning", "Least squares"])
-    prediction_error_table.add_row([output_information.short_title, prediction_error,
-        prediction_error_lsq])
+    norms = [1, 2]
+    norm_names = ["$L^1$", "$L^2$"]
+    for norm, norm_name in zip(norms, norm_names):
+        prediction_error = np.sum(np.norm(data - model.predict(parameters), ord=norm, axis=1))/data.shape[0]
+        prediction_error_lsq = np.sum(np.norm(data - evaluated_lsq, ord=norm, axis=1))/data.shape[0]
+
+
+
+        prediction_error_table.add_row(["{} ({})".format(output_information.short_title,
+            norm_name), prediction_error, prediction_error_lsq])
 
 
 
