@@ -86,6 +86,7 @@ def savePlot(name):
 def showAndSave(name):
     savePlot(name)
     plt.show()
+    plt.close()
 
 showAndSave.prefix=''
 

@@ -48,7 +48,8 @@ class NetworkInformation(object):
                  activation='relu',
                  error_length=1000,
                  loss='mean_squared_error',
-                 tries=5):
+                 tries=5,
+                 selection='train'):
         self.network = network
         self.optimizer = optimizer
         self.epochs = epochs
@@ -58,6 +59,7 @@ class NetworkInformation(object):
         self.error_length = 1000
         self.loss = loss
         self.tries=tries
+        self.selection=selection
 
 
 class Tables(object):
@@ -150,7 +152,12 @@ def get_network(parameters, data, *, network_information, output_information):
         print("Training took {} seconds".format(end_training_time-start_training_time))
         console_log("Training took {} seconds".format(end_training_time-start_training_time))
 
-        train_error = np.sum(hist.history['loss'][-min(network_information.error_length,epochs):])
+        if network_information.selection == 'train':
+            train_error = np.sum(hist.history['loss'][-min(network_information.error_length,epochs):])
+        elif network_information.selection == 'prediction':
+            train_error = np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=2))/data.shape[0]
+        else:
+            raise Exception("Unknown selection %s" % network_information.selection)
         if best_network is None or train_error < best_learning_rate:
             best_network = model
             best_network_index = trylearn
@@ -339,8 +346,11 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     norm_names = ["$L^1$", "$L^2$"]
 
     print_memory_usage()
+    output_information.prediction_error = {}
     for norm, norm_name in zip(norms, norm_names):
         prediction_error = np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=norm))/data.shape[0]
+
+        output_information.prediction_error[norm] = prediction_error
         prediction_error_lsq = np.sum(np.linalg.norm(data - np.reshape(evaluated_lsq, data.shape), ord=norm))/data.shape[0]
 
 
