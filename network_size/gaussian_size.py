@@ -1,8 +1,19 @@
+import os
+import sobol
+import resource
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+
 
 
 
 
 import sys
+if len(sys.argv) != 4:
+    print("Usage:\n\tpython {} number_of_widths number_of_heights dimension\n\n".format(sys.argv[0]))
+    exit(1)
+
+
 sys.path.append('../python')
 
 import matplotlib
@@ -18,12 +29,6 @@ sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
 K.set_session(sess)
 
 import scipy.stats
-import os
-import sobol
-import resource
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
-
 
 
 
@@ -33,7 +38,7 @@ def generate_sobol_points(M, dim):
         points.append(sobol.i4_sobol(dim,i)[0])
     return np.array(points)
 
-dim = 6
+dim = int(sys.argv[3])
 M = int(2**16)
 
 data_sources = {"QMC Sobol" : generate_sobol_points(M, dim)}
@@ -51,9 +56,6 @@ functionals = {
                "Sine" : sine_functional
                }
 
-if len(sys.argv) != 3:
-    print("Usage:\n\tpython {} number_of_widths number_of_heights\n\n".format(sys.argv[0]))
-    exit(1)
 
 number_of_widths=int(sys.argv[1])
 number_of_depths = int(sys.argv[2])
@@ -89,7 +91,7 @@ parameters = data_sources['QMC Sobol']
 samples = functionals['Sine'](parameters)
 
 def train(*, parameters, samples, title):
-    train_sizes = [ 1024, 2048, 4096, 8192]
+    train_sizes = [ 1024, 2048, 4096, 8192, 2*8192, 4*8192]
     
     optimizers = {"SGD": keras.optimizers.SGD}
     
@@ -140,7 +142,8 @@ def train(*, parameters, samples, title):
                     np.save('prediction_errors.npy', prediction_errors)
                     plt.savefig('prediction_error.png')
                     showAndSave('prediction_errors')
-                    best_predictions=np.amin(prediction_errors)
+                    best_predictions.append(np.amin(prediction_errors))
+                    print_memory_usage()
     if rank == 0:
         plt.plot(train_sizes, best_predictions, '-*')
         plt.savefig('best_prediction.png')
