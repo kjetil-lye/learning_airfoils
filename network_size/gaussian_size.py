@@ -39,7 +39,7 @@ def generate_sobol_points(M, dim):
     return np.array(points)
 
 dim = int(sys.argv[3])
-M = int(2**16)
+M = int(2**20)
 
 data_sources = {"QMC Sobol" : generate_sobol_points(M, dim)}
                 
@@ -139,7 +139,7 @@ def train(*, parameters, samples, title):
                     plt.yscale('log')
                     plt.colorbar()
                     showAndSave.prefix='network_%s' % train_size
-                    np.save('prediction_errors.npy', prediction_errors)
+                    np.save(showAndSave.prefix + '_prediction_errors.npy', prediction_errors)
                     plt.savefig('prediction_error.png')
                     showAndSave('prediction_errors')
                     best_predictions.append(np.amin(prediction_errors))
