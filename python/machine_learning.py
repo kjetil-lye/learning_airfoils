@@ -172,8 +172,7 @@ def get_network(parameters, data, *, network_information, output_information):
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
         plt.title("Training and validation loss\n%s\n(epochs=%d)" % (title, epochs))
-        plt.show()
-
+        showAndSave('dummy')
         gc.collect()
 
     end_total_learning = time.time()
@@ -219,14 +218,13 @@ def get_network(parameters, data, *, network_information, output_information):
     x_test = parameters
     y_test = data
     y_predict = model.predict(x_test)
-    print(y_test.shape)
-    print(y_predict.shape)
+
     plt.scatter(y_test, y_predict[:,0])
     plt.title("Scatter plot, \n%s,\n epochs=%d" % (title, epochs))
     plt.xlabel("Actual data")
     plt.ylabel("Predicted data")
     showAndSave("scatter_ml")
-    model.summary()
+
     print("Number of parameters: %d"% model.count_params())
 
     gc.collect()
@@ -315,29 +313,30 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
     print(parameters.shape)
     gc.collect()
+    try:
+        plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+        plt.title("Comparison QMC and DLQMC\n%s\nepochs=%d"% (title, epochs))
+        plt.hist(network.predict(parameters),bins=40,density=True,
+        label='DLQMC(%d samples)' % train_size,alpha=0.5)
+        plt.legend()
+        showAndSave('hist_qmc_ml')
 
-    plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-    plt.title("Comparison QMC and DLQMC\n%s\nepochs=%d"% (title, epochs))
-    plt.hist(network.predict(parameters),bins=40,density=True,
-    label='DLQMC(%d samples)' % train_size,alpha=0.5)
-    plt.legend()
-    showAndSave('hist_qmc_ml')
 
+        plt.title("Comparison QMC with %d and QMC with %d samples\n%s" %(8192, train_size, title))
+        plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+        plt.hist(data[:train_size],bins=40,density=True, alpha=0.5,
+        label='QMC %d samples' % train_size)
+        plt.legend()
+        showAndSave('hist_qmc_qmc')
 
-    plt.title("Comparison QMC with %d and QMC with %d samples\n%s" %(8192, train_size, title))
-    plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-    plt.hist(data[:train_size],bins=40,density=True, alpha=0.5,
-    label='QMC %d samples' % train_size)
-    plt.legend()
-    showAndSave('hist_qmc_qmc')
-
-    plt.title("Comparison QMC with least squares\n%s" % title)
-    plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-    plt.hist(evaluated_lsq,bins=40,density=True,alpha=0.5,
-        label='Least squares (%d points)' % train_size)
-    plt.legend()
-    showAndSave('hist_qmc_lsq')
-
+        plt.title("Comparison QMC with least squares\n%s" % title)
+        plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+        plt.hist(evaluated_lsq,bins=40,density=True,alpha=0.5,
+            label='Least squares (%d points)' % train_size)
+        plt.legend()
+        showAndSave('hist_qmc_lsq')
+    except Exception as e:
+        print(e)
 
     #prediction_error = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
     #    model.predict(parameters))))/data.shape[0]
