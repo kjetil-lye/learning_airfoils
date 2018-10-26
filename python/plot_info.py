@@ -1,6 +1,7 @@
 
 import numpy
 import glob
+import sys
 
 import matplotlib
 matplotlib.rcParams['savefig.dpi']=600
@@ -43,6 +44,24 @@ except:
                 'git_branch' : 'unknown',
                 'git_remote_url' : 'unknown'}
 
+# From https://stackoverflow.com/a/6796752
+class RedirectStdStreams(object):
+    def __init__(self, stdout=None, stderr=None):
+        self._stdout = stdout or sys.stdout
+        self._stderr = stderr or sys.stderr
+
+    def __enter__(self):
+        self.old_stdout, self.old_stderr = sys.stdout, sys.stderr
+        self.old_stdout.flush(); self.old_stderr.flush()
+        sys.stdout, sys.stderr = self._stdout, self._stderr
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._stdout.flush(); self._stderr.flush()
+        sys.stdout = self.old_stdout
+        sys.stderr = self.old_stderr
+
+
+
 
 
 def writeMetadata(filename, data):
@@ -68,10 +87,14 @@ def savePlot(name):
          fontsize=3, color='gray',
          ha='right', va='bottom', alpha=0.5, transform=ax.transAxes)
 
-    matplotlib2tikz.save('img_tikz/' + name + '.tikz',
+    # We don't want all the output from matplotlib2tikz
+    devnull = open(os.devnull, 'w')
+    with RedirectStdStreams(stdout=devnull, stderr=devnull):
+        matplotlib2tikz.save('img_tikz/' + name + '.tikz',
            figureheight = '\\figureheight',
            figurewidth = '\\figurewidth',
            show_info = False)
+
 
     savenamepng = 'img/' + name + '.png'
     plt.savefig(savenamepng, bbox_inches='tight')
@@ -85,10 +108,12 @@ def savePlot(name):
                                 'generated_on_date': str(datetime.datetime.now())})
 def showAndSave(name):
     savePlot(name)
-    plt.show()
+    if not showAndSave.silent:
+        plt.show()
     plt.close()
 
 showAndSave.prefix=''
+showAndSave.silent=False
 
 
 def legendLeft():
@@ -104,5 +129,3 @@ def console_log(x):
         f.write("%s\n"%x)
         f.write('------------DEBUG OUTPUT------------\n\n')
         f.flush()
-
-

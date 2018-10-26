@@ -38,6 +38,8 @@ class TableBuilder(object):
         multicolumn = self.lower_header is not None
 
         print_comparison_table(outname, data, multicolumn)
+
+
 def format_latex(d):
 
     if type(d) == str:
@@ -156,6 +158,9 @@ def make_booktabs_table_multicolumn(data, start):
         table += "\\bottomrule\n"
         table += "\\end{tabular}\n"
         return table
+
+
+
 def print_comparison_table(outname, data, multicolumn = False):
     if showAndSave.prefix != '':
         outname = '%s_%s' % (showAndSave.prefix, outname)
@@ -216,16 +221,17 @@ def print_comparison_table(outname, data, multicolumn = False):
 
 
     github  = tabulate.tabulate(data, tablefmt='github')
-    print("")
-    print("")
+    if not print_comparison_table.silent:
+        print("")
+        print("")
 
-    print('#'*(len(outname)+2))
-    print('#%s#' % outname)
-    print('#'*(len(outname)+2))
-    print(github)
-    print('#'*(len(outname)+2))
-    print("")
-    print("")
+        print('#'*(len(outname)+2))
+        print('#%s#' % outname)
+        print('#'*(len(outname)+2))
+        print(github)
+        print('#'*(len(outname)+2))
+        print("")
+        print("")
     with open('tables/%s.github' % outname,'w') as f:
         f.write(github)
 
@@ -235,6 +241,7 @@ def print_comparison_table(outname, data, multicolumn = False):
         for r in data:
             writer.writerow(r)
 
+print_comparison_table.silent = False
 
 def print_keras_model_as_table(outname, model):
     data = [["Layer", "Size", "Parameters"]]
