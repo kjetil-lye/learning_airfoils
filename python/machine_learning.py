@@ -37,7 +37,7 @@ import resource
 import gc
 def print_memory_usage():
     gc.collect()
-    
+
 
     print("Memory usage: %s" %  resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
@@ -49,7 +49,8 @@ class NetworkInformation(object):
                  error_length=1000,
                  loss='mean_squared_error',
                  tries=5,
-                 selection='train'):
+                 selection='train',
+                 large_integration_points=None):
         self.network = network
         self.optimizer = optimizer
         self.epochs = epochs
@@ -60,6 +61,7 @@ class NetworkInformation(object):
         self.loss = loss
         self.tries=tries
         self.selection=selection
+        self.large_integration_points = large_integration_points
 
 
 class Tables(object):
@@ -281,7 +283,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     predicted = predicted.reshape(parameters.shape[0])
     variance_diff_ml = myvar(data- predicted)
 
-    
+
     bilevel_speedup_table.set_header(["Functional", "DLbQMC Speedup"])
     bilevel_speedup_table.add_row([output_information.short_title, variance_top/variance_diff_ml])
 
@@ -369,7 +371,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
         samples = [k for k in samples]
         samples.append(data.shape[0])
         samples=np.array(samples)
-        
+
     stats = {}
     for stat in ['mean', 'var']:
         gc.collect()
@@ -500,7 +502,18 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
 
     ###### Speedup Wasserstein
+
     data_modified = data
+    if int(log2(data_modified.shape[0])) != log2(data_modified.shape[0]):
+        # if the data size is not a power of two, we paod the array with the
+        # same value at the end.
+        data_modified_tmp = []
+
+        for d in data_modified:
+            data_modified_tmp.append(d)
+        for k in range(2*2**int(log2(data_modified.shape[0]))-data_modified.shape[0]):
+            data_modified_tmp.append(data_modified[-1])
+        data_modified = np.array(data_modified_tmp)
     N_wasser = 2**(int(log2(data_modified.shape[0])))
     data_wasser = data_modified[:N_wasser]
     qmc_upscaled = repeat(data[:train_size], N_wasser/train_size)
@@ -538,6 +551,42 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     plt.title('Error (Wasserstein) compared to QMC\n%s' % title)
     plt.legend()
     showAndSave("error_evolution_wasserstein")
+
+
+
+    if network_information.large_integration_points is not None:
+        qmc_large = network_information.large_integration_points
+        errors_qmc = []
+
+        for k in range(1, int(log2(data_modified.shape[0]))):
+            qmc_upscaled = repeat(data_modified[:int(2**k)], N_wasser//int(2**k))
+            errors_qmc.append(scipy.stats.wasserstein_distance(data_wasser, qmc_upscaled))
+
+        samples_wasser = 2**array(range(1, int(log2(data_modified.shape[0]))))
+
+        evaluated_lsq_large = coeffs.predict(qmc_large)
+
+        print("Trying with a large number of QMC samples %d" % qmc_large.shape[0])
+        large_predicted = np.reshape(model.predict(qmc_large), qmc_large.shape[0])
+        data_wasser_large = np.repeat(data_wasser, qmc_large.shape[0]/data_wasser.shape[0])
+
+        wasser_qmc_ml = scipy.stats.wasserstein_distance(data_wasser_large, large_predicted)
+        wasser_qmc_lsq = scipy.stats.wasserstein_distance(data_wasser_large, evaluated_lsq_large)
+
+        speedup_qmc = wasser_qmc_qmc / wasser_qmc_qmc
+        speedup_ml =  wasser_qmc_qmc / wasser_qmc_ml
+        speedup_lsq = wasser_qmc_qmc / wasser_qmc_lsq
+
+        plt.loglog(samples_wasser, errors_qmc, '-o', label='QMC error')
+
+        plt.loglog(samples_wasser, wasser_qmc_ml*ones_like(samples_wasser), '--', label='DLMC error')
+        plt.loglog(samples_wasser, wasser_qmc_lsq*ones_like(samples_wasser), '--', label='LSQ error')
+        plt.axvline(x=train_size, linestyle='--', color='grey')
+        plt.xlabel('Number of samples for QMC')
+        plt.ylabel('Error (Wasserstein)')
+        plt.title('Error (Wasserstein) compared to QMC(using more samples)\n%s' % title)
+        plt.legend()
+        showAndSave("error_evolution_wasserstein_large")
 
     console_log("done one configuration")
 
