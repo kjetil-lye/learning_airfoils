@@ -98,6 +98,12 @@ class OutputInformation(object):
         self.tables.write_tables()
 
 
+def compute_prediction_error(data, data_predicted, train_size, norm_ord):
+    base = max(np.linalg.norm(data, ord=norm_ord), 1)/data.shape[0]
+
+    diff = np.linalg.norm(data[train_size:]-data_predicted[train_size:], ord=norm_ord)/(data.shape[0]-train_size)
+
+    return diff / base
 
 def get_network(parameters, data, *, network_information, output_information):
     train_size = network_information.train_size
@@ -157,7 +163,7 @@ def get_network(parameters, data, *, network_information, output_information):
         if network_information.selection == 'train':
             train_error = np.sum(hist.history['loss'][-min(network_information.error_length,epochs):])
         elif network_information.selection == 'prediction':
-            train_error = np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=2))/data.shape[0]
+            train_error = compute_prediction_error(data, np.reshape(model.predict(parameters), data.shape), train_size, norm)#np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=2))/data.shape[0]
         else:
             raise Exception("Unknown selection %s" % network_information.selection)
         if best_network is None or train_error < best_learning_rate:
@@ -339,6 +345,16 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     showAndSave('hist_qmc_lsq')
 
 
+    if network_information.large_integration_points is not None:
+        print("Computing large integration points")
+        plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+        plt.title("Comparison QMC and DLQMC (large integration points)\n%s\nepochs=%d"% (title, epochs))
+        plt.hist(network.predict(network_information.large_integration_points),bins=40,density=True,
+                 label='DLQMC(%d samples)' % train_size,alpha=0.5)
+        plt.legend()
+        showAndSave('hist_qmc_ml_large')
+
+
     #prediction_error = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
     #    model.predict(parameters))))/data.shape[0]
     #prediction_error_lsq = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
@@ -350,10 +366,10 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     print_memory_usage()
     output_information.prediction_error = {}
     for norm, norm_name in zip(norms, norm_names):
-        prediction_error = np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=norm))/data.shape[0]
+        prediction_error = compute_prediction_error(data, np.reshape(model.predict(parameters), data.shape), train_size, norm)
 
         output_information.prediction_error[norm] = prediction_error
-        prediction_error_lsq = np.sum(np.linalg.norm(data - np.reshape(evaluated_lsq, data.shape), ord=norm))/data.shape[0]
+        prediction_error_lsq = compute_prediction_error(data, np.reshape(evaluated_lsq, data.shape),train_size, norm)
 
 
 
