@@ -347,7 +347,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     if network_information.large_integration_points is not None:
         print("Computing large integration points")
         plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-        plt.title("Comparison QMC and DLQMC (large integration points)\n%s\nepochs=%d"% (title, epochs))
+        plt.title("Comparison QMC and DLQMC (large integration points with %d points)\n%s\nepochs=%d"% (network_information.large_integration_points.shape[0], title, epochs))
         plt.hist(network.predict(network_information.large_integration_points),bins=40,density=True,
                  label='DLQMC(%d samples)' % train_size,alpha=0.5)
         plt.legend()
@@ -498,7 +498,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
         for k in range(len(samples[1:-2])):
             errors_qmc.append(abs(stats[stat]['sources']['QMC']['representative']-                                      stats[stat]['sources']['QMC']['data'][k+1]))
-        plt.loglog(samples[1:-2], errors_qmc, label='QMC error')
+        plt.loglog(samples[1:-2], errors_qmc, '-o', label='QMC error')
         plt.axvline(x=train_size, linestyle='--', color='grey')
 
         for competitor in ['DLbQMC', 'DLQMC', 'Least squares']:
