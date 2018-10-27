@@ -163,7 +163,7 @@ def get_network(parameters, data, *, network_information, output_information):
         if network_information.selection == 'train':
             train_error = np.sum(hist.history['loss'][-min(network_information.error_length,epochs):])
         elif network_information.selection == 'prediction':
-            train_error = compute_prediction_error(data, np.reshape(model.predict(parameters), data.shape), train_size, norm)#np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=2))/data.shape[0]
+            train_error = compute_prediction_error(data, np.reshape(model.predict(parameters), data.shape), train_size, 2)#np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=2))/data.shape[0]
         else:
             raise Exception("Unknown selection %s" % network_information.selection)
         if best_network is None or train_error < best_learning_rate:
