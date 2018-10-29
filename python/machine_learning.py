@@ -480,19 +480,25 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
     speedup_table.set_lower_header(speeduptable[1])
 
+
     for competitor in competitors:
         for stat in ['mean', 'var']:
 
+            
 
-            error = abs(stats[stat]['sources'][competitor]['representative']-                        stats[stat]['sources'][baseline]['representative'])
+            error = abs(stats[stat]['sources'][competitor]['representative']-stats[stat]['sources'][baseline]['representative'])
 
-            error_base = abs(stats[stat]['sources'][small_baseline]['representative']-                             stats[stat]['sources'][baseline]['representative'])
+            error_base = abs(stats[stat]['sources'][small_baseline]['representative']-stats[stat]['sources'][baseline]['representative'])
 
             speedup = error_base/error
 
             speeduptable[2].append(speedup)
     speedup_table.add_row([output_information.short_title] + speeduptable[2])
+    output_information.stat_error = {}
 
+    for stat in ['mean', 'var']:
+        output_information.stat_error[stat] = abs(stats[stat]['sources'][competitor]['representative']-stats[stat]['sources'][baseline]['representative'])/abs(stats[stat]['sources'][baseline]['representative'])
+        output_information.stat_error['%s_comparison' % stat] = abs(stats[stat]['sources'][small_baseline]['representative']-stats[stat]['sources'][baseline]['representative'])/abs(stats[stat]['sources'][baseline]['representative'])
     for stat in ['mean', 'var']:
         errors_qmc = []
 
@@ -549,6 +555,8 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
 
 
+    output_information.stat_error['wasserstein'] = wasser_qmc_ml
+    output_information.stat_error['wasserstein_comparison'] = wasser_qmc_qmc
     errors_qmc = []
 
     for k in range(1, int(log2(data_modified.shape[0]))):
