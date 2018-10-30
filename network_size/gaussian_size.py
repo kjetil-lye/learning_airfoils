@@ -42,7 +42,7 @@ dim = int(sys.argv[3])
 M = int(2**20)
 
 data_sources = {"QMC Sobol" : generate_sobol_points(M, dim)}
-                
+
 
 def sine_functional(x):
     return np.sum(np.sin(4*np.pi*x), 1)
@@ -90,81 +90,106 @@ epochs = 500
 parameters = data_sources['QMC Sobol']
 samples = functionals['Sine'](parameters)
 
-def train(*, parameters, samples, title):
-    train_sizes = [ 1024, 2048, 4096, 8192, 2*8192, 4*8192]
-    
+def train(*, parameters, samples, title, train_size):
+
+
     optimizers = {"SGD": keras.optimizers.SGD}
-    
+
     losses = ["mean_squared_error"]
     best_predictions = []
-    for optimizer in optimizers.keys():
-        for loss in losses:
-            for train_size in train_sizes:
-                tables = Tables.make_default()
-                batch_size = train_size
-                validation_size=train_size
-                
-                
-                
-                network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epochs, 
-                                                             network=gaussian_network, train_size=train_size,
-                                                             validation_size=validation_size,
-                                                            loss=loss, tries=5, selection='prediction')
-                    
-                output_information = OutputInformation(tables=tables, title=title,
-                                                          short_title=title)
-                showAndSave.prefix='%s_%s_%s_ts_%d_bs_%d' %(title, optimizer, loss, batch_size, train_size)
-                get_network_and_postprocess(parameters, samples, network_information = network_information,
-                        output_information = output_information)
-                
-                showAndSave.prefix='%s_%s_%s_all_ts_%d_bs_%d' %(title, optimizer, loss, batch_size, train_size)
-                tables.write_tables()
+    optimizer = 'SGD'
+    loss = losses[0]
+    tables = Tables.make_default()
+    batch_size = train_size
+    validation_size=train_size
 
-                prediction_error = output_information.prediction_error[2]
 
-                prediction_errors = comm.gather(prediction_error, root=0)
 
-                if rank == 0:
-                    widths_all = base_width*2**np.arange(0, number_of_widths)
-                    depths_all = base_depth*2**np.arange(0, number_of_depths)
+    network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epochs,
+                                             network=gaussian_network, train_size=train_size,
+                                             validation_size=validation_size,
+                                            loss=loss, tries=5, selection='prediction')
 
-                    w,d = np.meshgrid(widths_all, depths_all)
-                    
-                    prediction_errors = np.reshape(np.array(prediction_errors), w.shape)
+    output_information = OutputInformation(tables=tables, title=title,
+                                          short_title=title)
+    showAndSave.prefix='%s_%s_%s_ts_%d_bs_%d' %(title, optimizer, loss, batch_size, train_size)
+    get_network_and_postprocess(parameters, samples, network_information = network_information,
+        output_information = output_information)
 
-                    print(prediction_errors)
-                    plt.pcolormesh(w, d, prediction_errors)
-                    
-                    plt.xscale('log')
-                    plt.yscale('log')
-                    plt.colorbar()
-                    showAndSave.prefix='network_%s' % train_size
-                    np.save(showAndSave.prefix + '_prediction_errors.npy', prediction_errors)
-                    plt.savefig('prediction_error.png')
-                    showAndSave('prediction_errors')
-                    best_predictions.append(np.amin(prediction_errors))
-                    print_memory_usage()
-    if rank == 0:
-        plt.plot(train_sizes, best_predictions, '-*')
-        plt.savefig('best_prediction.png')
-        showAndSave('best_prediction')
-    
-            
-    
+    showAndSave.prefix='%s_%s_%s_all_ts_%d_bs_%d' %(title, optimizer, loss, batch_size, train_size)
+    tables.write_tables()
+
+    prediction_error = output_information.prediction_error[2]
+
+    return prediction_error
+
+
+
+
 
 
 # # Training
 
 # In[4]:
+all_depths = base_depth * 2**np.arange(0, number_of_depths)
+all_widths = base_width * 2**np.arange(0, number_of_widths)
+best_predictions = []
+tain_sizes = 2**np.arange(3,12)
+for train_size in train_sizes:
+    prediction_errors = np.zeros((len(depths), len(widths)))
+    for depth in depths:
+        for width in widths:
+            depth = int(depth)
+            width=int(width)
+            gaussian_network = [width for k in range(depth)]
+            gaussian_network.append(1)
+            title='{}_{}' .format (depth, width)
+            prediction_errors[depth, width] = train(parameters=parameters, samples=samples, title=title)
 
+    # doing this the safe way
+    comm.barrier()
+    prediction_errors_all = None
+    if rank == 0:
+        prediction_errors_all = np.zeros((number_of_depths, number_of_widths))
 
-for depth in depths:
-    for width in widths:
-        depth = int(depth)
-        width=int(width)
-        gaussian_network = [width for k in range(depth)]
-        gaussian_network.append(1)
-        title='{}_{}' .format (depth, width)
-        train(parameters=parameters, samples=samples, title=title)
-   
+    for n in range(len(depths)):
+        for m in range(len(widths)):
+            # This could probably have been done with one gather, but doing it
+            # the stupid way to make sure it is correct
+            sub_errors = comm.gather([depths[n], widths[m], prediction_errors[n,m]],
+                root=0)
 
+            if rank == 0:
+                for error_pair in sub_errors:
+                    depth = error_pair[0]
+                    width = error_pair[1]
+                    error = error_pair[2]
+
+                    i = all_depths.index(depth)
+                    j = all_widths.index(width)
+
+                    prediction_errors_all[i,j] = error
+
+    if rank == 0:
+        w,d = np.meshgrid(all_widths, all_widths)
+
+        plt.pcolormesh(w, d, prediction_errors_all)
+
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.colorbar()
+        showAndSave.prefix='network_%s' % train_size
+        np.save(showAndSave.prefix + '_prediction_errors.npy', prediction_errors)
+
+        showAndSave('prediction_errors')
+        best_predictions.append(np.amin(prediction_errors_all))
+        print_memory_usage()
+
+if rank == 0:
+    plt.loglog(train_sizes, best_predictions, '-o')
+    plt.xlabel('Training size')
+    plt.ylabel("Best prediction error")
+
+    showAndSave.prefix = 'network_'
+    showAndSave('best_network')
+    print(best_predictions)
