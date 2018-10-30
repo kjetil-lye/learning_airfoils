@@ -84,7 +84,7 @@ depths = base_depth*2**np.arange(start_depth, start_depth + number_of_depths_per
 
 
 
-epochs = 500
+epochs = 5
 
 
 parameters = data_sources['QMC Sobol']
@@ -134,17 +134,18 @@ def train(*, parameters, samples, title, train_size):
 all_depths = base_depth * 2**np.arange(0, number_of_depths)
 all_widths = base_width * 2**np.arange(0, number_of_widths)
 best_predictions = []
-tain_sizes = 2**np.arange(3,12)
+train_sizes = 2**np.arange(3,12)
 for train_size in train_sizes:
     prediction_errors = np.zeros((len(depths), len(widths)))
-    for depth in depths:
-        for width in widths:
+    for (n,depth) in enumerate(depths):
+        for (m,width) in enumerate(widths):
             depth = int(depth)
             width=int(width)
             gaussian_network = [width for k in range(depth)]
             gaussian_network.append(1)
             title='{}_{}' .format (depth, width)
-            prediction_errors[depth, width] = train(parameters=parameters, samples=samples, title=title)
+            prediction_errors[n, m] = train(parameters=parameters,
+            samples=samples, title=title, train_size=train_size)
 
     # doing this the safe way
     comm.barrier()
