@@ -484,7 +484,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     for competitor in competitors:
         for stat in ['mean', 'var']:
 
-            
+
 
             error = abs(stats[stat]['sources'][competitor]['representative']-stats[stat]['sources'][baseline]['representative'])
 
@@ -614,3 +614,49 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     console_log("done one configuration")
 
     return network, data, parameters
+
+
+def plot_train_size_convergence(network_information,
+                                output_information,
+                                run_function,
+                                max_size):
+    train_sizes = 2**np.arange(2, int(log2(max_size)))
+    errors = {}
+    errors_comparison={}
+    error_keys = ['prediction L2', 'wasserstein', 'mean', 'var']
+    for error_key in error_keys:
+        errors[error_key]=[]
+        errors_comparison[error_key]=[]
+    for train_size in train_sizes:
+        tables = Tables.make_default()
+        batch_size=train_size
+        validation_size=train_size
+        network_information.train_size = train_size
+        network_information.validation_size = train_size
+        network_information.batch_size = train_size
+
+
+        print_comparison_table.silent = True
+        run_function(network_information, output_information)
+
+        errors['prediction L2'].append(output_information.prediction_error[2])
+        for stat in ['wasserstein', 'mean', 'var']:
+            errors[stat].append(output_information.stat_error[stat])
+            errors_comparison[stat].append(output_information.stat_error['%s_comparison'%stat])
+
+
+    showAndSave.silent=False
+    for error_key in error_keys:
+        error = errors[error_key]
+
+        plt.loglog(train_sizes, error, '-o',label='DLQMC %s' % error_key)
+
+        if 'prediction' not in error_key:
+            comparison_error = errors_comparison[error_key]
+            plt.loglog(train_sizes, comparison_error, '-o',label='QMC %s' % error_key)
+        plt.legend()
+
+        plt.xlabel('Training size')
+        plt.ylabel("Error")
+        plt.title("Error of %s as a function of training size" % error_key)
+        showAndSave('convergence_%s' % error_key)
