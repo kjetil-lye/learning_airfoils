@@ -64,6 +64,7 @@ class NetworkInformation(object):
         self.large_integration_points = large_integration_points
 
 
+
 class Tables(object):
     def __init__(self, tables):
         self.tables = tables
@@ -88,10 +89,13 @@ class Tables(object):
 
 
 class OutputInformation(object):
-    def __init__(self, *, tables, title, short_title):
+    def __init__(self, *, tables, title, short_title,
+                enable_plotting=True, enable_tables= True):
         self.tables = tables
         self.title = title
         self.short_title = short_title
+        self.enable_plotting = enable_plotting
+        self.enable_tables = enable_tables
 
 
     def write_tables(self):
@@ -171,17 +175,18 @@ def get_network(parameters, data, *, network_information, output_information):
             best_network_index = trylearn
             best_learning_rate = train_error
             best_weights = weights
-
-        plt.loglog(hist.history['loss'],label="Training loss")
-        plt.loglog(hist.history['val_loss'], label='Validation loss')
-        plt.legend()
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.title("Training and validation loss\n%s\n(epochs=%d)" % (title, epochs))
-        showAndSave('dummy')
+        if output_information.enable_plotting:
+            plt.loglog(hist.history['loss'],label="Training loss")
+            plt.loglog(hist.history['val_loss'], label='Validation loss')
+            plt.legend()
+            plt.xlabel('Epochs')
+            plt.ylabel('Loss')
+            plt.title("Training and validation loss\n%s\n(epochs=%d)" % (title, epochs))
+            showAndSave('dummy')
         gc.collect()
 
     end_total_learning = time.time()
+
 
     print("Best network index: %d" % best_network_index)
     console_log("Best network index: %d" % best_network_index)
@@ -213,23 +218,26 @@ def get_network(parameters, data, *, network_information, output_information):
 
     end_training_time = time.time()
     print("Training took {} seconds".format(end_training_time-start_training_time))
-    plt.loglog(hist.history['loss'],label="Training loss")
-    plt.loglog(hist.history['val_loss'], label='Validation loss')
-    plt.legend()
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.title("Training and validation loss\n%s\n(epochs=%d)" % (title, epochs))
-    showAndSave("training_validation_loss")
+    if output_information.enable_plotting
+
+        plt.loglog(hist.history['loss'],label="Training loss")
+        plt.loglog(hist.history['val_loss'], label='Validation loss')
+        plt.legend()
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.title("Training and validation loss\n%s\n(epochs=%d)" % (title, epochs))
+        showAndSave("training_validation_loss")
 
     x_test = parameters
     y_test = data
     y_predict = model.predict(x_test)
 
-    plt.scatter(y_test, y_predict[:,0])
-    plt.title("Scatter plot, \n%s,\n epochs=%d" % (title, epochs))
-    plt.xlabel("Actual data")
-    plt.ylabel("Predicted data")
-    showAndSave("scatter_ml")
+    if output_information.enable_plotting
+        plt.scatter(y_test, y_predict[:,0])
+        plt.title("Scatter plot, \n%s,\n epochs=%d" % (title, epochs))
+        plt.xlabel("Actual data")
+        plt.ylabel("Predicted data")
+        showAndSave("scatter_ml")
 
     print("Number of parameters: %d"% model.count_params())
 
@@ -245,8 +253,8 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
 
     network, data, parameters = get_network(parameters, samples,
-     network_information=network_information,
-     output_information=output_information)
+        network_information=network_information,
+        output_information=output_information)
 
     title = output_information.title
     train_size = network_information.train_size
@@ -258,11 +266,13 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     coeffs = reg.fit(parameters[:train_size,:], y_train)
 
     evaluated_lsq = coeffs.predict(parameters)
-    plt.scatter(data, evaluated_lsq)
-    plt.title('Linear least squares\n%s' % title)
-    plt.xlabel("Actual data")
-    plt.ylabel("Interpolated data")
-    showAndSave('scatter_lsq')
+
+    if output_information.enable_plotting
+        plt.scatter(data, evaluated_lsq)
+        plt.title('Linear least squares\n%s' % title)
+        plt.xlabel("Actual data")
+        plt.ylabel("Interpolated data")
+        showAndSave('scatter_lsq')
 
     def myvar(x):
         mean = sum(x)/x.shape[0]
@@ -320,38 +330,41 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     print(parameters.shape)
     gc.collect()
     try:
-        plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-        plt.title("Comparison QMC and DLQMC\n%s\nepochs=%d"% (title, epochs))
-        plt.hist(network.predict(parameters),bins=40,density=True,
-        label='DLQMC(%d samples)' % train_size,alpha=0.5)
-        plt.legend()
-        showAndSave('hist_qmc_ml')
+
+        if output_information.enable_plotting:
+            plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+            plt.title("Comparison QMC and DLQMC\n%s\nepochs=%d"% (title, epochs))
+            plt.hist(network.predict(parameters),bins=40,density=True,
+            label='DLQMC(%d samples)' % train_size,alpha=0.5)
+            plt.legend()
+            showAndSave('hist_qmc_ml')
 
 
-        plt.title("Comparison QMC with %d and QMC with %d samples\n%s" %(8192, train_size, title))
-        plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-        plt.hist(data[:train_size],bins=40,density=True, alpha=0.5,
-        label='QMC %d samples' % train_size)
-        plt.legend()
-        showAndSave('hist_qmc_qmc')
+            plt.title("Comparison QMC with %d and QMC with %d samples\n%s" %(8192, train_size, title))
+            plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+            plt.hist(data[:train_size],bins=40,density=True, alpha=0.5,
+            label='QMC %d samples' % train_size)
+            plt.legend()
+            showAndSave('hist_qmc_qmc')
 
-        plt.title("Comparison QMC with least squares\n%s" % title)
-        plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-        plt.hist(evaluated_lsq,bins=40,density=True,alpha=0.5,
-            label='Least squares (%d points)' % train_size)
-        plt.legend()
-        showAndSave('hist_qmc_lsq')
+            plt.title("Comparison QMC with least squares\n%s" % title)
+            plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+            plt.hist(evaluated_lsq,bins=40,density=True,alpha=0.5,
+                label='Least squares (%d points)' % train_size)
+            plt.legend()
+            showAndSave('hist_qmc_lsq')
     except Exception as e:
         print(e)
 
     if network_information.large_integration_points is not None:
         print("Computing large integration points")
-        plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-        plt.title("Comparison QMC and DLQMC (large integration points with %d points)\n%s\nepochs=%d"% (network_information.large_integration_points.shape[0], title, epochs))
-        plt.hist(network.predict(network_information.large_integration_points),bins=40,density=True,
-                 label='DLQMC(%d samples)' % train_size,alpha=0.5)
-        plt.legend()
-        showAndSave('hist_qmc_ml_large')
+        if output_information.enable_plotting:
+            plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+            plt.title("Comparison QMC and DLQMC (large integration points with %d points)\n%s\nepochs=%d"% (network_information.large_integration_points.shape[0], title, epochs))
+            plt.hist(network.predict(network_information.large_integration_points),bins=40,density=True,
+                     label='DLQMC(%d samples)' % train_size,alpha=0.5)
+            plt.legend()
+            showAndSave('hist_qmc_ml_large')
 
 
     #prediction_error = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
@@ -433,14 +446,15 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
 
 
-        for source in stats[stat]['sources'].keys():
-            if 'DLbQMC' not in source:
-                plt.plot(samples, stats[stat]['sources'][source]['data'], label=source)
-        plt.xlabel('Number of samples ($J_L$)')
-        plt.ylabel('%s' % stat)
-        plt.title('%s as a function of number of samples used for evaluation\n%s' % (stat, title))
-        plt.legend()
-        showAndSave('function_of_samples_airfoil_%s_%s'  % (stat, title))
+        if output_information.enable_plotting:
+            for source in stats[stat]['sources'].keys():
+                if 'DLbQMC' not in source:
+                    plt.plot(samples, stats[stat]['sources'][source]['data'], label=source)
+            plt.xlabel('Number of samples ($J_L$)')
+            plt.ylabel('%s' % stat)
+            plt.title('%s as a function of number of samples used for evaluation\n%s' % (stat, title))
+            plt.legend()
+            showAndSave('function_of_samples_airfoil_%s_%s'  % (stat, title))
         stats[stat]['sources']['QMC %d' % train_size] = {}
         stats[stat]['sources']['QMC %d' % train_size]['representative'] = stats[stat]['compute'](data[:train_size])#stats[stat]['sources']['QMC']['data'][train_size]
     sources = [source for source in stats['mean']['sources'].keys()]
@@ -502,23 +516,26 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     for stat in ['mean', 'var']:
         errors_qmc = []
 
+
         for k in range(len(samples[1:-2])):
-            errors_qmc.append(abs(stats[stat]['sources']['QMC']['representative']-                                      stats[stat]['sources']['QMC']['data'][k+1]))
-        plt.loglog(samples[1:-2], errors_qmc, '-o', label='QMC error')
-        plt.axvline(x=train_size, linestyle='--', color='grey')
+            errors_qmc.append(abs(stats[stat]['sources']['QMC']['representative']- stats[stat]['sources']['QMC']['data'][k+1]))
 
-        for competitor in ['DLbQMC', 'DLQMC', 'Least squares']:
-            error = abs(stats[stat]['sources'][competitor]['representative']-stats[stat]['sources'][baseline]['representative'])
+        if output_information.enable_plotting:
+            plt.loglog(samples[1:-2], errors_qmc, '-o', label='QMC error')
+            plt.axvline(x=train_size, linestyle='--', color='grey')
+
+            for competitor in ['DLbQMC', 'DLQMC', 'Least squares']:
+                error = abs(stats[stat]['sources'][competitor]['representative']-stats[stat]['sources'][baseline]['representative'])
 
 
 
-            plt.loglog(samples[1:-2], error*ones_like(samples[1:-2]), '--', label='%s error' % competitor)
+                plt.loglog(samples[1:-2], error*ones_like(samples[1:-2]), '--', label='%s error' % competitor)
 
-        plt.xlabel('Number of samples for QMC')
-        plt.ylabel('Error')
-        plt.title('Error for %s compared to QMC\n%s' % (stat, title))
-        plt.legend()
-        showAndSave("error_evolution_%s" % stat)
+            plt.xlabel('Number of samples for QMC')
+            plt.ylabel('Error')
+            plt.title('Error for %s compared to QMC\n%s' % (stat, title))
+            plt.legend()
+            showAndSave("error_evolution_%s" % stat)
 
 
 
@@ -564,16 +581,18 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
         errors_qmc.append(scipy.stats.wasserstein_distance(data_wasser, qmc_upscaled))
 
     samples_wasser = 2**array(range(1, int(log2(data_modified.shape[0]))))
-    plt.loglog(samples_wasser, errors_qmc, '-o', label='QMC error')
 
-    plt.loglog(samples_wasser, wasser_qmc_ml*ones_like(samples_wasser), '--', label='DLMC error')
-    plt.loglog(samples_wasser, wasser_qmc_lsq*ones_like(samples_wasser), '--', label='LSQ error')
-    plt.axvline(x=train_size, linestyle='--', color='grey')
-    plt.xlabel('Number of samples for QMC')
-    plt.ylabel('Error (Wasserstein)')
-    plt.title('Error (Wasserstein) compared to QMC\n%s' % title)
-    plt.legend()
-    showAndSave("error_evolution_wasserstein")
+    if output_information.enable_plotting:
+        plt.loglog(samples_wasser, errors_qmc, '-o', label='QMC error')
+
+        plt.loglog(samples_wasser, wasser_qmc_ml*ones_like(samples_wasser), '--', label='DLMC error')
+        plt.loglog(samples_wasser, wasser_qmc_lsq*ones_like(samples_wasser), '--', label='LSQ error')
+        plt.axvline(x=train_size, linestyle='--', color='grey')
+        plt.xlabel('Number of samples for QMC')
+        plt.ylabel('Error (Wasserstein)')
+        plt.title('Error (Wasserstein) compared to QMC\n%s' % title)
+        plt.legend()
+        showAndSave("error_evolution_wasserstein")
 
 
 
@@ -600,16 +619,17 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
         speedup_ml =  wasser_qmc_qmc / wasser_qmc_ml
         speedup_lsq = wasser_qmc_qmc / wasser_qmc_lsq
 
-        plt.loglog(samples_wasser, errors_qmc, '-o', label='QMC error')
+        if output_information.enable_plotting:
+            plt.loglog(samples_wasser, errors_qmc, '-o', label='QMC error')
 
-        plt.loglog(samples_wasser, wasser_qmc_ml*ones_like(samples_wasser), '--', label='DLMC error')
-        plt.loglog(samples_wasser, wasser_qmc_lsq*ones_like(samples_wasser), '--', label='LSQ error')
-        plt.axvline(x=train_size, linestyle='--', color='grey')
-        plt.xlabel('Number of samples for QMC')
-        plt.ylabel('Error (Wasserstein)')
-        plt.title('Error (Wasserstein) compared to QMC(using more samples)\n%s' % title)
-        plt.legend()
-        showAndSave("error_evolution_wasserstein_large")
+            plt.loglog(samples_wasser, wasser_qmc_ml*ones_like(samples_wasser), '--', label='DLMC error')
+            plt.loglog(samples_wasser, wasser_qmc_lsq*ones_like(samples_wasser), '--', label='LSQ error')
+            plt.axvline(x=train_size, linestyle='--', color='grey')
+            plt.xlabel('Number of samples for QMC')
+            plt.ylabel('Error (Wasserstein)')
+            plt.title('Error (Wasserstein) compared to QMC(using more samples)\n%s' % title)
+            plt.legend()
+            showAndSave("error_evolution_wasserstein_large")
 
     console_log("done one configuration")
 
@@ -634,7 +654,7 @@ def plot_train_size_convergence(network_information,
         network_information.train_size = train_size
         network_information.validation_size = train_size
         network_information.batch_size = train_size
-
+        output_information.enable_plotting = False
 
         print_comparison_table.silent = True
         run_function(network_information, output_information)

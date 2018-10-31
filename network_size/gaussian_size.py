@@ -111,7 +111,7 @@ def train(*, parameters, samples, title, train_size):
                                             loss=loss, tries=5, selection='prediction')
 
     output_information = OutputInformation(tables=tables, title=title,
-                                          short_title=title)
+                                          short_title=title, enable_plotting=False)
     showAndSave.prefix='%s_%s_%s_ts_%d_bs_%d' %(title, optimizer, loss, batch_size, train_size)
     get_network_and_postprocess(parameters, samples, network_information = network_information,
         output_information = output_information)
