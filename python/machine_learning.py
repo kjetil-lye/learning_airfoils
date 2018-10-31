@@ -218,7 +218,7 @@ def get_network(parameters, data, *, network_information, output_information):
 
     end_training_time = time.time()
     print("Training took {} seconds".format(end_training_time-start_training_time))
-    if output_information.enable_plotting
+    if output_information.enable_plotting:
 
         plt.loglog(hist.history['loss'],label="Training loss")
         plt.loglog(hist.history['val_loss'], label='Validation loss')
@@ -232,7 +232,7 @@ def get_network(parameters, data, *, network_information, output_information):
     y_test = data
     y_predict = model.predict(x_test)
 
-    if output_information.enable_plotting
+    if output_information.enable_plotting:
         plt.scatter(y_test, y_predict[:,0])
         plt.title("Scatter plot, \n%s,\n epochs=%d" % (title, epochs))
         plt.xlabel("Actual data")
@@ -267,7 +267,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
     evaluated_lsq = coeffs.predict(parameters)
 
-    if output_information.enable_plotting
+    if output_information.enable_plotting:
         plt.scatter(data, evaluated_lsq)
         plt.title('Linear least squares\n%s' % title)
         plt.xlabel("Actual data")
