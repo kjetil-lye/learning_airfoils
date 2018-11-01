@@ -424,7 +424,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
 
         stats[stat]['sources'][sampling_method]={}
-        stats[stat]['sources']['DL' % sampling_method] = {}
+        stats[stat]['sources']['DL%s' % sampling_method] = {}
         stats[stat]['sources']['Least squares'] = {}
         stats[stat]['sources']['DLb%s' % sampling_method] = {}
 
