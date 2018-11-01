@@ -161,13 +161,19 @@ def get_network(parameters, data, *, network_information, output_information):
                          validation_data=(x_val, y_val),verbose=0)
         print()
         end_training_time = time.time()
+
+
         print("Training took {} seconds".format(end_training_time-start_training_time))
         console_log("Training took {} seconds".format(end_training_time-start_training_time))
 
         if network_information.selection == 'train':
             train_error = np.sum(hist.history['loss'][-min(network_information.error_length,epochs):])
         elif network_information.selection == 'prediction':
+            start_prediction_time = time.time()
             train_error = compute_prediction_error(data, np.reshape(model.predict(parameters), data.shape), train_size, 2)#np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=2))/data.shape[0]
+
+            end_prediction_time = time.time()
+            print("Prediction error computation took: {} seconds".format(end_prediction_time-start_prediction_time))
         else:
             raise Exception("Unknown selection %s" % network_information.selection)
         if best_network is None or train_error < best_learning_rate:
