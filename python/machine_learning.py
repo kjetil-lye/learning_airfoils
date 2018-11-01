@@ -90,12 +90,14 @@ class Tables(object):
 
 class OutputInformation(object):
     def __init__(self, *, tables, title, short_title,
-                enable_plotting=True, enable_tables= True):
+                enable_plotting=True, enable_tables= True,
+                sampling_method='QMC'):
         self.tables = tables
         self.title = title
         self.short_title = short_title
         self.enable_plotting = enable_plotting
         self.enable_tables = enable_tables
+        self.sampling_method = sampling_method
 
 
     def write_tables(self):
@@ -257,6 +259,8 @@ def get_network(parameters, data, *, network_information, output_information):
 def get_network_and_postprocess(parameters, samples, *, network_information,
     output_information):
 
+    sampling_method = output_information.sampling_method
+
 
     network, data, parameters = get_network(parameters, samples,
         network_information=network_information,
@@ -304,7 +308,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     variance_diff_ml = myvar(data- predicted)
 
 
-    bilevel_speedup_table.set_header(["Functional", "DLbQMC Speedup"])
+    bilevel_speedup_table.set_header(["Functional", "DLb{} Speedup".output_information.sampling_method])
     bilevel_speedup_table.add_row([output_information.short_title, variance_top/variance_diff_ml])
 
     variance_diff_interpolate =myvar(data - evaluated_lsq)
@@ -338,23 +342,24 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     try:
 
         if output_information.enable_plotting:
-            plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-            plt.title("Comparison QMC and DLQMC\n%s\nepochs=%d"% (title, epochs))
+            plt.hist(data,bins=40,density=True,label='{} {} samples'.format(sampling_method,
+                samples.shape[0]),alpha=0.5)
+            plt.title("Comparison %s and DL%s\n%s\nepochs=%d"% (sampling_method, sampling_method,title, epochs))
             plt.hist(network.predict(parameters),bins=40,density=True,
-            label='DLQMC(%d samples)' % train_size,alpha=0.5)
+            label='DL%s (%d samples)' % (sampling_method, train_size),alpha=0.5)
             plt.legend()
             showAndSave('hist_qmc_ml')
 
 
-            plt.title("Comparison QMC with %d and QMC with %d samples\n%s" %(8192, train_size, title))
-            plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+            plt.title("Comparison %s with %d and %s with %d samples\n%s" %(sampling_method,8192, sampling_method, train_size, title))
+            plt.hist(data,bins=40,density=True,label='{} {} samples'.format(sampling_method, samples.shape[0]),alpha=0.5)
             plt.hist(data[:train_size],bins=40,density=True, alpha=0.5,
-            label='QMC %d samples' % train_size)
+            label='%s %d samples' % (sampling_method, train_size))
             plt.legend()
             showAndSave('hist_qmc_qmc')
 
-            plt.title("Comparison QMC with least squares\n%s" % title)
-            plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
+            plt.title("Comparison %s with least squares\n%s" % (sampling_method, title))
+            plt.hist(data,bins=40,density=True,label='{} {} samples'.format(sampling_method, samples.shape[0]),alpha=0.5)
             plt.hist(evaluated_lsq,bins=40,density=True,alpha=0.5,
                 label='Least squares (%d points)' % train_size)
             plt.legend()
@@ -365,10 +370,11 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     if network_information.large_integration_points is not None:
         print("Computing large integration points")
         if output_information.enable_plotting:
-            plt.hist(data,bins=40,density=True,label='QMC 8192 samples',alpha=0.5)
-            plt.title("Comparison QMC and DLQMC (large integration points with %d points)\n%s\nepochs=%d"% (network_information.large_integration_points.shape[0], title, epochs))
+            plt.hist(data,bins=40,density=True,label='{} {} samples'.format(sampling_method, samples.shape[0]),
+                alpha=0.5)
+            plt.title("Comparison %s and DL%s (large integration points with %d points)\n%s\nepochs=%d"% (sampling_method, samplinga_method, network_information.large_integration_points.shape[0], title, epochs))
             plt.hist(network.predict(network_information.large_integration_points),bins=40,density=True,
-                     label='DLQMC(%d samples)' % train_size,alpha=0.5)
+                     label='DL%s (%d samples)' % (sampling_method, train_size),alpha=0.5)
             plt.legend()
             showAndSave('hist_qmc_ml_large')
 
@@ -417,32 +423,32 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
             stats[stat]['compute']=lambda x: sum(x**2)/x.shape[0]-(sum(x)/x.shape[0])**2
 
 
-        stats[stat]['sources']['QMC']={}
-        stats[stat]['sources']['DLQMC'] = {}
+        stats[stat]['sources'][sampling_method]={}
+        stats[stat]['sources']['DL' % sampling_method] = {}
         stats[stat]['sources']['Least squares'] = {}
-        stats[stat]['sources']['DLbQMC'] = {}
+        stats[stat]['sources']['DLb%s' % sampling_method] = {}
 
-        stats[stat]['sources']['QMC']['data']=array([stats[stat]['compute'](data[:k]) for k in samples])
-        stats[stat]['sources']['DLQMC']['data'] = array([stats[stat]['compute'](array(model.predict(parameters[:k,:]))) for k in samples])
+        stats[stat]['sources'][sampling_method]['data']=array([stats[stat]['compute'](data[:k]) for k in samples])
+        stats[stat]['sources']['DL%s' % sampling_method]['data'] = array([stats[stat]['compute'](array(model.predict(parameters[:k,:]))) for k in samples])
         stats[stat]['sources']['Least squares']['data'] = array([stats[stat]['compute'](evaluated_lsq[:k]) for k in samples])
 
-        stats[stat]['sources']['DLbQMC']['data'] = [0]
+        stats[stat]['sources']['DLb%s' % sampling_method]['data'] = [0]
 
         for k in samples[1:]:
             if stat == 'mean':
                 mean = sum(model.predict(parameters[:train_size,:])-data[:train_size])/train_size +                sum(model.predict(parameters[:k,:]))/k
 
 
-                stats[stat]['sources']['DLbQMC']['data'].append(mean)
+                stats[stat]['sources']['DLb%s' % sampling_method]['data'].append(mean)
             elif stat=='var':
                 mean = sum(model.predict(parameters[:train_size,:])-data[:train_size])/train_size +                sum(model.predict(parameters[:k,:]))/k
 
                 m2 = sum((data[:train_size])**2-(model.predict(parameters[:train_size,:]))**2)/train_size +                sum(model.predict(parameters[:k,:])**2)/k
 
 
-                stats[stat]['sources']['DLbQMC']['data'].append(m2-mean**2)
+                stats[stat]['sources']['DLb%s' % sampling_method]['data'].append(m2-mean**2)
 
-        stats[stat]['sources']['DLbQMC']['data']=array(stats[stat]['sources']['DLbQMC']['data'])
+        stats[stat]['sources']['DLb%s' % sampling_method]['data']=array(stats[stat]['sources']['DLb%s' % sampling_method]['data'])
 
         sources = stats[stat]['sources'].keys()
         for source in sources:
@@ -454,15 +460,16 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
         if output_information.enable_plotting:
             for source in stats[stat]['sources'].keys():
-                if 'DLbQMC' not in source:
+                if 'DLb%s' % sampling_method not in source:
                     plt.plot(samples, stats[stat]['sources'][source]['data'], label=source)
             plt.xlabel('Number of samples ($J_L$)')
             plt.ylabel('%s' % stat)
             plt.title('%s as a function of number of samples used for evaluation\n%s' % (stat, title))
             plt.legend()
             showAndSave('function_of_samples_airfoil_%s_%s'  % (stat, title))
-        stats[stat]['sources']['QMC %d' % train_size] = {}
-        stats[stat]['sources']['QMC %d' % train_size]['representative'] = stats[stat]['compute'](data[:train_size])#stats[stat]['sources']['QMC']['data'][train_size]
+        stats[stat]['sources']['%s %d' % (sampling_method, train_size)] = {}
+        stats[stat]['sources']['%s %d' % (sampling_method, train_size)]['representative'] = stats[stat]['compute'](data[:train_size])
+
     sources = [source for source in stats['mean']['sources'].keys()]
     datatable = [[],[],[]]
     print_memory_usage()
@@ -485,9 +492,9 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     #### Speedup
     speeduptable = [[],[],[]]
     statstouse = ['mean', 'var']
-    baseline='QMC'
-    small_baseline = 'QMC %d' % train_size
-    competitors = ['QMC %d' % train_size, 'DLQMC', 'DLbQMC', 'Least squares']
+    baseline=sampling_method
+    small_baseline = '%s %d' % (sampling_method, train_size)
+    competitors = ['%s %d' % (sampling_method, train_size), 'DL%s' % sampling_method, 'DLb%s'% sampling_method, 'Least squares']
 
     for competitor in competitors:
         speeduptable[0].append(competitor)
@@ -524,22 +531,22 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
 
         for k in range(len(samples[1:-2])):
-            errors_qmc.append(abs(stats[stat]['sources']['QMC']['representative']- stats[stat]['sources']['QMC']['data'][k+1]))
+            errors_qmc.append(abs(stats[stat]['sources'][sampling_method]['representative']- stats[stat]['sources'][sampling_method]['data'][k+1]))
 
         if output_information.enable_plotting:
-            plt.loglog(samples[1:-2], errors_qmc, '-o', label='QMC error')
+            plt.loglog(samples[1:-2], errors_qmc, '-o', label='%s error' % sampling_method)
             plt.axvline(x=train_size, linestyle='--', color='grey')
 
-            for competitor in ['DLbQMC', 'DLQMC', 'Least squares']:
+            for competitor in ['DLb%s' % sampling_method, 'DL%s' % sampling_method, 'Least squares']:
                 error = abs(stats[stat]['sources'][competitor]['representative']-stats[stat]['sources'][baseline]['representative'])
 
 
 
                 plt.loglog(samples[1:-2], error*ones_like(samples[1:-2]), '--', label='%s error' % competitor)
 
-            plt.xlabel('Number of samples for QMC')
+            plt.xlabel('Number of samples for %s' % sampling_method)
             plt.ylabel('Error')
-            plt.title('Error for %s compared to QMC\n%s' % (stat, title))
+            plt.title('Error for %s compared to %s\n%s' % (stat, sampling_method, title))
             plt.legend()
             showAndSave("error_evolution_%s" % stat)
 
@@ -570,7 +577,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     speedup_ml =  wasser_qmc_qmc / wasser_qmc_ml
     speedup_lsq = wasser_qmc_qmc / wasser_qmc_lsq
 
-    wasserstein_table=[["DLQMC", "Least squares", "QMC 128"],[speedup_ml, speedup_lsq, speedup_qmc]]
+    wasserstein_table=[["DL%s" % sampling_method, "Least squares", "%s %d" % (sampling_method, train_size)],[speedup_ml, speedup_lsq, speedup_qmc]]
 
 
     wasserstein_table_builder.set_header(wasserstein_table[0])
@@ -589,14 +596,14 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     samples_wasser = 2**array(range(1, int(log2(data_modified.shape[0]))))
 
     if output_information.enable_plotting:
-        plt.loglog(samples_wasser, errors_qmc, '-o', label='QMC error')
+        plt.loglog(samples_wasser, errors_qmc, '-o', label='%s error' % sampling_method)
 
-        plt.loglog(samples_wasser, wasser_qmc_ml*ones_like(samples_wasser), '--', label='DLMC error')
+        plt.loglog(samples_wasser, wasser_qmc_ml*ones_like(samples_wasser), '--', label='DL%s error' % sampling_method)
         plt.loglog(samples_wasser, wasser_qmc_lsq*ones_like(samples_wasser), '--', label='LSQ error')
         plt.axvline(x=train_size, linestyle='--', color='grey')
-        plt.xlabel('Number of samples for QMC')
+        plt.xlabel('Number of samples for %s' % sampling_method)
         plt.ylabel('Error (Wasserstein)')
-        plt.title('Error (Wasserstein) compared to QMC\n%s' % title)
+        plt.title('Error (Wasserstein) compared to %s\n%s' % (sampling_method, title))
         plt.legend()
         showAndSave("error_evolution_wasserstein")
 
@@ -614,7 +621,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
         evaluated_lsq_large = coeffs.predict(qmc_large)
 
-        print("Trying with a large number of QMC samples %d" % qmc_large.shape[0])
+        print("Trying with a large number of %s samples %d" % (sampling_method, qmc_large.shape[0]))
         large_predicted = np.reshape(model.predict(qmc_large), qmc_large.shape[0])
         data_wasser_large = np.repeat(data_wasser, qmc_large.shape[0]/data_wasser.shape[0])
 
@@ -626,14 +633,14 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
         speedup_lsq = wasser_qmc_qmc / wasser_qmc_lsq
 
         if output_information.enable_plotting:
-            plt.loglog(samples_wasser, errors_qmc, '-o', label='QMC error')
+            plt.loglog(samples_wasser, errors_qmc, '-o', label='%s error' % sampling_method)
 
-            plt.loglog(samples_wasser, wasser_qmc_ml*ones_like(samples_wasser), '--', label='DLMC error')
+            plt.loglog(samples_wasser, wasser_qmc_ml*ones_like(samples_wasser), '--', label='DL%s error' % sampling_method)
             plt.loglog(samples_wasser, wasser_qmc_lsq*ones_like(samples_wasser), '--', label='LSQ error')
             plt.axvline(x=train_size, linestyle='--', color='grey')
-            plt.xlabel('Number of samples for QMC')
+            plt.xlabel('Number of samples for %s' % sampling_method)
             plt.ylabel('Error (Wasserstein)')
-            plt.title('Error (Wasserstein) compared to QMC(using more samples)\n%s' % title)
+            plt.title('Error (Wasserstein) compared to %s (using more samples)\n%s' % (sampling_method, title))
             plt.legend()
             showAndSave("error_evolution_wasserstein_large")
 
@@ -646,6 +653,7 @@ def plot_train_size_convergence(network_information,
                                 output_information,
                                 run_function,
                                 max_size):
+    sampling_method = output_information.sampling_method
     train_sizes = 2**np.arange(2, int(log2(max_size)))
     errors = {}
     errors_comparison={}
@@ -675,11 +683,11 @@ def plot_train_size_convergence(network_information,
     for error_key in error_keys:
         error = errors[error_key]
 
-        plt.loglog(train_sizes, error, '-o',label='DLQMC %s' % error_key)
+        plt.loglog(train_sizes, error, '-o',label='DL%s %s' % (sampling_method, error_key))
 
         if 'prediction' not in error_key:
             comparison_error = errors_comparison[error_key]
-            plt.loglog(train_sizes, comparison_error, '-o',label='QMC %s' % error_key)
+            plt.loglog(train_sizes, comparison_error, '-o',label='%s %s' % (sampling_method, error_key))
         plt.legend()
 
         plt.xlabel('Training size')

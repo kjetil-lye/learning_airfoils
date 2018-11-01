@@ -99,10 +99,8 @@ def find_best_network_size(*, network_information,
                       "Error variance" : variance_errors,
                       "Wasserstein" : wasserstein_errors}
 
-        best_errors = {}
         all_errors_map = {}
         for k in errors_map.keys():
-            best_errors[k] = []
             all_errors_map[k] = None
         # doing this the safe way
 
