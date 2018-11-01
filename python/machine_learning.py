@@ -308,7 +308,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     variance_diff_ml = myvar(data- predicted)
 
 
-    bilevel_speedup_table.set_header(["Functional", "DLb{} Speedup".output_information.sampling_method])
+    bilevel_speedup_table.set_header(["Functional", "DLb{} Speedup".format(output_information.sampling_method)])
     bilevel_speedup_table.add_row([output_information.short_title, variance_top/variance_diff_ml])
 
     variance_diff_interpolate =myvar(data - evaluated_lsq)
