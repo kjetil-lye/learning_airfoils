@@ -144,7 +144,7 @@ def find_best_network_size(*, network_information,
                 plt.colorbar()
                 plt.title("{} with {} samples\n{}".format(error_name, train_size, base_title))
                 showAndSave.prefix='%s_network_%s' % (base_title, train_size)
-                np.save(showAndSave.prefix + '_{}.npy'.format(error_name.replace(" ", "")), all_errors_map[error_name])
+                np.save('results/' + showAndSave.prefix + '_{}.npy'.format(error_name.replace(" ", "")), all_errors_map[error_name])
 
                 showAndSave(error_name.replace(" ", ""))
                 best_errors[error_name].append(np.amin(all_errors_map[error_name]))
@@ -158,4 +158,4 @@ def find_best_network_size(*, network_information,
 
             showAndSave.prefix = '{}_{}_network_' % (base_title, train_size)
             showAndSave('best_network')
-            np.save(showAndSave.prefix + "best_network{}.npy".format(error_name.replace(" ", "_")), np.array(best_predictions))
+            np.save('results/' + showAndSave.prefix + "best_network{}.npy".format(error_name.replace(" ", "_")), np.array(best_predictions))
