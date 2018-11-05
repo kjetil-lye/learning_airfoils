@@ -176,6 +176,32 @@ def get_network(parameters, data, *, network_information, output_information):
 
             end_prediction_time = time.time()
             print("Prediction error computation took: {} seconds".format(end_prediction_time-start_prediction_time))
+
+        elif network_information.selection == 'mean_tail':
+            train_error = abs(np.sum(data)/data.shape[0] - np.sum(np.reshape(model.predict(parameters), data.shape))/data.shape[0])
+        elif network_information.selection == 'mean':
+            qmc_means = []
+            dlqmc_means = []
+
+            for k in range(1, data.shape[0]):
+                qmc_means.append(np.sum(data[:k])/k)
+                dlqmc_means.append(np.sum(np.reshape(model.predict(parameters[:k,:]), data.shape))/k)
+
+            qmc_means = np.array(qmc_means)
+            dlqmc_means = np.array(dlqmc_means)
+
+            train_error = np.sum(abs(qmc_means-dlqmc_means))
+        elif network_information.selection =='mean_train':
+            qmc_means = []
+            dlqmc_means = []
+
+            for k in range(1, train_size):
+                qmc_means.append(np.sum(data[:k])/k)
+                dlqmc_means.append(np.sum(np.reshape(model.predict(parameters[:k,:]), data.shape))/k)
+
+            qmc_means = np.array(qmc_means)
+            dlqmc_means = np.array(dlqmc_means)
+            train_error = np.sum(abs(qmc_means-dlqmc_means))
         else:
             raise Exception("Unknown selection %s" % network_information.selection)
         if best_network is None or train_error < best_learning_rate:
@@ -684,6 +710,8 @@ def plot_train_size_convergence(network_information,
         error = errors[error_key]
 
         plt.loglog(train_sizes, error, '-o',label='DL%s %s' % (sampling_method, error_key))
+
+        print("errors[%s] = [%s]" % (error_key, ", ".join(error)))
 
         if 'prediction' not in error_key:
             comparison_error = errors_comparison[error_key]
