@@ -185,7 +185,7 @@ def get_network(parameters, data, *, network_information, output_information):
 
             for k in range(1, data.shape[0]):
                 qmc_means.append(np.sum(data[:k])/k)
-                dlqmc_means.append(np.sum(np.reshape(model.predict(parameters[:k,:]), data.shape))/k)
+                dlqmc_means.append(np.sum(np.reshape(model.predict(parameters[:k,:]), k))/k)
 
             qmc_means = np.array(qmc_means)
             dlqmc_means = np.array(dlqmc_means)
@@ -197,7 +197,7 @@ def get_network(parameters, data, *, network_information, output_information):
 
             for k in range(1, train_size):
                 qmc_means.append(np.sum(data[:k])/k)
-                dlqmc_means.append(np.sum(np.reshape(model.predict(parameters[:k,:]), data.shape))/k)
+                dlqmc_means.append(np.sum(np.reshape(model.predict(parameters[:k,:]), k))/k)
 
             qmc_means = np.array(qmc_means)
             dlqmc_means = np.array(dlqmc_means)
