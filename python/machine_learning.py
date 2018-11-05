@@ -697,6 +697,7 @@ def plot_train_size_convergence(network_information,
         output_information.enable_plotting = False
 
         print_comparison_table.silent = True
+        seed_random_number(random_seed)
         run_function(network_information, output_information)
 
         errors['prediction L2'].append(output_information.prediction_error[2])
