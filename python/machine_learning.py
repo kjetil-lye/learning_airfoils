@@ -712,7 +712,7 @@ def plot_train_size_convergence(network_information,
 
         plt.loglog(train_sizes, error, '-o',label='DL%s %s' % (sampling_method, error_key))
 
-        print("errors[%s] = [%s]" % (error_key, ", ".join(error)))
+        print("errors[%s] = [%s]" % (error_key, ", ".join(["%.16f".format(k) for k in error])))
 
         if 'prediction' not in error_key:
             comparison_error = errors_comparison[error_key]
