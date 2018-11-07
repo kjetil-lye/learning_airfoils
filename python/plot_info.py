@@ -61,6 +61,19 @@ class RedirectStdStreams(object):
         sys.stderr = self.old_stderr
 
 
+class RedirectStdStreamsToNull(object):
+    def __init__(self):
+        self._devnull = open(os.devnull, 'w')
+        self._redirect_stream = RedirectStdStreams(self._devnull, self._devnull)
+
+    def __enter__(self):
+        self._redirect_stream.__enter__()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._redirect_stream.__exit__(exc_type, exc_value, traceback)
+        self._devnull.close()
+
+
 
 
 
@@ -88,8 +101,8 @@ def savePlot(name):
          ha='right', va='bottom', alpha=0.5, transform=ax.transAxes)
 
     # We don't want all the output from matplotlib2tikz
-    devnull = open(os.devnull, 'w')
-    with RedirectStdStreams(stdout=devnull, stderr=devnull):
+
+    with RedirectStdStreamsToNull():
         matplotlib2tikz.save('img_tikz/' + name + '.tikz',
            figureheight = '\\figureheight',
            figurewidth = '\\figurewidth',
