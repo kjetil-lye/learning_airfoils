@@ -54,12 +54,13 @@ def find_best_network_size(*, network_information,
 
     for error_name in error_names:
         best_errors[error_name] = []
-
+    selection_error_train_size = []
     for train_size in training_sizes:
         prediction_errors = np.zeros((len(depths), len(widths)))
         wasserstein_errors = np.zeros((len(depths), len(widths)))
         mean_errors = np.zeros((len(depths), len(widths)))
         variance_errors = np.zeros((len(depths), len(widths)))
+        selection_errors = np.zeros((len(depths), len(widths)))
         for (n,depth) in enumerate(depths):
             for (m,width) in enumerate(widths):
                 print("Config {} x {} ([{} x {}] / [{} x {}])".format(depths[n], widths[m], n, m, len(depths), len(widths)))
@@ -91,6 +92,8 @@ def find_best_network_size(*, network_information,
                 mean_errors[n,m] = output_information.stat_error['mean']
                 variance_errors[n,m] = output_information.stat_error['var']
                 wasserstein_errors[n,m] = output_information.stat_error['wasserstein']
+                selection_errors[n,m] = output_information.selection_error
+        selection_error_train_size.append(selection_errors)
 
 
 
@@ -157,3 +160,5 @@ def find_best_network_size(*, network_information,
             showAndSave.prefix = '{}_{}_network_' % (base_title, train_size)
             showAndSave('best_network')
             np.save('results/' + showAndSave.prefix + "best_network{}.npy".format(error_name.replace(" ", "_")), np.array(best_predictions))
+
+    return selection_error_train_size

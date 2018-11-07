@@ -16,7 +16,14 @@ random_seed = 42
 
 
 seed_random_number(random_seed)
-
+#####################
+from keras import backend as K
+# see https://stackoverflow.com/a/52897216 we really need singlethread to get
+# reproducible results!
+session_conf = tensorflow.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+sess = tensorflow.Session(graph=tensorflow.get_default_graph(), config=session_conf)
+K.set_session(sess)
+#####################
 import sys
 import time
 
@@ -159,8 +166,15 @@ def get_network(parameters, data, *, network_information, output_information):
         epochs_r=range(1, epochs)
 
         start_training_time = time.time()
-        hist = model.fit(x_train, y_train, batch_size=train_size, epochs=epochs,shuffle=True,
+
+        if 'ray' not in network_information.selection:
+            hist = model.fit(x_train, y_train, batch_size=train_size, epochs=epochs,shuffle=True,
                          validation_data=(x_val, y_val),verbose=0)
+        else:
+            training_ray_samples = int(0.7*train_size)
+            validation_ray_samples = train_size - training_ray_samples
+            hist = model.fit(x_train[:training_ray_samples,:], y_train[training_ray_samples:], batch_size=train_size, epochs=epochs,shuffle=True,
+                         validation_data=(x_train[training_ray_samples:, :], y_train[training_ray_samples:]),verbose=0)
         print()
         end_training_time = time.time()
 
@@ -202,6 +216,17 @@ def get_network(parameters, data, *, network_information, output_information):
             qmc_means = np.array(qmc_means)
             dlqmc_means = np.array(dlqmc_means)
             train_error = np.sum(abs(qmc_means-dlqmc_means))
+
+        elif network_information.selection == 'wasserstein':
+            train_error = scipy.stats.wasserstein_distance(data, reshape(model.predict(parameters), data.shape))
+
+        elif network_information.selectioon == 'wasserstein_train':
+            train_error = scipy.stats.wasserstein_distance(data[:train_size], reshape(model.predict(parameters[:train_size,:]), train_size))
+
+        elif network_information.selection == 'ray_prediction':
+            train_error = compute_prediction_error(y_train, \
+                np.reshape(model.predict(parameters[train_size:,:]), train_size), training_ray_samples, 2)#np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=2))/data.shape[0]
+
         else:
             raise Exception("Unknown selection %s" % network_information.selection)
         if best_network is None or train_error < best_learning_rate:
@@ -219,6 +244,7 @@ def get_network(parameters, data, *, network_information, output_information):
             showAndSave('dummy')
         gc.collect()
 
+    output_information.selection_error = best_learning_rate
     end_total_learning = time.time()
 
 
@@ -398,7 +424,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
         if output_information.enable_plotting:
             plt.hist(data,bins=40,density=True,label='{} {} samples'.format(sampling_method, samples.shape[0]),
                 alpha=0.5)
-            plt.title("Comparison %s and DL%s (large integration points with %d points)\n%s\nepochs=%d"% (sampling_method, samplinga_method, network_information.large_integration_points.shape[0], title, epochs))
+            plt.title("Comparison %s and DL%s (large integration points with %d points)\n%s\nepochs=%d"% (sampling_method, sampling_method, network_information.large_integration_points.shape[0], title, epochs))
             plt.hist(network.predict(network_information.large_integration_points),bins=40,density=True,
                      label='DL%s (%d samples)' % (sampling_method, train_size),alpha=0.5)
             plt.legend()
