@@ -57,7 +57,9 @@ class NetworkInformation(object):
                  loss='mean_squared_error',
                  tries=5,
                  selection='train',
-                 large_integration_points=None):
+                 large_integration_points=None,
+                 activity_regularizer=None,
+                 kernel_regularizer = None):
         self.network = network
         self.optimizer = optimizer
         self.epochs = epochs
@@ -69,6 +71,8 @@ class NetworkInformation(object):
         self.tries=tries
         self.selection=selection
         self.large_integration_points = large_integration_points
+        self.activity_regularizer = activity_regularizer
+        self.kernel_regularizer = kernel_regularizer
 
 
 
@@ -142,10 +146,13 @@ def get_network(parameters, data, *, network_information, output_information):
         model = Sequential()
         model.add(Dense(network_information.network[0],
             input_shape=(input_size,),
-            activation=network_information.activation))
+            activation=network_information.activation,
+            kernel_regularizer=network_information.kernel_regularizer))
         for layer in network_information.network[1:-1]:
-            model.add(Dense(layer, activation=network_information.activation))
-        model.add(Dense(network_information.network[-1]))
+            model.add(Dense(layer, activation=network_information.activation, kernel_regularizer = network_information.kernel_regularizer))
+        model.add(Dense(network_information.network[-1],
+            activity_regularizer=network_information.activity_regularizer,
+            kernel_regularizer=network_information.kernel_regularizer))
 
 
 
@@ -173,7 +180,7 @@ def get_network(parameters, data, *, network_information, output_information):
         else:
             training_ray_samples = int(0.7*train_size)
             validation_ray_samples = train_size - training_ray_samples
-            hist = model.fit(x_train[:training_ray_samples,:], y_train[training_ray_samples:], batch_size=train_size, epochs=epochs,shuffle=True,
+            hist = model.fit(x_train[:training_ray_samples,:], y_train[:training_ray_samples], batch_size=train_size, epochs=epochs,shuffle=True,
                          validation_data=(x_train[training_ray_samples:, :], y_train[training_ray_samples:]),verbose=0)
         print()
         end_training_time = time.time()
@@ -220,12 +227,12 @@ def get_network(parameters, data, *, network_information, output_information):
         elif network_information.selection == 'wasserstein':
             train_error = scipy.stats.wasserstein_distance(data, reshape(model.predict(parameters), data.shape))
 
-        elif network_information.selectioon == 'wasserstein_train':
+        elif network_information.selection == 'wasserstein_train':
             train_error = scipy.stats.wasserstein_distance(data[:train_size], reshape(model.predict(parameters[:train_size,:]), train_size))
 
         elif network_information.selection == 'ray_prediction':
             train_error = compute_prediction_error(y_train, \
-                np.reshape(model.predict(parameters[train_size:,:]), train_size), training_ray_samples, 2)#np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=2))/data.shape[0]
+                np.reshape(model.predict(parameters[:train_size,:]), train_size), training_ray_samples, 2)#np.sum(np.linalg.norm(data - np.reshape(model.predict(parameters), data.shape), ord=2))/data.shape[0]
 
         else:
             raise Exception("Unknown selection %s" % network_information.selection)
