@@ -249,7 +249,11 @@ def get_network(parameters, data, *, network_information, output_information):
             plt.ylabel('Loss')
             plt.title("Training and validation loss\n%s\n(epochs=%d)" % (title, epochs))
             showAndSave('dummy')
+        np.save("results/" + showAndSave.prefix + "training_losses_%d.npy" % trylearn, hist.history['loss'])
+        np.save("results/" + showAndSave.prefix + "validation_losses_%d.npy" % trylearn, hist.history['val_loss'])
         gc.collect()
+
+
 
     output_information.selection_error = best_learning_rate
     end_total_learning = time.time()
@@ -525,7 +529,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
             plt.ylabel('%s' % stat)
             plt.title('%s as a function of number of samples used for evaluation\n%s' % (stat, title))
             plt.legend()
-            showAndSave('function_of_samples_airfoil_%s_%s'  % (stat, title))
+            showAndSave('function_of_samples_%s'  % (stat))
         stats[stat]['sources']['%s %d' % (sampling_method, train_size)] = {}
         stats[stat]['sources']['%s %d' % (sampling_method, train_size)]['representative'] = stats[stat]['compute'](data[:train_size])
 
