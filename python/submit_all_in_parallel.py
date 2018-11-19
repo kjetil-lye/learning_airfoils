@@ -40,6 +40,8 @@ def submit_notebook_in_parallel(notebook_name):
                             shutil.copyfile('../notebooks/{}'.format(notebook_name), '{}'.format(notebook_name))
                             os.mkdir('img')
                             os.mkdir('img_tikz')
+                            os.mkdir('tables')
+                            os.mkdir('results')
                             output = notebook.replace('.ipynb', 'Output.ipynb')
                             submit('$HOME/.local/bin/jupyter nbconvert --ExecutePreprocessor.timeout=-1 --to notebook --execute {notebook} --output {output}'.format(
                                 notebook = notebook,
