@@ -7,6 +7,7 @@ from print_table import *
 import time
 import keras
 import network_parameters
+import copy
 
 def try_best_network_sizes(*, parameters, samples, base_title, epochs):
     optimizers = network_parameters.get_optimizers()
@@ -44,8 +45,8 @@ def try_best_network_sizes(*, parameters, samples, base_title, epochs):
 
                 display(HTML("<h2>%s</h2>" % selection))
 
-                number_of_widths = 4
-                number_of_depths = 4
+                number_of_widths = 5
+                number_of_depths = 5
 
                 for train_size in training_sizes:
                     for loss in losses:
@@ -150,10 +151,10 @@ def find_best_network_size_notebook(*, network_information,
 
             prediction_errors[n, m] = output_information.prediction_error[2]
 
-            mean_errors[n,m] = output_information.stat_error['mean']
-            variance_errors[n,m] = output_information.stat_error['var']
-            wasserstein_errors[n,m] = output_information.stat_error['wasserstein']
-            selection_errors[n,m] = output_information.selection_error
+            mean_errors[n,m] = copy.deepcopy(output_information.stat_error['mean'])
+            variance_errors[n,m] = copy.deepcopy(output_information.stat_error['var'])
+            wasserstein_errors[n,m] = copy.deepcopy(output_information.stat_error['wasserstein'])
+            selection_errors[n,m] = copy.deepcopy(output_information.selection_error)
 
     errors_map = {"Prediction error" : prediction_errors,
                   "Error mean" : mean_errors,

@@ -587,8 +587,8 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     output_information.stat_error = {}
 
     for stat in ['mean', 'var']:
-        output_information.stat_error[stat] = abs(stats[stat]['sources'][competitor]['representative']-stats[stat]['sources'][baseline]['representative'])/abs(stats[stat]['sources'][baseline]['representative'])
-        output_information.stat_error['%s_comparison' % stat] = abs(stats[stat]['sources'][small_baseline]['representative']-stats[stat]['sources'][baseline]['representative'])/abs(stats[stat]['sources'][baseline]['representative'])
+        output_information.stat_error[stat] = float(abs(stats[stat]['sources']['DL%s' % sampling_method]['representative']-stats[stat]['sources'][baseline]['representative'])/abs(stats[stat]['sources'][baseline]['representative']))
+        output_information.stat_error['%s_comparison' % stat] =float( abs(stats[stat]['sources'][small_baseline]['representative']-stats[stat]['sources'][baseline]['representative'])/abs(stats[stat]['sources'][baseline]['representative']))
     for stat in ['mean', 'var']:
         errors_qmc = []
 
