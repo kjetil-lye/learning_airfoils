@@ -51,6 +51,6 @@ def get_regularizations(train_size):
         keras.regularizers.l2(0.01/train_size),
         keras.regularizers.l1(0.01/train_size)]
     if get_regularizations.key in os.environ:
-        regularizers=[regularizers[int(os.environ[get_regularizations.key])]]
+        regularizations=[regularizations[int(os.environ[get_regularizations.key])]]
     return regularizations
 get_regularizations.key = 'MACHINE_LEARNING_REGULARIZATION'
