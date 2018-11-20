@@ -21,12 +21,12 @@ def writeConfig(*,
     "selection_type" : selection_type,
     "selction" : selection,
     "train_size" : train_size,
-    "regularizer" : regularizer.get_config()
+    "regularizer" : regularizer.get_config() if regularizer is not None else "None"
     }
 
     with open("config_run.json", "w") as outfile:
         json.write(config_map, outfile)
-        
+
 
 
 
