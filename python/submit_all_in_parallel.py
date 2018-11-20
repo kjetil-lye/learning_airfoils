@@ -1,7 +1,7 @@
 import network_parameters
 import os
 import shutil
-
+import json
 def writeConfig(*,
     depth,
     width,
