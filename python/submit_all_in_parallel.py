@@ -25,7 +25,7 @@ def writeConfig(*,
     }
 
     with open("config_run.json", "w") as outfile:
-        json.write(config_map, outfile)
+        json.dump(config_map, outfile)
 
 
 
