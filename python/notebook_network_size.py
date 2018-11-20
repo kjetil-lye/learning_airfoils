@@ -8,6 +8,7 @@ import time
 import keras
 import network_parameters
 import copy
+import os
 
 def try_best_network_sizes(*, parameters, samples, base_title, epochs):
     optimizers = network_parameters.get_optimizers()
@@ -48,6 +49,14 @@ def try_best_network_sizes(*, parameters, samples, base_title, epochs):
                 number_of_widths = 5
                 number_of_depths = 5
 
+                if "MACHINE_LEARNING_NUMBER_OF_WIDTHS" in os.environ:
+                    number_of_widths = int(os.environ["MACHINE_LEARNING_NUMBER_OF_WIDTHS"])
+                    console_log("Reading number_of_widths from OS ENV. number_of_widths = {}".format(number_of_widths))
+                if "MACHINE_LEARNING_NUMBER_OF_DEPTHS" in os.environ:
+                    number_of_depths= int(os.environ["MACHINE_LEARNING_NUMBER_OF_DEPTHS"])
+                    console_log("Reading number_of_depths from OS ENV. number_of_depths = {}".format(number_of_depths))
+
+
                 for train_size in training_sizes:
                     for loss in losses:
                         regularizations = network_parameters.get_regularizations(train_size)
@@ -79,7 +88,7 @@ def try_best_network_sizes(*, parameters, samples, base_title, epochs):
                             output_information = OutputInformation(tables=tables, title=title,
                                                                   short_title=title, enable_plotting=False)
 
-
+                            showAndSave.prefix = '%s_%s_%s_%s_%s_%s' % (base_title, regularization_name, selection_type, selection, loss, optimizer)
                             selection_error, error_map = find_best_network_size_notebook(network_information = network_information,
                                 output_information = output_information,
                                 train_size = train_size,
@@ -122,9 +131,11 @@ def find_best_network_size_notebook(*, network_information,
     mean_errors = np.zeros((len(depths), len(widths)))
     variance_errors = np.zeros((len(depths), len(widths)))
     selection_errors = np.zeros((len(depths), len(widths)))
+    prefix = copy.deepcopy(showAndSave.prefix)
     for (n,depth) in enumerate(depths):
         for (m,width) in enumerate(widths):
             print("Config {} x {} ([{} x {}] / [{} x {}])".format(depths[n], widths[m], n, m, len(depths), len(widths)))
+            console_log("Config {} x {} ([{} x {}] / [{} x {}])".format(depths[n], widths[m], n, m, len(depths), len(widths)))
             seed_random_number(random_seed)
             depth = int(depth)
             width = int(width)
@@ -141,6 +152,7 @@ def find_best_network_size_notebook(*, network_information,
             showAndSave.silent = True
             print_comparison_table.silent = True
 
+            showAndSave.prefix = 'network_size_{}_{}'.format(depth, width) + prefix
             start_all_training = time.time()
             with RedirectStdStreamsToNull():
                 run_function(network_information, output_information)
@@ -148,6 +160,7 @@ def find_best_network_size_notebook(*, network_information,
 
             duration = end_all_training - start_all_training
             print("Training and postprocessing took: {} seconds ({} minutes) ({} hours)". format(duration, duration/60, duration/60/60))
+            console_log("Training and postprocessing took: {} seconds ({} minutes) ({} hours)". format(duration, duration/60, duration/60/60))
 
             prediction_errors[n, m] = output_information.prediction_error[2]
 
@@ -156,6 +169,8 @@ def find_best_network_size_notebook(*, network_information,
             wasserstein_errors[n,m] = copy.deepcopy(output_information.stat_error['wasserstein'])
             selection_errors[n,m] = copy.deepcopy(output_information.selection_error)
 
+
+    showAndSave.prefix = prefix
     errors_map = {"Prediction error" : prediction_errors,
                   "Error mean" : mean_errors,
                   "Error variance" : variance_errors,

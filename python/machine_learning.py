@@ -619,15 +619,18 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
     data_modified = data
     if int(log2(data_modified.shape[0])) != log2(data_modified.shape[0]):
-        # if the data size is not a power of two, we paod the array with the
-        # same value at the end.
-        data_modified_tmp = []
+        if float(4**int(log2(data_modified.shape[0])) - data_modified.shape[0]) < 0.1 * data_modified.shape[0]:
+            # if the data size is not a power of two, we pad the array with the
+            # same value at the end.
+            data_modified_tmp = []
 
-        for d in data_modified:
-            data_modified_tmp.append(d)
-        for k in range(2*2**int(log2(data_modified.shape[0]))-data_modified.shape[0]):
-            data_modified_tmp.append(data_modified[-1])
-        data_modified = np.array(data_modified_tmp)
+            for d in data_modified:
+                data_modified_tmp.append(d)
+            for k in range(2*2**int(log2(data_modified.shape[0]))-data_modified.shape[0]):
+                data_modified_tmp.append(data_modified[-1])
+            data_modified = np.array(data_modified_tmp)
+        else:
+            data_modified = data_modified[:2**int(data_modified.shape[0])]
     N_wasser = 2**(int(log2(data_modified.shape[0])))
     data_wasser = data_modified[:N_wasser]
     qmc_upscaled = repeat(data[:train_size], N_wasser/train_size)

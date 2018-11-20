@@ -2,6 +2,35 @@ import network_parameters
 import os
 import shutil
 
+def writeConfig(*,
+    depth,
+    width,
+    optimizer,
+    loss,
+    selection_type,
+    selection,
+    train_size,
+    regularizer):
+
+    config_map = {
+    "number_of_depths" : depth,
+    "number_of_widths" : width,
+    "optimizer" : optimizer,
+    "loss" : loss,
+    "train_size" : train_size,
+    "selection_type" : selection_type,
+    "selction" : selection,
+    "train_size" : train_size,
+    "regularizer" : regularizer.get_config()
+    }
+
+    with open("config_run.json", "w") as outfile:
+        json.write(config_map, outfile)
+        
+
+
+
+
 def submit(command, exports):
     export_str = " ".join("{}={}".format(k, exports[k]) for k in exports.keys())
     command_to_run = "{} bsub -n 1 -W 120:00 {}".format(export_str, command)
@@ -10,8 +39,11 @@ def submit(command, exports):
             exp_file.write("export {}={}\n".format(k, exports[k]))
     os.system(command_to_run)
 
-def submit_notebook_in_parallel(notebook_name):
+def submit_notebook_in_parallel(notebook_name, depth, width):
     exports = {}
+    exports['MACHINE_LEARNING_NUMBER_OF_WIDTHS'] = str(width)
+    exports["MACHINE_LEARNING_NUMBER_OF_DEPTHS"] = str(depth)
+
     for optimizer in network_parameters.get_optimizers().keys():
         exports[network_parameters.get_optimizers.key] = optimizer
         for i, loss in enumerate(network_parameters.get_losses()):
@@ -47,6 +79,16 @@ def submit_notebook_in_parallel(notebook_name):
                                 notebook = notebook,
                                 output = output
                             ), exports)
+
+                            writeConfig(depth=depth,
+                                width=width,
+                                optimizer = optimizer,
+                                loss = loss,
+                                selection_type = selection_type,
+                                selection = selection,
+                                train_size = train_size,
+                                regularizer = regularizer)
+
                             os.chdir('..')
 
 if __name__ == '__main__':
@@ -54,5 +96,12 @@ if __name__ == '__main__':
     notebook = sys.argv[1]
 
     notebook = os.path.basename(notebook)
+    width = 5
+    depth = 5
+    if len(sys.argv) == 4:
 
-    submit_notebook_in_parallel(notebook)
+        width = int(sys.argv[2])
+        depth = int(sys.argv[3])
+
+    print("Using depth = {}, width = {}".format(depth, width))
+    submit_notebook_in_parallel(notebook, depth, width)
