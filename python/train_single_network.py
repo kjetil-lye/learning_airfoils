@@ -6,6 +6,7 @@ from print_table import *
 import time
 import keras
 import network_parameters
+import json
 
 def train_single_network(*, parameters, samples, base_title, network, epochs, large_integration_points = None):
     train_sizes = network_parameters.get_training_sizes()
