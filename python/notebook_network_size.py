@@ -177,7 +177,7 @@ def find_best_network_size_notebook(*, network_information,
             wasserstein_errors[n,m] = copy.deepcopy(output_information.stat_error['wasserstein'])
             selection_errors[n,m] = copy.deepcopy(output_information.selection_error)
 
-            with open(showAndSave.prefix + "_progress.txt", "w") as f:
+            with open(prefix + "_progress.txt", "w") as f:
                 f.write("%.5f\n" % (float(n*m)/(len(depths)*len(widths))))
 
 
