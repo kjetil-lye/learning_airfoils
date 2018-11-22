@@ -168,7 +168,7 @@ def find_best_network_size_notebook(*, network_information,
             selection_errors[n,m] = copy.deepcopy(output_information.selection_error)
 
             with open(showAndSave.prefix + "_progress.txt", "w") as f:
-                f.write("%.5f\n" % ((n*m)/(len(depths)*len(widths))))
+                f.write("%.5f\n" % (float(n*m)/(len(depths)*len(widths))))
 
 
 
