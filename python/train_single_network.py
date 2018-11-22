@@ -38,8 +38,10 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
                             tables = Tables.make_default()
                             display(HTML("<h4>%s</h4>" % regularization_name))
                             seed_random_number(random_seed)
+
                             showAndSave.silent = False
-                            title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d\' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size)
+                            print_comparison_table.silent = False
+                            title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size)
                             network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epochs,
                                                                      network=network, train_size=train_size,
                                                                      validation_size=train_size,

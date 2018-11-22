@@ -304,7 +304,7 @@ def get_network(parameters, data, *, network_information, output_information):
     y_predict = model.predict(x_test)
 
     if output_information.enable_plotting:
-        plt.scatter(y_test, y_predict[:,0])
+        plt.scatter(y_test[train_size:], y_predict[train_size:,0])
         plt.title("Scatter plot, \n%s,\n epochs=%d" % (title, epochs))
         plt.xlabel("Actual data")
         plt.ylabel("Predicted data")
@@ -341,7 +341,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
     evaluated_lsq = coeffs.predict(parameters)
 
     if output_information.enable_plotting:
-        plt.scatter(data, evaluated_lsq)
+        plt.scatter(data[train_size:], evaluated_lsq[train_size:])
         plt.title('Linear least squares\n%s' % title)
         plt.xlabel("Actual data")
         plt.ylabel("Interpolated data")

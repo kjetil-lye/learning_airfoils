@@ -130,6 +130,9 @@ def find_best_network_size_notebook(*, network_information,
     variance_errors = np.zeros((len(depths), len(widths)))
     selection_errors = np.zeros((len(depths), len(widths)))
     prefix = copy.deepcopy(showAndSave.prefix)
+    training_times = np.zeros_like(selection_errors)
+    training_times_parameters = {}
+    training_times_parameters_count = {}
     for (n,depth) in enumerate(depths):
         for (m,width) in enumerate(widths):
             print("Config {} x {} ([{} x {}] / [{} x {}])".format(depths[n], widths[m], n, m, len(depths), len(widths)))
@@ -159,7 +162,14 @@ def find_best_network_size_notebook(*, network_information,
             duration = end_all_training - start_all_training
             print("Training and postprocessing took: {} seconds ({} minutes) ({} hours)". format(duration, duration/60, duration/60/60))
             console_log("Training and postprocessing took: {} seconds ({} minutes) ({} hours)". format(duration, duration/60, duration/60/60))
-
+            parameters = depth*(width*width+width)
+            training_times[n,m] = end_all_training - start_all_training
+            if parameters not in training_times_parameters.keys():
+                training_times_parameters[parameters] = end_all_training - start_all_training
+                training_times_parameters_count[parameters] = 1
+            else:
+                training_times_parameters[parameters] += end_all_training - start_all_training
+                training_times_parameters_count[parameters] += 1
             prediction_errors[n, m] = output_information.prediction_error[2]
 
             mean_errors[n,m] = copy.deepcopy(output_information.stat_error['mean'])
@@ -169,6 +179,8 @@ def find_best_network_size_notebook(*, network_information,
 
             with open(showAndSave.prefix + "_progress.txt", "w") as f:
                 f.write("%.5f\n" % (float(n*m)/(len(depths)*len(widths))))
+
+
 
 
 
@@ -182,12 +194,12 @@ def find_best_network_size_notebook(*, network_information,
     all_errors_map = {}
     for k in errors_map.keys():
         all_errors_map[k] = errors_map[k]
-    # doing this the safe way
 
+    showAndSave.silent = False
     for error_name in errors_map.keys():
         if only_selection and 'Selection error' not in error_name:
             continue
-        showAndSave.silent = False
+
         w,d = np.meshgrid(all_widths, all_depths)
 
         plt.pcolormesh(d, w, all_errors_map[error_name])
@@ -199,12 +211,49 @@ def find_best_network_size_notebook(*, network_information,
         plt.colorbar()
         plt.title("Experiment: {base_title}\n{error_name} with {train_size} samples\n".format(base_title=base_title,
             error_name=error_name, train_size=train_size))
-        showAndSave.prefix='%s_network_%s' % (base_title, train_size)
+
         np.save('results/' + showAndSave.prefix + '_{}.npy'.format(error_name.replace(" ", "")), all_errors_map[error_name])
         print('all_errors_map[{error_name}]=\\ \n{errors}'.format(error_name=error_name, errors=str(all_errors_map[error_name])))
         showAndSave(error_name.replace(" ", ""))
 
         print_memory_usage()
+    parameter_array = np.array(sorted([k for k in training_times_parameters.keys()]))
+    run_times = np.array([training_times_parameters[k]/training_times_parameters_count[k] for  k in parameter_array])
+    plt.loglog(parameter_array, run_times, '-o')
+    plt.xlabel("# of Parameters in network")
+    plt.ylabel("Run time (s)")
+    plt.grid(True)
+    plt.title("Run time as a function of number of parameters")
+    showAndSave("parameter_run_time")
+
+
+    w,d = np.meshgrid(all_widths, all_depths)
+
+    plt.pcolormesh(d, w, training_times)
+    plt.title("Run time as a function width and height")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel("Depth")
+    plt.ylabel("Width")
+    plt.colorbar()
+    showAndSave("depth_height_run_time")
+    np.save('results/' + showAndSave.prefix + '_depth_height_run_time.npy', training_times)
+    np.save('results/' + showAndSave.prefix + '_depth.npy', d)
+    np.save('results/' + showAndSave.prefix + '_width.npy', w)
+
+    plt.loglog(widths, training_times[-1,:], '-o')
+    plt.xlabel("width")
+    plt.ylabel("Run time (s)")
+    plt.grid(True)
+    plt.title("Run time as a function of width (with depth = %d)" % depths[-1])
+    showAndSave("width_run_time")
+
+    plt.loglog(depths, training_times[:,-1], '-o')
+    plt.xlabel("Wepth")
+    plt.ylabel("Run time (s)")
+    plt.grid(True)
+    plt.title("Run time as a function of depth (with width = %d)" % widths[-1])
+    showAndSave("depth_run_time")
 
 
     return selection_errors, errors_map
