@@ -6,6 +6,7 @@ from print_table import *
 import time
 import keras
 import network_parameters
+import json
 
 def train_single_network(*, parameters, samples, base_title, network, epochs, large_integration_points = None):
     train_sizes = network_parameters.get_training_sizes()
@@ -25,7 +26,7 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
                     display(HTML("<h1>{} with {}</h1>".format(optimizer, loss)))
 
                     for train_size in train_sizes:
-                        tables = Tables.make_default()
+
                         regularizations = network_parameters.get_regularizations(train_size)
                         for regularization in regularizations:
                             regularization_name = "No regularization"
@@ -34,6 +35,7 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
                                     regularization_name = "l2 (%f)" % regularization.l2
                                 else:
                                     regularization_name = "l1 (%f)" % regularization.l1
+                            tables = Tables.make_default()
                             display(HTML("<h4>%s</h4>" % regularization_name))
                             seed_random_number(random_seed)
                             showAndSave.silent = False
@@ -70,3 +72,4 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
 
                             print(json.dumps(error_map))
                             console_log(json.dumps(error_map))
+                            tables.write_tables()
