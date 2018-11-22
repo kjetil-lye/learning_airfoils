@@ -26,11 +26,6 @@ def try_best_network_sizes(*, parameters, samples, base_title, epochs):
 
 
         def __call__(self, network_information, output_information):
-            showAndSave.prefix='%s_%s_%s_ts_%d_bs_%d' %(self.title,
-                network_information.optimizer.__name__,
-                network_information.loss,
-                network_information.batch_size,
-                network_information.train_size)
 
             get_network_and_postprocess(self.parameters, self.samples,
                         network_information = network_information,
