@@ -64,7 +64,7 @@ def try_best_network_sizes(*, parameters, samples, base_title, epochs):
                                     regularization_name = "l1 (%f)" % regularization.l1
                             display(HTML("<h4>%s</h4>" % regularization_name))
 
-                            title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s' % (base_title, regularization_name, selection_type, selection, loss, optimizer)
+                            title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size)
                             short_title = title
                             run_function = TrainingFunction(parameters=parameters,
                                 samples = samples,
@@ -83,7 +83,10 @@ def try_best_network_sizes(*, parameters, samples, base_title, epochs):
                             output_information = OutputInformation(tables=tables, title=title,
                                                                   short_title=title, enable_plotting=False)
 
-                            showAndSave.prefix = '%s_%s_%s_%s_%s_%s' % (base_title, regularization_name, selection_type, selection, loss, optimizer)
+                            showAndSave.prefix = '%s_%s_%s_%s_%s_%s_%d' % (only_alphanum(base_title), only_alphanum(regularization_name),
+                                only_alphanum(selection_type), only_alphanum(selection), loss, only_alphanum(optimizer), train_size)
+
+                            
                             selection_error, error_map = find_best_network_size_notebook(network_information = network_information,
                                 output_information = output_information,
                                 train_size = train_size,

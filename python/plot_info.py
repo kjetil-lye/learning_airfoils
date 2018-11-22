@@ -86,6 +86,8 @@ def writeMetadata(filename, data):
         meta.add_text(key, str(data[key]))
     im.save(filename, "png", pnginfo=meta)
 
+def only_alphanum(s):
+    return ''.join(ch for ch in s if ch.isalnum() or ch =='_')
 def savePlot(name):
     name = showAndSave.prefix + name
     name = ''.join(ch for ch in name if ch.isalnum() or ch =='_')

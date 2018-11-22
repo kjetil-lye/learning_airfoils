@@ -39,7 +39,7 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
                             display(HTML("<h4>%s</h4>" % regularization_name))
                             seed_random_number(random_seed)
                             showAndSave.silent = False
-                            title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s' % (base_title, regularization_name, selection_type, selection, loss, optimizer)
+                            title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d\' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size)
                             network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epochs,
                                                                      network=network, train_size=train_size,
                                                                      validation_size=train_size,
@@ -50,7 +50,9 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
 
                             output_information = OutputInformation(tables=tables, title=title,
                                                                   short_title=title, enable_plotting=True)
-                            showAndSave.prefix = '%s_%s_%s_%s_%s_%s' % (base_title, regularization_name, selection_type, selection, loss, optimizer)
+                            showAndSave.prefix = '%s_%s_%s_%s_%s_%s_%d' % (only_alphanum(base_title),
+                                only_alphanum(regularization_name), only_alphanum(selection_type),
+                                only_alphanum(selection), loss, only_alphanum(optimizer), train_size)
 
                             get_network_and_postprocess(parameters, samples, network_information = network_information,
                                 output_information = output_information)
