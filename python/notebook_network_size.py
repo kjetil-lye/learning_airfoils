@@ -86,7 +86,7 @@ def try_best_network_sizes(*, parameters, samples, base_title, epochs):
                             showAndSave.prefix = '%s_%s_%s_%s_%s_%s_%d' % (only_alphanum(base_title), only_alphanum(regularization_name),
                                 only_alphanum(selection_type), only_alphanum(selection), loss, only_alphanum(optimizer), train_size)
 
-                            
+
                             selection_error, error_map = find_best_network_size_notebook(network_information = network_information,
                                 output_information = output_information,
                                 train_size = train_size,
@@ -166,6 +166,10 @@ def find_best_network_size_notebook(*, network_information,
             variance_errors[n,m] = copy.deepcopy(output_information.stat_error['var'])
             wasserstein_errors[n,m] = copy.deepcopy(output_information.stat_error['wasserstein'])
             selection_errors[n,m] = copy.deepcopy(output_information.selection_error)
+
+            with open(showAndSave.prefix + "_progress.txt", "w") as f:
+                f.write("%.5f\n" % ((n*m)/(len(depths)*len(widths))))
+
 
 
     showAndSave.prefix = prefix
