@@ -499,15 +499,14 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
 
         for k in samples[1:]:
             if stat == 'mean':
-                mean = sum(model.predict(parameters[:train_size,:])-data[:train_size])/train_size +                sum(model.predict(parameters[:k,:]))/k
+                mean = mymean(data[:train_size]-predicted[:train_size]) + mymean(predicted_all)
 
 
                 stats[stat]['sources']['DLb%s' % sampling_method]['data'].append(mean)
             elif stat=='var':
-                mean = sum(model.predict(parameters[:train_size,:])-data[:train_size])/train_size +                sum(model.predict(parameters[:k,:]))/k
+                mean = mymean(data[:train_size]-predicted[:train_size]) + mymean(predicted_all)
 
-                m2 = sum((data[:train_size])**2-(model.predict(parameters[:train_size,:]))**2)/train_size +                sum(model.predict(parameters[:k,:])**2)/k
-
+                m2 = mymean(data[:train_size]**2-predicted[:train_size]**2) + mymean(predicted_all**2)
 
                 stats[stat]['sources']['DLb%s' % sampling_method]['data'].append(m2-mean**2)
 
