@@ -32,11 +32,22 @@ def writeConfig(*,
 
 
 def submit(command, exports):
+    exports['HOME'] = os.getcwd()
+    exports['JUPYTER_PATH'] = os.getcwd()
+    exports['JUPYTER_CONFIG_DIR'] = os.getcwd()
+    exports['JUPYTER_RUNTIME_DIR'] = os.getcwd()
     export_str = " ".join("{}={}".format(k, exports[k]) for k in exports.keys())
     command_to_run = "{} bsub -n 1 -W 120:00 {}".format(export_str, command)
     with open('exports.sh', 'w') as exp_file:
         for k in exports.keys():
             exp_file.write("export {}={}\n".format(k, exports[k]))
+    # First we install the packages needed
+    old_home = os.environ["HOME"]
+    if old_home[-1] != "/":
+        old_home = old_home + "/"
+
+    command_to_run.replace("$HOME", old_home)
+    os.system("HOME=$(pwd) pip install --user matplotlib matplotlib2tikz gitpython tabulate sobol sobol_seq")
     os.system(command_to_run)
 
 def submit_notebook_in_parallel(notebook_name, depth, width):

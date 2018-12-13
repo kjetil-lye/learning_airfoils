@@ -1,5 +1,5 @@
 import numpy as np
-from mpi4py import MPI
+
 import tensorflow as tf
 from machine_learning import NetworkInformation, OutputInformation, get_network_and_postprocess, random_seed, seed_random_number, print_memory_usage, Tables
 from plot_info import *
