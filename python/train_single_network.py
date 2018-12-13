@@ -47,7 +47,7 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
                                                                      validation_size=train_size,
                                                                      loss=loss,
                                                                      large_integration_points=large_integration_points,
-                                                                     selection=selection, tries=3,
+                                                                     selection=selection, tries=5,
                                                                      kernel_regularizer = regularization)
 
                             output_information = OutputInformation(tables=tables, title=title,
@@ -70,7 +70,8 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
                             error_map = {"main_error" : mean_error,
                                         "variance_error" : variance_error,
                                         "wasserstein_error" : wasserstein_error,
-                                        "selection_error" : selection_error}
+                                        "selection_error" : selection_error,
+                                        "prediction_error" : prediction_error}
 
                             with open('results/' + showAndSave.prefix + '_errors.json', 'w') as out:
                                 json.dump(error_map, out)

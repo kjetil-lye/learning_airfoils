@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 
 
@@ -142,6 +141,12 @@ def get_network(parameters, data, *, network_information, output_information):
 
     tries = 5
     start_total_learning = time.time()
+
+    y_train = data[:train_size]
+    from sklearn import linear_model
+    reg = linear_model.LinearRegression()
+    lsq_predictor = reg.fit(parameters[:train_size,:], y_train)
+
     for trylearn in range(network_information.tries):
         model = Sequential()
         model.add(Dense(network_information.network[0],
@@ -236,6 +241,9 @@ def get_network(parameters, data, *, network_information, output_information):
 
         else:
             raise Exception("Unknown selection %s" % network_information.selection)
+
+        # we want to measure the variance at some point
+        compute_stats_with_reuse(model, lsq_predictor, network_information, output_information, parameters, data, train_size, "try_{}".format(trylearn))
         if best_network is None or train_error < best_learning_rate:
             best_network = model
             best_network_index = trylearn
@@ -442,10 +450,7 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
             showAndSave('hist_qmc_ml_large')
 
 
-    #prediction_error = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
-    #    model.predict(parameters))))/data.shape[0]
-    #prediction_error_lsq = np.sum(keras.backend.eval(keras.losses.mean_squared_error(data,
-    #    evaluated_lsq)))/data.shape[0]
+
     prediction_error_table.set_header(["Functional", "Deep learning", "Least squares"])
     norms = [1, 2]
     norm_names = ["$L^1$", "$L^2$"]
@@ -709,6 +714,9 @@ def get_network_and_postprocess(parameters, samples, *, network_information,
             plt.legend()
             showAndSave("error_evolution_wasserstein_large")
 
+
+    compute_stats_with_reuse(network, coeffs, network_information, output_information, parameters, data, train_size)
+
     console_log("done one configuration")
 
     return network, data, parameters
@@ -762,3 +770,124 @@ def plot_train_size_convergence(network_information,
         plt.ylabel("Error")
         plt.title("Error of %s as a function of training size" % error_key)
         showAndSave('convergence_%s' % error_key)
+
+def replace_data_with_actual_data(evaluated_data, real_data, train_size):
+    """ Used in compute_stats_with_reuse"""
+    new_data = np.reshape(copy.deepcopy(evaluated_data), evaluated_data.shape[0])
+    new_data[:train_size] = real_data[:train_size]
+    return new_data
+
+def add_actual_data(evaluated_data, real_data, train_size):
+    """ Used in compute_stats_with_reuse"""
+    new_data = np.zeros(evaluated_data.shape[0]+train_size)
+    new_data[:train_size] = real_data[:train_size]
+    new_data[train_size:] = evaluated_data
+
+    return new_data
+
+def wasserstein_error_cut(x, all_data):
+    if x.shape[0] > all_data.shape[0]:
+        return wasserstein_error_cut(all_data, x)
+
+    repeat_number = int(all_data.shape[0]/x.shape[0])
+
+    N = x.shape[0] * repeat_number
+
+    cut_data = all_data[:N]
+
+    return scipy.stats.wasserstein_distance(cut_data, np.repeat(x, repeat_number))
+
+
+def wasserstein_error_extend(x, all_data):
+    if x.shape[0] > all_data.shape[0]:
+        return wasserstein_error_extend(all_data, x)
+
+    repeat_number = int(ceil(all_data.shape[0]/x.shape[0]))
+
+
+
+    N = x.shape[0] * repeat_number
+
+
+    extended_data = np.zeros(N)
+    extended_data[:all_data.shape[0]] = all_data
+    for k in range (N-all_data.shape[0]):
+        extended_data[all_data.shape[0]+k] = all_data[-1]
+
+
+    return scipy.stats.wasserstein_distance(extended_data, np.repeat(x, repeat_number))
+
+import json
+import sobol
+def compute_stats_with_reuse(network, lsq_predictor, network_information, output_information, parameters, data, train_size, postfix=""):
+    dim = parameters.shape[1]
+    M_self_generated = 2**15
+    parameter_sources = {
+        '{}_from_data'.format(output_information.sampling_method): parameters,
+        'QMC' : np.array([sobol.i4_sobol(dim, p)[0] for p in range(M_self_generated)]),
+        'MC' : np.random.uniform(0,1,(M_self_generated, dim))
+        }
+
+    if network_information.large_integration_points is not None:
+        parameter_sources['{}_from_data_large'.format(output_information.sampling_method)] = network_information.large_integration_points
+
+
+
+
+    modifiers = {
+        'ordinary' : lambda evaluated_data, real_data, train_size: evaluated_data,
+        'replace' : replace_data_with_actual_data,
+        'add' : add_actual_data
+    }
+
+    errors_functionals = {
+        'mean_error' : lambda x, all_data: abs(np.mean(x)-np.mean(all_data)),
+        'var_error' : lambda x, all_data: abs(np.var(x)-np.var(all_data)),
+        'wasserstein_error_cut' : wasserstein_error_cut,
+        'wasserstein_error_extend' : wasserstein_error_extend
+    }
+
+    predictors = {
+        'ml' : lambda x: np.reshape(network.predict(x), x.shape[0]),
+        'lsq' : lambda x: np.reshape(lsq_predictor.predict(x), x.shape[0])
+    }
+
+    results = {}
+    for parameter_source in parameter_sources.keys():
+        current_data = parameter_sources[parameter_source]
+        results[parameter_source] = {}
+        for predictor in predictors.keys():
+            predicted_data = predictors[predictor](current_data)
+            results[parameter_source][predictor] = {}
+            for modifier in modifiers.keys():
+                modified_data = modifiers[modifier](predicted_data, data, train_size)
+                results[parameter_source][predictor][modifier] = {}
+                for error_functional in errors_functionals.keys():
+
+                    results[parameter_source][predictor][modifier][error_functional] = errors_functionals[error_functional](modified_data, data)
+    all_results_with_information = {}
+    all_results_with_information['algorithms'] = results
+    all_results_with_information['train_size'] = train_size
+    all_results_with_information['base_sampling_error']  = {}
+    for error_functional in errors_functionals:
+        all_results_with_information[error_functional] = errors_functionals[error_functional](data[:train_size], data)
+
+
+    norm_names = ["L1","L2"]
+    norms=[1,2]
+    all_results_with_information['prediction_error']  = {}
+    all_results_with_information['prediction_error']['ML']  = {}
+    all_results_with_information['prediction_error']['LSQ']  = {}
+    for norm, norm_name in zip(norms, norm_names):
+        all_results_with_information['prediction_error']['ML'][norm_name] = compute_prediction_error(data, np.reshape(network.predict(parameters), data.shape), train_size, norm)
+
+
+        all_results_with_information['prediction_error']['LSQ'][norm_name] = compute_prediction_error(data, np.reshape(lsq_predictor.predict(parameters), data.shape),train_size, norm)
+
+
+    if len(postfix) > 0 and postfix[0] != "_":
+        postfix= "_" + postfix
+    with open('results/' + showAndSave.prefix + '_combination_stats{}.json'.format(postfix), 'w') as f:
+        json.dump(all_results_with_information, f)
+
+    console_log(json.dumps(all_results_with_information))

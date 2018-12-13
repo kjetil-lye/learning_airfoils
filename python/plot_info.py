@@ -135,12 +135,19 @@ def legendLeft():
     ax = plt.gca()
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
+import inspect
+def console_log_show(x):
+    try:
+        x = "{} (in {}): {}".format(str(datetime.datetime.now()), inspect.stack()[1][3], x)
+    except:
+        x = "{} (in unknown function): {}".format(str(datetime.datetime.now()), x)
+    console_log(x)
+    print(x)
+
 def console_log(x):
     """Simple hack to write to stdout from a notebook"""
 
     x=str(x)
     with open('/dev/stdout', 'w') as f:
-        f.write("\n\n\n------------DEBUG OUTPUT------------\n")
-        f.write("%s\n"%x)
-        f.write('------------DEBUG OUTPUT------------\n\n')
+        f.write("DEBUG: %s\n"%x)
         f.flush()
