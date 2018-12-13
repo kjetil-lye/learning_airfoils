@@ -29,9 +29,20 @@ def writeConfig(*,
 
 
 
+def downloaded_needed_packages():
+    if not os.path.exists("../packages_downloaded"):
+        os.mkdir("../packages_downloaded")
+    if not downloaded_needed_packages.has_run:
+        os.system("HOME=$(dirname $(pwd))/packages_downloaded pip install --user matplotlib matplotlib2tikz gitpython tabulate sobol sobol_seq")
+        downloaded_needed_packages.has_run = True
+    os.system("cp -r ../packages_downloaded/* ./")
+
+downloaded_needed_packages.has_run = False
+
 
 
 def submit(command, exports):
+    exports = copy.deepcopy(exports)
     exports['HOME'] = os.getcwd()
     exports['JUPYTER_PATH'] = os.getcwd()
     exports['JUPYTER_CONFIG_DIR'] = os.getcwd()
@@ -43,11 +54,9 @@ def submit(command, exports):
             exp_file.write("export {}={}\n".format(k, exports[k]))
     # First we install the packages needed
     old_home = os.environ["HOME"]
-    if old_home[-1] != "/":
-        old_home = old_home + "/"
 
     command_to_run.replace("$HOME", old_home)
-    os.system("HOME=$(pwd) pip install --user matplotlib matplotlib2tikz gitpython tabulate sobol sobol_seq")
+    downloaded_needed_packages()
     os.system(command_to_run)
 
 def submit_notebook_in_parallel(notebook_name, depth, width):
