@@ -36,7 +36,7 @@ def downloaded_needed_packages():
     if not downloaded_needed_packages.has_run:
         os.system("HOME=$(dirname $(pwd))/packages_downloaded pip install --user matplotlib matplotlib2tikz gitpython tabulate sobol sobol_seq")
         downloaded_needed_packages.has_run = True
-    os.system("cp -r ../packages_downloaded/* ./")
+    os.system("shopt -s dotglob; cp -r ../packages_downloaded/* ./")
 
 downloaded_needed_packages.has_run = False
 
