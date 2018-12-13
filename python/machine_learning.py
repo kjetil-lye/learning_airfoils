@@ -870,7 +870,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
     all_results_with_information['train_size'] = train_size
     all_results_with_information['base_sampling_error']  = {}
     for error_functional in errors_functionals:
-        all_results_with_information[error_functional] = errors_functionals[error_functional](data[:train_size], data)
+        all_results_with_information['base_sampling_error'][error_functional] = errors_functionals[error_functional](data[:train_size], data)
 
 
     norm_names = ["L1","L2"]
