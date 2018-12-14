@@ -829,6 +829,10 @@ def mean_bilevel(x, all_data, train_size):
 def var_bilevel(x, all_data, train_size):
     return np.mean(all_data[:train_size]**2-x[:train_size]**2)+np.mean(x**2)-mean_bilevel(x, all_data, train_size)**2
 
+def var_bilevel_alternative(x, all_data, train_size):
+    m = mean_bilevel(x, all_data, train_size)
+    return np.mean((all_data[:train_size]-m)**2-(x[:train_size]-m)**2)+np.mean((x-m)**2)
+
 
 def compute_stats_with_reuse(network, lsq_predictor, network_information, output_information, parameters, data, train_size, postfix=""):
     dim = parameters.shape[1]
@@ -859,10 +863,12 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
         'var_error_relative' : lambda x, all_data: abs(np.var(x)-np.var(all_data))/abs(np.var(all_data)),
         'mean_bilevel_error' : lambda x, all_data: abs(mean_bilevel(x, all_data, train_size) - np.mean(x)),
         'var_bilevel_error' :  lambda x, all_data: abs(var_bilevel(x, all_data, train_size) - np.var(x)),
+        'var_bilevel_error_alternative' :  lambda x, all_data: abs(var_bilevel_alternative(x, all_data, train_size) - np.var(x)),
         'mean' : lambda x, all_data: float(np.mean(x)),
         'var' : lambda x, all_data: float(np.var(x)),
         'mean_bilevel' : lambda x, all_data : float(mean_bilevel(x, all_data, train_size)),
         'var_bilevel' : lambda x, all_data : float(var_bilevel(x, all_data, train_size)),
+        'var_bilevel_alternative' : lambda x, all_data : float(var_bilevel_alternative(x, all_data, train_size)),
         'wasserstein_error_cut' : wasserstein_error_cut,
         'wasserstein_error_extend' : wasserstein_error_extend,
         'prediction_l1_relative' : lambda x, all_data: float(compute_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 1)),
