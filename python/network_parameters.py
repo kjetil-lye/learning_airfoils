@@ -39,7 +39,7 @@ def get_selections():
 get_selections.key = 'MACHINE_LEARNING_SELECTION'
 
 def get_training_sizes():
-    sizes =  [128, 256, 512]
+    sizes =  [32, 64, 128, 256]
     if get_training_sizes.key in os.environ:
         sizes = [sizes[int(os.environ[get_training_sizes.key])]]
     return sizes

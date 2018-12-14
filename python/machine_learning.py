@@ -824,14 +824,14 @@ import json
 import sobol
 
 def mean_bilevel(x, all_data, train_size):
-    return np.mean(all_data[:train_size]-x[:train_size])+np.mean(x)
+    return np.mean(all_data[:min(train_size, x.shape[0])]-x[:min(train_size, x.shape[0])])+np.mean(x)
 
 def var_bilevel(x, all_data, train_size):
-    return np.mean(all_data[:train_size]**2-x[:train_size]**2)+np.mean(x**2)-mean_bilevel(x, all_data, train_size)**2
+    return np.mean(all_data[:min(train_size, x.shape[0])]**2-x[:min(train_size, x.shape[0])]**2)+np.mean(x**2)-mean_bilevel(x, all_data, train_size)**2
 
 def var_bilevel_alternative(x, all_data, train_size):
     m = mean_bilevel(x, all_data, train_size)
-    return np.mean((all_data[:train_size]-m)**2-(x[:train_size]-m)**2)+np.mean((x-m)**2)
+    return np.mean((all_data[:min(train_size, x.shape[0])]-m)**2-(x[:min(train_size, x.shape[0])]-m)**2)+np.mean((x-m)**2)
 
 
 def compute_stats_with_reuse(network, lsq_predictor, network_information, output_information, parameters, data, train_size, postfix=""):
