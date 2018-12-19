@@ -73,7 +73,7 @@ for folder in folders:
         
         configuration['results']['retrainings'] = {}
     
-        retraining_files = glob.glob(os.path.join(folder, 'results/{basename}_combination_stats_try_*.json'.format(basename)))
+        retraining_files = glob.glob(os.path.join(folder, 'results/{basename}_combination_stats_try_*.json'.format(basename=basename)))
         for retraining_file_name in retraining_files:
             retraining_number = int(re.search(r'combination_stats_try_(\d+)\.json', retraining_file_name).group(1))
             with open(retraining_file_name) as retraining_file:
