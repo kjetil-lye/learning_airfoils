@@ -45,14 +45,23 @@ for folder in folders:
     with open(config_file_name) as config_file:
         json_config = json.load(config_file)
     best_files = glob.glob(os.path.join(folder, 'results/*{}*combination_stats.json'.format(functional_name)))
+    configuration = {}
+    configuration['results'] = {}
+    configuration['network_sizes'] = []
+    configuration['settings'] = copy.deepcopy(json_config)
     for best_file in best_files:
-        configuration = {}
-        configuration['results'] = {}
         with open(best_file) as best_result_file:
-            configuration['results']['best_network'] = copy.deepcopy(json.load(best_result_file))
+            if 'network_size' not in best_file:
+                configuration['results']['best_network'] = copy.deepcopy(json.load(best_result_file))
+                current_configuration = configuration
+            else:
+                configuration['network_sizes'].append({})
+                current_configuration = configuration['network_sizes'][-1]
+                current_configuration['results'] = {}
+                current_configuration['settings'] = copy.deepcopy(json_config)
+                current_configuration['results']['best_network'] = copy.deepcopy(json.load(best_result_file))
     
         
-        configuration['settings'] = copy.deepcopy(json_config)
     
         basename = re.search(r'results\/(.+)_combination_stats\.json', best_file).group(1)
         
@@ -62,28 +71,28 @@ for folder in folders:
             depth = len(model['config']['layers'])
             widths = [model['config']['layers'][k]['config']['units'] for k in range(depth)]
             
-        configuration['settings']['depth'] = copy.deepcopy(depth)
-        configuration['settings']['widths'] = copy.deepcopy(widths)
-        configuration['settings']['min_width'] = min(widths)
-        configuration['settings']['max_width'] = max(widths)
-        configuration['settings']['average_width'] = np.mean(widths)
+        current_configuration['settings']['depth'] = copy.deepcopy(depth)
+        current_configuration['settings']['widths'] = copy.deepcopy(widths)
+        current_configuration['settings']['min_width'] = min(widths)
+        current_configuration['settings']['max_width'] = max(widths)
+        current_configuration['settings']['average_width'] = np.mean(widths)
         
         
                 
         
-        configuration['results']['retrainings'] = {}
+        current_configuration['results']['retrainings'] = {}
     
         retraining_files = glob.glob(os.path.join(folder, 'results/{basename}_combination_stats_try_*.json'.format(basename=basename)))
         for retraining_file_name in retraining_files:
             retraining_number = int(re.search(r'combination_stats_try_(\d+)\.json', retraining_file_name).group(1))
             with open(retraining_file_name) as retraining_file:
-                configuration['results']['retrainings'][retraining_number] = json.load(retraining_file)
+                current_configuration['results']['retrainings'][retraining_number] = json.load(retraining_file)
     
     
 
     
                                 
-        configuration_top['configurations'].append(configuration)
+    configuration_top['configurations'].append(configuration)
 
 
 print(json.dumps(configuration_top))
