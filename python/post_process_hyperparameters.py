@@ -5,7 +5,6 @@
 
 
 import matplotlib
-get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
@@ -125,7 +124,7 @@ def plot_all(filenames, convergence_rate, latex_out):
 
     latex = LatexWithAllPlots()
     plot_info.savePlot.callback = latex
-    print_table.print_comparison_table.callback = lambda x: latex.add_table(x)
+    print_table.print_comparison_table.callback = lambda x, title: latex.add_table(x, title)
 
     def heading(level, content):
 
@@ -187,14 +186,15 @@ Full path:\\
         return self.text + "\n\\end{document}"
 
 
-    def add_table(self, tablefile):
+    def add_table(self, tablefile, title):
         self.text +=         """
 %%%%%%%%%%%%%
 % {full_path}
 \\begin{{table}}
 \\input{{{full_path}}}
 \\cprotect\\caption{{
-\textbf{{IMPORTANT NOTE: }} Check the tactic at the end of the file name.
+{title}\\\\
+\\textbf{{IMPORTANT NOTE: }} Check the tactic at the end of the file name.
 If the tactic is "ordinary", this is the one to use for prediction error,
 do NOT use any of the other tactics for prediction error.
 
@@ -203,7 +203,7 @@ The other tactics are: add, replace, remove.
 }}
 
 \\end{{table}}
-""".format(full_path=tablefile)
+""".format(full_path=tablefile, title=title)
 
 def generate_plot_name(error, functional, tactic, config, include_selected,
                 include_retraining, include_min, include_max, include_std, include_competitor,
@@ -236,6 +236,12 @@ def generate_plot_name(error, functional, tactic, config, include_selected,
 
     return basename
 
+def get_regularization_size(config):
+    reg = get_regularization(config)
+    if reg == "None":
+        return 0
+    else:
+        return max(reg['l1'], reg['l2'])
 
 def get_dict_path(dictionary, path):
     split = path.split('.')
@@ -379,10 +385,14 @@ def plot_as_training_size(functional, data, title="all configurations"):
         for t, tactic in enumerate(tactics):
             for (n, train_size) in enumerate(train_sizes):
                 errors_local = []
+                errors_local_regularization = {}
                 for configuration in data['configurations']:
                     ts = int(configuration['settings']['train_size'])
                     if ts == train_size:
                         errors_local.append(configuration['results']['best_network']['algorithms'][data_source]['ml'][tactic][error])
+                        if not get_regularization_size(configuration) in errors_local_regularization.keys():
+                            errors_local_regularization[get_regularization_size(configuration)] = []
+                        errors_local_regularization[get_regularization_size(configuration)].append(configuration['results']['best_network']['algorithms'][data_source]['ml'][tactic][error])
                         competitor[error][n] = get_dict_path(configuration, competitor_keys[error])
                         has_extra_competitor = error in extra_competitor_keys.keys()
                         if error in extra_competitor_keys.keys():
@@ -481,7 +491,24 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
                 plt.close(30*(len(tactics)+1))
 
-
+                plt.figure(0)
+                regularization_sizes = sorted([k for k in errors_local_regularization.keys()])
+                reg_errors = [np.mean(errors_local_regularization[k]) for k in regularization_sizes]
+                reg_errors_var = [np.var(errors_local_regularization[k]) for k in regularization_sizes]
+                reg_errors_min = [np.min(errors_local_regularization[k]) for k in regularization_sizes]
+                reg_errors_max = [np.max(errors_local_regularization[k]) for k in regularization_sizes]
+                plt.errorbar(regularization_sizes, reg_errors, yerr=reg_errors_var, label='error')
+                plt.plot(regularization_sizes, reg_errors_min, '--o', label='minimum')
+                plt.plot(regularization_sizes, reg_errors_max, '--*', label='maximum')
+                plot_info.legendLeft()
+                plt.title("Average error as a function of regularization size\n{functional}, configurations:{config},\nError: {error}, training size: {train_size}, tactic: {tactic}".
+                    format(functional=functional, config=title, error=names[error], train_size=train_size, tactic=tactic))
+                plt.xlabel("Regularization size")
+                plt.ylabel(names[error])
+                plt.gca().set_yscale("log", nonposy='clip', basey=2)
+                plt.grid(True)
+                plot_info.savePlot('error_regularization_{functional}_{config}_{error}_{train_size}_{tactic}'.format(tactic=tactic, functional=functional, config=title, error=error, train_size=train_size))
+                plt.close('all')
 
 
             for k in pairing.keys():
@@ -504,6 +531,13 @@ def plot_as_training_size(functional, data, title="all configurations"):
                     row.append(extra_competitors[error][n])
 
                 table_builder.add_row(row)
+
+            table_builder.set_title("{error} for selected retrained DNNs, with {functional}, configurations: {config}, tactic: {tactic}".format(
+                    functional=functional,
+                    config=title,
+                    error = error,
+                    tactic=tactic
+            ))
             table_builder.print_table("selected_stats_{functional}_{config}_{error}_{tactic}".format(
                     functional=functional,
                     config=title,
@@ -526,7 +560,13 @@ def plot_as_training_size(functional, data, title="all configurations"):
                     row.append(extra_competitors[error][n])
 
                 table_builder.add_row(row)
-            table_builder.print_table("selected_stats_retraining_{functional}_{config}_{error}_{tactic}".format(
+            table_builder.set_title("{error} for all retrainings, with {functional}, configurations: {config}, tactic: {tactic}".format(
+                            functional=functional,
+                            config=title,
+                            error = error,
+                            tactic=tactic
+            ))
+            table_builder.print_table("retraining_tats_{functional}_{config}_{error}_{tactic}".format(
                     functional=functional,
                     config=title,
                     error = error,
@@ -547,12 +587,21 @@ def plot_as_training_size(functional, data, title="all configurations"):
                     row.append(extra_competitors[error][n])
 
                 table_builder.add_row(row)
+
+            table_builder.set_title("{error} for selected retrained DNNs, with {functional}, configurations: {config}, tactic: {tactic}".format(
+                        functional=functional,
+                        config=title,
+                        error = error,
+                        tactic=tactic
+            ))
             table_builder.print_table("selected_{functional}_{config}_{error}_{tactic}".format(
                     functional=functional,
                     config=title,
                     error = error,
                     tactic=tactic
             ))
+
+
 
 
 
@@ -612,7 +661,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                             if include_competitor and not tactics_in_same_plot:
                                                 plt.loglog(train_sizes, competitor[error], '--o', label=competitor_names[error], basex=2, basey=2)
                                             if include_extra_competitor and not tactics_in_same_plot and has_extra_competitor:
-                                                plt.loglog(train_sizes, extra_competitors[error], '--o', label=extra_competitor_names[error], basex=2, basey=2)
+                                                plt.loglog(train_sizes, extra_competitors[error], '--P', label=extra_competitor_names[error], basex=2, basey=2)
                                             plt.gca().set_xscale("log", nonposx='clip', basex=2)
                                             plt.gca().set_yscale("log", nonposy='clip', basey=2)
                                             plt.grid(True)
