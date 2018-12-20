@@ -297,6 +297,22 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
     for error in errors.keys():
         tactics=['ordinary', 'add', 'remove', 'replace']
+        error_per_tactics = {}
+        var_error_per_tactics = {}
+        min_error_per_tactics = {}
+        max_error_per_tactics = {}
+        error_per_tactics_retraining = {}
+        var_error_per_tactics_retraining = {}
+        min_error_per_tactics_retraining = {}
+        max_error_per_tactics_retraining = {}
+        for tact in tactics:
+            for arr in [error_per_tactics, var_error_per_tactics, min_error_per_tactics,  \
+                max_error_per_tactics, error_per_tactics_retraining, var_error_per_tactics_retraining,\
+                min_error_per_tactics_retraining, max_error_per_tactics_retraining]:
+
+                arr[tact] = np.zeros(len(train_size))
+
+
         for t, tactic in enumerate(tactics):
             for (n, train_size) in enumerate(train_sizes):
                 errors_local = []
@@ -353,7 +369,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
                 plt.figure(20*(len(tactics)+1))
                 plt.hist(errors_local_retrainings, bins=20)
-                plt.xlabel(error_names[error])
+                plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
                 plt.title("Histograms for distribution (retrainings) for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples".format(error=names[error],
                     functional=functional, title=title, train_size=train_size
@@ -380,7 +396,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 plt.hist(errors_local_retrainings, bins=20, alpha=0.5, label='Retrainings')
                 plt.hist(errors_local, bins=20, alpha=0.5, label='Selected retrainings')
                 plot_info.legendLeft()
-                plt.xlabel(error_names[error])
+                plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
                 plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples".format(error=names[error],
                     functional=functional, title=title, train_size=train_size
