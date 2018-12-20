@@ -281,6 +281,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
     errors_retraining = {}
     errors_retraining_var = {}
+    errors_retraining_min = {}
+    errors_retraining_max = {}
     errors_min = {}
 
     errors_max = {}
@@ -292,6 +294,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
         errors_min[k]  = np.zeros(len(train_sizes))
         errors_retraining[k]  = np.zeros(len(train_sizes))
         errors_retraining_var[k]  = np.zeros(len(train_sizes))
+        errors_retraining_max[k]  = np.zeros(len(train_sizes))
+        errors_retraining_min[k]  = np.zeros(len(train_sizes))
         competitor[k]  = np.zeros(len(train_sizes))
 
 
@@ -305,13 +309,21 @@ def plot_as_training_size(functional, data, title="all configurations"):
         var_error_per_tactics_retraining = {}
         min_error_per_tactics_retraining = {}
         max_error_per_tactics_retraining = {}
-        for tact in tactics:
-            for arr in [error_per_tactics, var_error_per_tactics, min_error_per_tactics,  \
-                max_error_per_tactics, error_per_tactics_retraining, var_error_per_tactics_retraining,\
-                min_error_per_tactics_retraining, max_error_per_tactics_retraining]:
 
-                arr[tact] = np.zeros(len(train_size))
+        pairing = {
+            'mean_error': [error_per_tactics, errors],
+            'var_error' : [var_error_per_tactics, errors_var],
+            'min_error' : [min_error_per_tactics, errors_min],
+            'max_error' : [max_error_per_tactics, errors_max],
+            'mean_error_retraining' : [error_per_tactics_retraining, errors_retraining],
+            'var_error_retraining' : [var_error_per_tactics_retraining, errors_retraining_var],
+            'min_error_retraining' : [min_error_per_tactics_retraining, errors_retraining_min],
+            'max_error_retraining' : [max_error_per_tactics_retraining, errors_retraining_max]
+        }
 
+        for t in tactics:
+            for k in pairing.keys():
+                pairing[k][0][t] = np.zeros(len(train_sizes))
 
         for t, tactic in enumerate(tactics):
             for (n, train_size) in enumerate(train_sizes):
@@ -364,7 +376,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
                             errors_local_retrainings.append(configuration['results']['retrainings'][retraining]['algorithms'][data_source]['ml'][tactic][error])
                 errors_retraining[error][n] = np.mean(errors_local_retrainings)
                 errors_retraining_var[error][n] = np.var(errors_local_retrainings)
-
+                errors_retraining_min[error][n] = np.min(errors_local_retrainings)
+                errors_retraining_max[error][n] = np.max(errors_local_retrainings)
 
 
                 plt.figure(20*(len(tactics)+1))
@@ -417,7 +430,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
                 plt.close(30*(len(tactics)+1))
 
-
+            for k in pairing.keys():
+                pairing[k][0][tactic][:] = np.copy(pairing[k][1][:])
             plt.figure(0)
 
 
