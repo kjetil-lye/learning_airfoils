@@ -121,6 +121,16 @@ def savePlot(name):
     writeMetadata(savenamepng, {'working_directory': os.getcwd(),
                                 'hostname':socket.gethostname(),
                                 'generated_on_date': str(datetime.datetime.now())})
+
+    if savePlot.callback is not None:
+        title = 'Unknown title'
+        try:
+            title = plt.gcf()._suptitle.get_text()
+        except:
+            pass
+        savePlot.callback(savenamepng, name, title)
+
+savePlot.callback = None
 def showAndSave(name):
     savePlot(name)
     if not showAndSave.silent:
