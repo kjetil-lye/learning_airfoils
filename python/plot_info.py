@@ -19,16 +19,20 @@ from IPython.core.display import display, HTML
 try:
     import git
     def get_git_metadata():
-        repo = git.Repo(search_parent_directories=True)
-        sha = repo.head.object.hexsha
-        modified= repo.is_dirty()
-        activeBranch = repo.active_branch
-        url = repo.remotes.origin.url
+        if not get_git_metadata.cached:
+            get_git_metadata.repo = git.Repo(search_parent_directories=True)
+            get_git_metadata.sha = get_git_metadata.repo.head.object.hexsha
+            get_git_metadata.modified= get_git_metadata.repo.is_dirty()
+            get_git_metadata.activeBranch = get_git_metadata.repo.active_branch
+            get_git_metadata.url = get_git_metadata.repo.remotes.origin.url
+            get_git_metadata.cached = True
 
-        return {'git_commit': str(sha),
-                'git_repo_modified':str(modified),
-                'git_branch' : str(activeBranch),
-                'git_remote_url' : str(url)}
+        return {'git_commit': str(get_git_metadata.sha),
+                'git_repo_modified':str(get_git_metadata.modified),
+                'git_branch' : str(get_git_metadata.activeBranch),
+                'git_remote_url' : str(get_git_metadata.url)}
+
+    get_git_metadata.cached = False
 
 
     def add_git_information(filename):
@@ -105,10 +109,11 @@ def savePlot(name):
     # We don't want all the output from matplotlib2tikz
 
     with RedirectStdStreamsToNull():
-        matplotlib2tikz.save('img_tikz/' + name + '.tikz',
-           figureheight = '\\figureheight',
-           figurewidth = '\\figurewidth',
-           show_info = False)
+        if savePlot.saveTikz:
+            matplotlib2tikz.save('img_tikz/' + name + '.tikz',
+                figureheight = '\\figureheight',
+                figurewidth = '\\figurewidth',
+                show_info = False)
 
 
     savenamepng = 'img/' + name + '.png'
@@ -131,6 +136,8 @@ def savePlot(name):
         savePlot.callback(savenamepng, name, title)
 
 savePlot.callback = None
+savePlot.saveTikz = True
+
 def showAndSave(name):
     savePlot(name)
     if not showAndSave.silent:
