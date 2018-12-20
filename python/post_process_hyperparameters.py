@@ -18,15 +18,6 @@ import pprint
 import re
 
 
-# In[2]:
-
-
-basename='../data/airfoils_qmc_{}.json'
-
-
-# In[3]:
-
-
 def fix_bilevel(configuration):
     """
     In an earlier verison (4f65635f5b32b842b8b5c80f9978520c85545b25) there was an error in how
@@ -258,6 +249,26 @@ def plot_as_training_size(functional, data, title="all configurations"):
         'wasserstein_speedup_real' : sampling_method
     }
 
+    extra_competitor_keys = {
+        "mean_error_relative" : 'results.best_network.algorithms.{data_source}.lsq.ordinary.mean_error_relative'.format(data_source=data_source),
+        "var_error_relative" : 'results.best_network.algorithms.{data_source}.lsq.ordinary.var_error_relative'.format(data_source=data_source),
+        "wasserstein_error_cut" : 'results.best_network.algorithms.{data_source}.lsq.ordinary.wasserstein_error_cut'.format(data_source=data_source),
+        "mean_bilevel_error_relative": 'results.best_network.algorithms.{data_source}.lsq.ordinary.mean_bilevel_error_relative'.format(data_source=data_source),
+        "var_bilevel_error_relative" :'results.best_network.algorithms.{data_source}.lsq.ordinary.var_bilevel_error_relative'.format(data_source=data_source),
+        'wasserstein_speedup_raw' : 'results.best_network.algorithms.{data_source}.lsq.ordinary.wasserstein_speedup_raw'.format(data_source=data_source),
+        'wasserstein_speedup_real' : 'results.best_network.algorithms.{data_source}.lsq.ordinary.wasserstein_speedup_real'.format(data_source=data_source)
+    }
+
+
+    extra_competitor_names = {
+        "mean_error_relative" : 'LSQ (with {})'.format(sampling_method),
+        "var_error_relative" : 'LSQ (with {})'.format(sampling_method),
+        "wasserstein_error_cut" : 'LSQ (with {})'.format(sampling_method),
+        "mean_bilevel_error_relative": 'LSQ (with {})'.format(sampling_method),
+        "var_bilevel_error_relative" : 'LSQ (with {})'.format(sampling_method),
+         'wasserstein_speedup_raw' : 'LSQ (with {})'.format(sampling_method),
+        'wasserstein_speedup_real' : 'LSQ (with {})'.format(sampling_method)
+    }
     errors = {
     }
 
@@ -295,7 +306,31 @@ def plot_as_training_size(functional, data, title="all configurations"):
                         errors_local.append(configuration['results']['best_network']['algorithms'][data_source]['ml'][tactic][error])
                         competitor[error][n] = get_dict_path(configuration, competitor_keys[error])
 
+                        if error in extra_competitor_keys.keys():
+                            extra_competitor = get_dict_path(configuration, extra_competitor_keys[error])
 
+                plt.figure(10*(len(tactics)+1))
+                plt.hist(errors_local, bins=20)
+                plt.xlabel(names[error])
+                plt.ylabel("Number of configurations")
+                plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples".format(error=names[error],
+                    functional=functional, title=title, train_size=train_size
+                ))
+
+                plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
+                plt.text(competitor[error][n],2, competitor_names[error],rotation=90)
+                plot_info.savePlot("hist_{error}_{functional}_{title}_{train_size}".format(error=error,
+                    functional=functional, title=title, train_size=train_size
+                ))
+
+                if error in extra_competitor_keys.keys():
+                    plt.axvline(x=extra_competitor, linestyle='--',color='green')
+                    plt.text(extra_competitor, 2, extra_competitor_names[error],rotation=90)
+                    plot_info.savePlot("hist_lsq_{error}_{functional}_{title}_{train_size}".format(error=error,
+                        functional=functional, title=title, train_size=train_size
+                    ))
+
+                plt.close(10*(len(tactics)+1))
 
                 errors[error][n] = np.mean(errors_local)
                 errors_var[error][n] = np.var(errors_local)
@@ -304,16 +339,67 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
 
 
-                errors_local = []
+                errors_local_retrainings = []
                 for configuration in data['configurations']:
                     ts = int(configuration['settings']['train_size'])
                     if ts == train_size:
                         retrainings = configuration['results']['retrainings'].keys()
                         for retraining in retrainings:
-                            errors_local.append(configuration['results']['retrainings'][retraining]['algorithms'][data_source]['ml'][tactic][error])
-                errors_retraining[error][n] = np.mean(errors_local)
-                errors_retraining_var[error][n] = np.var(errors_local)
+                            errors_local_retrainings.append(configuration['results']['retrainings'][retraining]['algorithms'][data_source]['ml'][tactic][error])
+                errors_retraining[error][n] = np.mean(errors_local_retrainings)
+                errors_retraining_var[error][n] = np.var(errors_local_retrainings)
 
+
+
+                plt.figure(20*(len(tactics)+1))
+                plt.hist(errors_local_retrainings, bins=20)
+                plt.xlabel(error_names[error])
+                plt.ylabel("Number of configurations")
+                plt.title("Histograms for distribution (retrainings) for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples".format(error=names[error],
+                    functional=functional, title=title, train_size=train_size
+                ))
+
+                plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
+                plt.text(competitor[error][n],2, competitor_names[error],rotation=90)
+                plot_info.savePlot("hist_retraining_{error}_{functional}_{title}_{train_size}".format(error=error,
+                    functional=functional, title=title, train_size=train_size
+                ))
+
+                if error in extra_competitor_keys.keys():
+                    plt.axvline(x=extra_competitor, linestyle='--',color='green')
+                    plt.text(extra_competitor,2, extra_competitor_names[error],rotation=90)
+                    plot_info.savePlot("hist_retraining_lsq_{error}_{functional}_{title}_{train_size}".format(error=error,
+                        functional=functional, title=title, train_size=train_size
+                    ))
+
+                plt.close(20*(len(tactics)+1))
+
+
+
+                plt.figure(30*(len(tactics)+1))
+                plt.hist(errors_local_retrainings, bins=20, alpha=0.5, label='Retrainings')
+                plt.hist(errors_local, bins=20, alpha=0.5, label='Selected retrainings')
+                plot_info.legendLeft()
+                plt.xlabel(error_names[error])
+                plt.ylabel("Number of configurations")
+                plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples".format(error=names[error],
+                    functional=functional, title=title, train_size=train_size
+                ))
+
+                plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
+                plt.text(competitor[error][n],2, competitor_names[error],rotation=90)
+                plot_info.savePlot("hist_both_retraining_{error}_{functional}_{title}_{train_size}".format(error=error,
+                    functional=functional, title=title, train_size=train_size
+                ))
+
+                if error in extra_competitor_keys.keys():
+                    plt.axvline(x=extra_competitor, linestyle='--',color='green')
+                    plt.text(extra_competitor,2, extra_competitor_names[error],rotation=90)
+                    plot_info.savePlot("hist_both_retraining_lsq_{error}_{functional}_{title}_{train_size}".format(error=error,
+                        functional=functional, title=title, train_size=train_size
+                    ))
+
+                plt.close(30*(len(tactics)+1))
 
 
             plt.figure(0)
@@ -558,7 +644,8 @@ def filter_configs(data, excludes={}, onlys={}, test_functions = []):
 
 # In[8]:
 
-
+def get_selection(config):
+    return config['settings']['selction']
 
 def has_regularization(config):
     return config['settings']['regularizer'] is not None and config['settings']['regularizer'] != "None"
