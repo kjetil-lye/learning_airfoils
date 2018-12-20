@@ -162,10 +162,12 @@ def make_booktabs_table_multicolumn(data, start):
 
 
 def print_comparison_table(outname, data, multicolumn = False):
+    outname = outname.lower()
     if showAndSave.prefix != '':
         outname = '%s_%s' % (showAndSave.prefix, outname)
     outname.replace(" ", "_")
     outname = ''.join(ch for ch in outname if ch.isalnum() or ch =='_')
+
     start = 0
     data = copy.deepcopy(data)
 

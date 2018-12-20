@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 sys.path.append('../python')
+import print_table
 import plot_info
 import json
 from IPython.core.display import display, HTML
@@ -186,7 +187,32 @@ Full path:\\
 
 
 
-# In[6]:
+def generate_plot_name(error, functional, tactic, config, include_selected,
+                include_retraining, include_min, include_max, include_std, include_competitor,
+                tactics_in_same_plot):
+
+    basename = "training_size_{error}_{functional}_{tactic}_{config}".format(
+        error=error,
+        functional=functional,
+        tactic=tactic,
+        config=config
+    )
+
+    if include_selected:
+        basename +='_sel'
+    if include_retraining:
+        basename += '_retra'
+    if include_min:
+        basename += '_min'
+    if include_max:
+        basename += '_max'
+    if include_std:
+        basename += '_std'
+    if include_competitor:
+        basename += '_comp'
+
+
+    return basename
 
 
 def get_dict_path(dictionary, path):
@@ -287,6 +313,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
     errors_max = {}
     competitor = {}
+    extra_competitors = {}
     for k in names.keys():
         errors[k] = np.zeros(len(train_sizes))
         errors_var[k]  = np.zeros(len(train_sizes))
@@ -296,10 +323,12 @@ def plot_as_training_size(functional, data, title="all configurations"):
         errors_retraining_var[k]  = np.zeros(len(train_sizes))
         errors_retraining_max[k]  = np.zeros(len(train_sizes))
         errors_retraining_min[k]  = np.zeros(len(train_sizes))
+        extra_competitors[k] = np.zeros(len(train_sizes))
         competitor[k]  = np.zeros(len(train_sizes))
 
 
     for error in errors.keys():
+
         tactics=['ordinary', 'add', 'remove', 'replace']
         error_per_tactics = {}
         var_error_per_tactics = {}
@@ -333,10 +362,10 @@ def plot_as_training_size(functional, data, title="all configurations"):
                     if ts == train_size:
                         errors_local.append(configuration['results']['best_network']['algorithms'][data_source]['ml'][tactic][error])
                         competitor[error][n] = get_dict_path(configuration, competitor_keys[error])
-
+                        has_extra_competitor = error in extra_competitor_keys.keys()
                         if error in extra_competitor_keys.keys():
                             extra_competitor = get_dict_path(configuration, extra_competitor_keys[error])
-
+                            extra_competitors[error][n] = extra_competitor
                 plt.figure(10*(len(tactics)+1))
                 plt.hist(errors_local, bins=20)
                 plt.xlabel(names[error])
@@ -430,190 +459,165 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
                 plt.close(30*(len(tactics)+1))
 
+
+
+
             for k in pairing.keys():
-                pairing[k][0][tactic][:] = np.copy(pairing[k][1][:])
-            plt.figure(0)
+                pairing[k][0][tactic] = np.copy(pairing[k][1][error])
 
 
-            p = plt.errorbar(train_sizes, errors[error], yerr=np.sqrt(errors_var[error]), label=tactic,
-                            solid_capstyle='projecting', capsize=5)
-            plt.figure(t+1)
-            plt.errorbar(train_sizes, errors[error], yerr=np.sqrt(errors_var[error]),
-                            solid_capstyle='projecting', capsize=5, label='Machine learning')
+        for tactic in tactics:
+            table_builder = print_table.TableBuilder()
+            header = ['Training size', 'DNN', 'DNN min', 'DNN max', 'DNN std', competitor_names[error]]
+            if has_extra_competitor:
+                header.append(extra_competitor_names[error])
+            table_builder.set_header(header)
+            for n, train_size in enumerate(train_sizes):
+                row = [train_size, pairing['mean_error'][0][tactic][n], pairing['min_error'][0][tactic][n],
+                    pairing['max_error'][0][tactic][n],
+                    np.sqrt(pairing['var_error'][0][tactic][n]),
+                    competitor[error][n]]
+
+                if has_extra_competitor:
+                    row.append(extra_competitors[error][n])
+
+                table_builder.add_row(row)
+            table_builder.print_table("selected_stats_{functional}_{config}_{error}_{tactic}".format(
+                    functional=functional,
+                    config=title,
+                    error = error,
+                    tactic=tactic
+            ))
+
+            table_builder = print_table.TableBuilder()
+            header = ['Training size', 'DNN', 'DNN min', 'DNN max', 'DNN std', competitor_names[error]]
+            if has_extra_competitor:
+                header.append(extra_competitor_names[error])
+            table_builder.set_header(header)
+            for n, train_size in enumerate(train_sizes):
+                row = [train_size, pairing['mean_error_retraining'][0][tactic][n], pairing['min_error'][0][tactic][n],
+                    pairing['max_error_retraining'][0][tactic][n],
+                    np.sqrt(pairing['var_error_retraining'][0][tactic][n]),
+                    competitor[error][n]]
+
+                if has_extra_competitor:
+                    row.append(extra_competitors[error][n])
+
+                table_builder.add_row(row)
+            table_builder.print_table("selected_stats_retraining_{functional}_{config}_{error}_{tactic}".format(
+                    functional=functional,
+                    config=title,
+                    error = error,
+                    tactic=tactic
+            ))
 
 
-            plt.figure(len(tactics)+1)
-            p = plt.errorbar(train_sizes, errors_retraining[error], yerr=np.sqrt(errors_retraining_var[error]), label=tactic,
-                            solid_capstyle='projecting', capsize=5)
+            table_builder = print_table.TableBuilder()
+            header = ['Training size', 'DNN', competitor_names[error]]
+            if has_extra_competitor:
+                header.append(extra_competitor_names[error])
+            table_builder.set_header(header)
+            for n, train_size in enumerate(train_sizes):
+                row = [train_size, pairing['mean_error_retraining'][0][tactic][n],
+                    competitor[error][n]]
 
-            plt.figure(len(tactics)+1+t+1)
-            plt.errorbar(train_sizes, errors_retraining[error], yerr=np.sqrt(errors_retraining_var[error]),
-                            solid_capstyle='projecting', capsize=5, label='Machine learning')
+                if has_extra_competitor:
+                    row.append(extra_competitors[error][n])
 
-
-
-            plt.figure(2*(len(tactics)+1))
-            p = plt.errorbar(train_sizes, errors[error], yerr=np.sqrt(errors_var[error]),                              label='Selected retraining ({})'.format(tactic), ls='--',
-                            solid_capstyle='projecting', capsize=5)
-
-            p = plt.errorbar(train_sizes, errors_retraining[error],
-                             yerr=np.sqrt(errors_retraining_var[error]),
-                             label='Average of retraining ({})'.format(tactic),
-                            solid_capstyle='projecting', capsize=10)
-
-
-
-            plt.figure(2*(len(tactics)+1)+t+1)
-            p = plt.errorbar(train_sizes, errors[error], yerr=np.sqrt(errors_var[error]),                              label='Selected retraining', ls='--',
-                            solid_capstyle='projecting', capsize=5)
-
-            p = plt.errorbar(train_sizes, errors_retraining[error],
-                             yerr=np.sqrt(errors_retraining_var[error]),
-                             label='Average of retraining',
-                            solid_capstyle='projecting', capsize=10)
-
-
-            #plt.loglog(train_sizes, errors_min[error], '.--', label='{} minimum'.format(tactic), color=p[0].get_color())
-            #plt.loglog(train_sizes, errors_max[error], '--', label='{} maximum'.format(tactic), color=p[0].get_color())
-        plt.figure(0)
-
-        plt.gca().set_xscale("log", nonposx='clip', basex=2)
-        plt.gca().set_yscale("log", nonposy='clip', basey=2)
-        plt.title('Average {}\nConfigurations: {}\nfor {}'.format(names[error], title, functional))
-        plt.xlabel("Training size")
-        plt.ylabel(names[error])
-        plt.grid(True)
-        #plt.ylim([max(min(errors[error]-np.sqrt(errors_var[error])),0), max(errors[error]+np.sqrt(errors_var[error]))])
-        plot_info.savePlot('combined_{functional}_{error}_{title}_convergence_training_size'.format(functional=functional,
-                                                                                      error=error, title=title))
-
-
-
-        plt.loglog(train_sizes, competitor[error], '--o', label=competitor_names[error], basex=2, basey=2)
-        plot_info.legendLeft()
-        plot_info.savePlot('combined_with_compare_{functional}_{error}_{title}_convergence_training_size'.format(functional=functional,
-                                                                                      error=error, title=title))
-
-
-        plt.figure(len(tactics)+1)
-
-        plt.gca().set_xscale("log", nonposx='clip', basex=2)
-        plt.gca().set_yscale("log", nonposy='clip', basey=2)
-        plt.title('Average (with retraining variance) {}\nConfigurations: {}\nfor {}'.format(names[error], title, functional))
-        plt.xlabel("Training size")
-        plt.ylabel(names[error])
-        plt.grid(True)
-        #plt.ylim([max(min(errors[error]-np.sqrt(errors_var[error])),0), max(errors[error]+np.sqrt(errors_var[error]))])
-        plot_info.savePlot('combined_retraining_{functional}_{error}_{title}_convergence_training_size'.format(functional=functional,
-                                                                                      error=error, title=title))
-
-
-
-        plt.loglog(train_sizes, competitor[error], '--o', label=competitor_names[error], basex=2, basey=2)
-        plot_info.legendLeft()
-        plot_info.savePlot('combined_retraining_with_compare_{functional}_{error}_{title}_convergence_training_size'.format(functional=functional,
-                                                                                      error=error, title=title))
+                table_builder.add_row(row)
+            table_builder.print_table("selected_{functional}_{config}_{error}_{tactic}".format(
+                    functional=functional,
+                    config=title,
+                    error = error,
+                    tactic=tactic
+            ))
 
 
 
 
+        on_off_array = [True, False]
 
+        for include_selected in on_off_array:
+            for include_retraining in on_off_array:
+                for include_min in on_off_array:
+                    for include_max in on_off_array:
+                        for include_std in on_off_array:
+                            for include_competitor in on_off_array:
+                                for tactics_in_same_plot in on_off_array:
 
+                                    for tactic in tactics:
+                                        if include_selected:
+                                            if include_std:
+                                                p = plt.errorbar(train_sizes, pairing['mean_error'][0][tactic],
+                                                    yerr=np.sqrt(pairing['mean_error'][0][tactic]),
+                                                    label='DNN selected retraining', ls='--',
+                                                    solid_capstyle='projecting', capsize=5)
+                                            else:
+                                                p = plt.loglog(train_sizes, pairing['mean_error'][0][tactic], '--*',
+                                                    label='DNN selected retraining', basex=2, basey=2)
 
+                                            if include_max:
+                                                plt.loglog(train_sizes, pairing['max_error'][0][tactic], 'v', label='Max DNN selected retraining',
+                                                            color=p[0].get_color(),
+                                                            markersize = 12)
+                                            if include_min:
+                                                plt.loglog(train_sizes, pairing['min_error'][0][tactic], '^', label='Min DNN selected retraining',
+                                                    markersize=12,
+                                                            color=p[0].get_color())
 
-        plt.figure(2*(len(tactics)+1))
+                                        if include_retraining:
+                                             if include_std:
+                                                 p = plt.errorbar(train_sizes, pairing['mean_error_retraining'][0][tactic],
+                                                     yerr=np.sqrt(pairing['var_error_retraining'][0][tactic]),
+                                                     label='DNN all Retrainings',
+                                                     solid_capstyle='projecting', capsize=5)
+                                             else:
+                                                 p = plt.loglog(train_sizes, pairing['mean_error_retraining'][0][tactic], '-o',
+                                                     label='DNN all retrainings', basex=2, basey=2)
 
-        plt.gca().set_xscale("log", nonposx='clip', basex=2)
-        plt.gca().set_yscale("log", nonposy='clip', basey=2)
-        plt.title('Average (with retraining variance) {}\nConfigurations: {}\nfor {}'.format(names[error], title, functional))
-        plt.xlabel("Training size")
-        plt.ylabel(names[error])
-        plt.grid(True)
-        #plt.ylim([max(min(errors[error]-np.sqrt(errors_var[error])),0), max(errors[error]+np.sqrt(errors_var[error]))])
-        plot_info.savePlot('combined_retraining_best_{functional}_{error}_{title}_convergence_training_size'.format(functional=functional,
-                                                                                      error=error, title=title))
+                                             if include_max:
+                                                 plt.loglog(train_sizes, pairing['max_error_retraining'][0][tactic], '.', label='Max DNN all retrainings',
+                                                             color=p[0].get_color())
+                                             if include_min:
+                                                 plt.loglog(train_sizes, pairing['min_error'][0][tactic], 'x', label='Min DNN all retrainings',
+                                                             color=p[0].get_color())
 
+                                        if include_competitor and not tactics_in_same_plot:
+                                            plt.loglog(train_sizes, competitor[error], '--o', label=competitor_names[error], basex=2, basey=2)
 
-
-        plt.loglog(train_sizes, competitor[error], '--o', label=competitor_names[error], basex=2, basey=2)
-        plot_info.legendLeft()
-        plot_info.savePlot('combined_retraining_best_with_compare_{functional}_{error}_{title}_convergence_training_size'.format(functional=functional,
-                                                                                      error=error, title=title))
-
-
-
-        for t, tactic in enumerate(tactics):
-            plt.figure(t+1)
-            plot_info.legendLeft()
-            plt.gca().set_xscale("log", nonposx='clip', basex=2)
-            plt.gca().set_yscale("log", nonposy='clip', basey=2)
-            plt.title('Average {}\nConfigurations: {}\n for {}\n(Using "{tactic}" to deal with training samples)'.format(names[error], title, functional,
-                                                                                                          tactic=tactic))
-            plt.xlabel("Training size")
-            plt.ylabel(names[error])
-            plt.grid(True)
-            #plt.ylim([max(min(errors[error]-np.sqrt(errors_var[error])),0), max(errors[error]+np.sqrt(errors_var[error]))])
-            plot_info.savePlot('combined_{functional}_{error}_{title}_{tactic}_convergence_training_size'.format(functional=functional,
-                                                                                              error=error, title=title,
-                                                                                                                   tactic=tactic))
-
-            plt.loglog(train_sizes, competitor[error], '--o', label=competitor_names[error], basex=2, basey=2)
-            plot_info.legendLeft()
-            plot_info.savePlot('combined_with_compare_{functional}_{error}_{title}_{tactic}_convergence_training_size'.format(functional=functional,
-                                                                                              error=error, title=title,
-                                                                                                                   tactic=tactic))
-            plt.close(t+1)
-
-
-            plt.figure(len(tactics)+1+t+1)
-            plot_info.legendLeft()
-            plt.gca().set_xscale("log", nonposx='clip', basex=2)
-            plt.gca().set_yscale("log", nonposy='clip', basey=2)
-            plt.title('Average (with retraining) {}\nConfigurations: {}\n for {}\n(Using "{tactic}" to deal with training samples)'.format(names[error], title, functional,
-                                                                                                          tactic=tactic))
-            plt.xlabel("Training size")
-            plt.ylabel(names[error])
-            plt.grid(True)
-            #plt.ylim([max(min(errors[error]-np.sqrt(errors_var[error])),0), max(errors[error]+np.sqrt(errors_var[error]))])
-            plot_info.savePlot('combined_retraining_{functional}_{error}_{title}_{tactic}_convergence_training_size'.format(functional=functional,
-                                                                                              error=error, title=title,
-                                                                                                                   tactic=tactic))
-
-            plt.loglog(train_sizes, competitor[error], '--o', label=competitor_names[error], basex=2, basey=2)
-            plot_info.legendLeft()
-            plot_info.savePlot('combined_retraining_with_compare_{functional}_{error}_{title}_{tactic}_convergence_training_size'.format(functional=functional,
-                                                                                              error=error, title=title,
-                                                                                                                   tactic=tactic))
-
-            plt.close(len(tactics)+1+t+1)
+                                        plt.gca().set_xscale("log", nonposx='clip', basex=2)
+                                        plt.gca().set_yscale("log", nonposy='clip', basey=2)
+                                        plt.grid(True)
+                                        plt.xlabel("Number of traning samples")
+                                        plt.ylabel(names[error])
+                                        if not tactics_in_same_plot:
+                                            plot_info.legendLeft()
+                                            plt.title("{error} as a function of training samples ({functional}, {tactic})\nConfigurations: {config}".\
+                                                format(error=names[error], tactic=tactic, functional=functional, config=title))
+                                            plot_info.savePlot(generate_plot_name(error, functional, tactic, title, include_selected,
+                                                            include_retraining, include_min, include_max, include_std, include_competitor,
+                                                            tactics_in_same_plot))
+                                            plt.close('all')
 
 
 
 
 
-            plt.figure(2*(len(tactics)+1)+t+1)
-            plot_info.legendLeft()
-            plt.gca().set_xscale("log", nonposx='clip', basex=2)
-            plt.gca().set_yscale("log", nonposy='clip', basey=2)
-            plt.title('Average (with retraining) {}\nConfigurations: {}\n for {}\n(Using "{tactic}" to deal with training samples)'.format(names[error], title, functional,
-                                                                                                          tactic=tactic))
-            plt.xlabel("Training size")
-            plot_info.legendLeft()
-            plt.ylabel(names[error])
-            plt.grid(True)
-            #plt.ylim([max(min(errors[error]-np.sqrt(errors_var[error])),0), max(errors[error]+np.sqrt(errors_var[error]))])
-            plot_info.savePlot('combined_retraining_best_{functional}_{error}_{title}_{tactic}_convergence_training_size'.format(functional=functional,
-                                                                                              error=error, title=title,
-                                                                                                                   tactic=tactic))
+                                    if tactics_in_same_plot:
+                                        if include_competitor:
+                                            plt.loglog(train_sizes, competitor[error], '--o', label=competitor_names[error], basex=2, basey=2)
 
-            plt.loglog(train_sizes, competitor[error], '--o', label=competitor_names[error], basex=2, basey=2)
-            plot_info.legendLeft()
-            plot_info.savePlot('combined_retraining_best_with_compare_{functional}_{error}_{title}_{tactic}_convergence_training_size'.format(functional=functional,
-                                                                                              error=error, title=title,
-                                                                                                                   tactic=tactic))
+                                        plot_info.legendLeft()
+                                        plt.title("{error} as a function of training samples ({functional})\nConfigurations: {config}".\
+                                            format(error=names[error], functional=functional, config=title))
+                                        plot_info.savePlot(generate_plot_name(error, functional, "All tactics", title, include_selected,
+                                                        include_retraining, include_min, include_max, include_std, include_competitor,
+                                                        tactics_in_same_plot))
 
-            plt.close(2*(len(tactics)+1)+t+1)
-        plt.show()
+                                        if include_competitor and include_selected and include_max and include_min and include_retraining and not include_std:
+                                            plt.show()
+
+                                        plt.close('all')
 
 
 

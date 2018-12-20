@@ -4,7 +4,7 @@ import glob
 import sys
 
 import matplotlib
-matplotlib.rcParams['savefig.dpi']=600
+matplotlib.rcParams['savefig.dpi']=150
 from numpy import *
 import matplotlib.pyplot as plt
 
@@ -91,7 +91,7 @@ def only_alphanum(s):
 def savePlot(name):
     name = showAndSave.prefix + name
     name = ''.join(ch for ch in name if ch.isalnum() or ch =='_')
-
+    name = name.lower()
 
     fig = plt.gcf()
     ax = plt.gca()
