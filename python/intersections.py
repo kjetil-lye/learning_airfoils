@@ -2,6 +2,7 @@
 import json
 import post_process_hyperparameters
 import copy
+import numpy as np
 
 def get_dict_path(dictionary, path):
     split = path.split('.')
@@ -62,8 +63,8 @@ def find_intersections(filenames, data_source, convergence_rate):
     ]
 
     allowed_distances = {
-    'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_error_cut'.format(data_source=data_source) : 2**(-11),
-    'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_l2_relative'.format(data_source=data_source) : 0.025
+        'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_error_cut'.format(data_source=data_source) : 2**(-11),
+        'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_l2_relative'.format(data_source=data_source) : 0.025
     }
 
     targets_to_store = copy.deepcopy(targets)
@@ -96,15 +97,15 @@ def find_intersections(filenames, data_source, convergence_rate):
                 if get_dict_path(config, 'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source)) < 1.4:
                     close_configurations.remove(config)
 
-            print("Possible configurations for {target}".format(target=target))
-
-
+            # print("Possible configurations for {target}".format(target=target))
+            #
+            #
             for close_configuration in close_configurations:
-                print("\t{}: {}".format(config_to_str(close_configuration), get_values_of_config(close_configuration, targets_to_store)))
-
-                if config_to_str(close_configuration) not in all_errors.keys():
-                    all_errors[config_to_str(close_configuration)] = {}
-                all_errors[config_to_str(close_configuration)][functional] = get_values_of_config(close_configuration, targets_to_store)
+            #     print("\t{}: {}".format(config_to_str(close_configuration), get_values_of_config(close_configuration, targets_to_store)))
+            #
+                 if config_to_str(close_configuration) not in all_errors.keys():
+                     all_errors[config_to_str(close_configuration)] = {}
+                 all_errors[config_to_str(close_configuration)][functional] = get_values_of_config(close_configuration, targets_to_store)
 
 
 
@@ -128,3 +129,104 @@ def find_intersections(filenames, data_source, convergence_rate):
             print("\t\t{}: {}".format(func, all_errors[config][func]))
         print()
         print()
+
+def get_worst_retrain_value(config, key):
+    operator = np.max
+
+    if 'speedup' in key:
+        operator = np.min
+    values = []
+    for k in get_dict_path(config,'results.retrainings').keys():
+        new_key = key.replace('best_network', 'retrainings.{}'.format(k))
+        values.append(get_dict_path(config, new_key))
+    return operator(values)
+def print_configurations_to_file(filename, configurations):
+    configurations_postprocssed = []
+    values_to_print = [
+        'settings.selction',
+        'settings.regularizer',
+        'settings.optimizer',
+        'settings.loss'
+    ]
+    for config in configurations:
+        new_config = {}
+        for k in values_to_print:
+            new_config[k] = get_dict_path(config, k)
+        configurations_postprocssed.append(new_config)
+    with open(filename, 'w') as outfile:
+        json.dump({"configurations": configurations_postprocssed}, outfile)
+def find_intersections_acceptable(filenames, data_source, convergence_rate, get_value= lambda x, key: get_dict_path(x, key),
+ max_prediction=0.05, min_speedup=2, print_filename=None):
+    targets = [
+        'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source),
+        'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_l2_relative'.format(data_source=data_source)
+
+    ]
+
+    accepted = {
+        'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source) : lambda x: x>min_speedup,
+        'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_l2_relative'.format(data_source=data_source) : lambda x: x<max_prediction
+    }
+
+    targets_to_store = copy.deepcopy(targets)
+
+    all_intersections = None
+    all_errors = {}
+    actual_configurations = {}
+
+    data = {}
+    for functional in filenames.keys():
+        filename = filenames[functional]
+        with open(filename, 'r') as f:
+            json_content = json.load(f)
+            # only look at best performing
+
+            post_process_hyperparameters.fix_bilevel(json_content)
+            post_process_hyperparameters.add_wasserstein_speedup(json_content, convergence_rate)
+            json_content = post_process_hyperparameters.filter_configs(json_content, onlys={"settings.selection_type":["Best performing"],
+                "settings.train_size":[128]})
+            data[functional] = copy.deepcopy(json_content)
+
+        intersected_configurations = None
+        for target in targets:
+            close_configurations = []
+            for config in data[functional]['configurations']:
+                value = get_value(config, target)
+                if accepted[target](value):
+                    close_configurations.append(config)
+
+
+            # print("Possible configurations for {target}".format(target=target))
+            #
+            #
+            for close_configuration in close_configurations:
+            #     print("\t{}: {}".format(config_to_str(close_configuration), get_values_of_config(close_configuration, targets_to_store)))
+            #
+                 if config_to_str(close_configuration) not in all_errors.keys():
+                     all_errors[config_to_str(close_configuration)] = {}
+                 all_errors[config_to_str(close_configuration)][functional] = get_values_of_config(close_configuration, targets_to_store)
+                 actual_configurations[config_to_str(close_configuration)] = copy.deepcopy(close_configuration)
+
+            configurations_as_str = [config_to_str(conf) for conf in close_configurations]
+
+            if intersected_configurations is not None:
+                intersected_configurations = intersected_configurations.intersection(set(configurations_as_str))
+            else:
+                intersected_configurations = set(configurations_as_str)
+        if all_intersections is None:
+            all_intersections = intersected_configurations
+        else:
+            all_intersections=all_intersections.intersection(intersected_configurations)
+
+    print()
+    print()
+    print("Possible intersections:")
+    for config in all_intersections:
+        print("\t{}".format(config))
+        for func in all_errors[config]:
+            print("\t\t{}: {}".format(func, all_errors[config][func]))
+        print()
+        print()
+
+    if print_filename is not None:
+        print_configurations_to_file(print_filename, [actual_configurations[k] for k in all_intersections])

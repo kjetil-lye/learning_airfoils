@@ -16,6 +16,7 @@ from IPython.core.display import display, HTML
 import copy
 import pprint
 import re
+import os
 
 
 def fix_bilevel(configuration):
@@ -83,10 +84,38 @@ def add_wasserstein_speedup(configuration, convergence_rate):
 
 
 
+def config_to_str(configuration):
+    return "{optimizer}_{loss}_{selection}_{regularizer}".format(
+        optimizer = configuration['settings.optimizer'],
+        loss = configuration['settings.loss'],
+        selection = configuration['settings.selction'],
+        regularizer = configuration['settings.regularizer']
+    )
 
+class FilterFromConfiguration(object):
+    def __init__(self, configuration, name):
+        self.configuration = copy.deepcopy(configuration)
+        self.name = name
 
+    def __call__(self, configuration_on_trial):
+        for k in self.configuration.keys():
+            value = get_dict_path(configuration_on_trial, k)
+            value_required = self.configuraiton[k]
 
+            if value != value_required:
+                return False
 
+        return True
+
+def get_filters_from_file(filename):
+    filters = []
+    with open(filename) as infile:
+        json_content = json.load(infile)
+
+        for configuration in json_content['configurations']:
+            filters.append(FilterFromConfiguration(json_content,
+                config_to_str(configuration)))
+    return filters
 
 
 def plot_all(filenames, convergence_rate, latex_out):
@@ -118,8 +147,13 @@ def plot_all(filenames, convergence_rate, latex_out):
         'Only Adam with ($L^2$ and no regularization) or ($L^1$ with regularization)' : only_adam_and_no_regularization_for_mse_and_reg_for_l1,
     }
 
+    filters_single = {}
     for f in [best_configuration_1, best_configuration_2, best_configuration_3, best_configuration_4]:
-        filters[f.__doc__] = f
+        filters_single[f.__doc__] = f
+    if not os.path.exists('acceptable.json'):
+        raise Exception("You should run the notebook Intersection.ipynb to generate the acceptable.json file!")
+    for f in get_filters_from_file('acceptable.json'):
+        filters_single[f.name] = f
 
 
     latex = LatexWithAllPlots()
@@ -150,6 +184,11 @@ def plot_all(filenames, convergence_rate, latex_out):
                 plot_as_training_size(functional, filter_configs(data[functional], test_functions=[filters[filtername]],
                                     onlys=onlys[only]), \
                                   filtername+" " + only)
+        for filtername in filters_single:
+            heading(1, filtername)
+            plot_as_training_size(functional, filter_configs(data[functional], test_functions=[filters_single[filtername]],
+                                onlys=onlys[only]), \
+                              filtername+" " + only)
 
     with open(latex_out) as f:
         f.write(latex.get_latex())
@@ -360,7 +399,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
     for error in errors.keys():
 
-        tactics=['ordinary', 'add', 'remove', 'replace']
+        tactics=['ordinary', 'add']#, 'remove', 'replace']
         error_per_tactics = {}
         var_error_per_tactics = {}
         min_error_per_tactics = {}
@@ -514,6 +553,29 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 plt.close('all')
 
 
+                try:
+                    plt.errorbar(regularization_sizes[1:], reg_errors[1:], yerr=reg_errors_var, label='error')
+                    plt.plot(regularization_sizes[1:], reg_errors_min[1:], '--o', label='minimum')
+                    plt.plot(regularization_sizes[1:], reg_errors_max[1:], '--*', label='maximum')
+                    plot_info.legendLeft()
+                    plt.title("Average error as a function of regularization size\n{functional}, configurations:{config},\nError: {error}, training size: {train_size}, tactic: {tactic}".
+                        format(functional=functional, config=title, error=names[error], train_size=train_size, tactic=tactic))
+                    plt.xlabel("Regularization size")
+                    plt.ylabel(names[error])
+                    plt.gca().set_yscale("log", nonposy='clip', basey=2)
+                    plt.gca().set_xscale("log", nonposy='clip', basex=2)
+                    plt.grid(True)
+                    plot_info.savePlot('error_regularization_log_{functional}_{config}_{error}_{train_size}_{tactic}'.format(tactic=tactic, functional=functional, config=title, error=error, train_size=train_size))
+                    plt.close('all')
+                except:
+                    pass
+
+                try:
+                    plt.close('all')
+                except:
+                    pass
+
+
             for k in pairing.keys():
                 pairing[k][0][tactic] = np.copy(pairing[k][1][error])
 
@@ -610,15 +672,16 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
 
         on_off_array = [True, False]
-
-        for include_selected in on_off_array:
-            for include_retraining in on_off_array:
-                for include_min in on_off_array:
-                    for include_max in on_off_array:
-                        for include_std in on_off_array:
+        off_array = [False]
+        on_array = [True]
+        for include_selected in on_array:
+            for include_retraining in on_array:
+                for include_min in on_array:
+                    for include_max in on_array:
+                        for include_std in on_array:
                             for include_competitor in on_off_array:
-                                for tactics_in_same_plot in on_off_array:
-                                    for include_extra_competitor in on_off_array:
+                                for tactics_in_same_plot in off_array:
+                                    for include_extra_competitor in [include_competitor]:
                                         for tactic in tactics:
 
                                             if tactics_in_same_plot:
