@@ -251,6 +251,9 @@ def get_dict_path(dictionary, path):
 
 # As a function of training size
 def plot_as_training_size(functional, data, title="all configurations"):
+    if len(data['configurations']) == 0:
+        print("No configurations!")
+
     train_sizes = []
 
     for configuration in data['configurations']:
