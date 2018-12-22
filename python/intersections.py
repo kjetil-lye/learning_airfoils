@@ -3,7 +3,7 @@ import json
 import post_process_hyperparameters
 import copy
 import numpy as np
-
+import print_table
 def get_dict_path(dictionary, path):
     split = path.split('.')
     for s in split:
@@ -129,18 +129,23 @@ def find_intersections(filenames, data_source, convergence_rate):
             print("\t\t{}: {}".format(func, all_errors[config][func]))
         print()
         print()
-
+def get_retraining_values(config, key):
+    values = []
+    for k in get_dict_path(config,'results.retrainings').keys():
+        new_key = key.replace('best_network', 'retrainings.{}'.format(k))
+        values.append(get_dict_path(config, new_key))
+    return values
 def get_worst_retrain_value(config, key):
     operator = np.max
 
     if 'speedup' in key:
         operator = np.min
-    values = []
-    for k in get_dict_path(config,'results.retrainings').keys():
-        new_key = key.replace('best_network', 'retrainings.{}'.format(k))
-        values.append(get_dict_path(config, new_key))
-    return operator(values)
+
+    return operator(get_retraining_values(config, key))
+
+
 def print_configurations_to_file(filename, configurations):
+
     configurations_postprocssed = []
     values_to_print = [
         'settings.selction',
@@ -156,7 +161,9 @@ def print_configurations_to_file(filename, configurations):
     with open(filename, 'w') as outfile:
         json.dump({"configurations": configurations_postprocssed}, outfile)
 def find_intersections_acceptable(filenames, data_source, convergence_rate, get_value= lambda x, key: get_dict_path(x, key),
- max_prediction=0.05, min_speedup=2, print_filename=None):
+ max_prediction=0.05, min_speedup=2, print_filename=None, table_filename = None):
+
+    functionals = [k for k in filenames.keys()]
     targets = [
         'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source),
         'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_l2_relative'.format(data_source=data_source)
@@ -169,12 +176,22 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate, get_
     }
 
     targets_to_store = copy.deepcopy(targets)
-
+    stats = {
+        'min' : lambda x, target: np.min(get_retraining_values(x, target)),
+        #'selected' : lambda x, target: get_dict_path(x, target),
+        #'std' : lambda x, target: np.sqrt(np.var(get_retraining_values(x, target))),
+        #'mean' : lambda x, target: np.mean(get_retraining_values(x, target)),
+        'max' : lambda x, target: np.max(get_retraining_values(x, target))
+    }
     all_intersections = None
     all_errors = {}
+    all_stats = {}
     actual_configurations = {}
 
     data = {}
+
+    for stat in stats.keys():
+        all_stats[stat] = {}
     for functional in filenames.keys():
         filename = filenames[functional]
         with open(filename, 'r') as f:
@@ -205,6 +222,11 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate, get_
                  if config_to_str(close_configuration) not in all_errors.keys():
                      all_errors[config_to_str(close_configuration)] = {}
                  all_errors[config_to_str(close_configuration)][functional] = get_values_of_config(close_configuration, targets_to_store)
+
+                 for stat in all_stats.keys():
+                     if config_to_str(close_configuration) not in all_stats[stat].keys():
+                          all_stats[stat][config_to_str(close_configuration)] = {}
+                     all_stats[stat][config_to_str(close_configuration)][functional] = stats[stat](close_configuration, target)
                  actual_configurations[config_to_str(close_configuration)] = copy.deepcopy(close_configuration)
 
             configurations_as_str = [config_to_str(conf) for conf in close_configurations]
@@ -230,3 +252,56 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate, get_
 
     if print_filename is not None:
         print_configurations_to_file(print_filename, [actual_configurations[k] for k in all_intersections])
+
+    if table_filename is not None:
+        print_table_from_config(table_filename, [actual_configurations[k] for k in all_intersections], targets, functionals, all_stats)
+
+def regularization_to_str_pretty(regularization):
+    if regularization is None or regularization == "None":
+        return "None"
+    else:
+        return "l1_{l1:.1e}_l2_{l2:.1e}".format(l1=regularization['l1'], l2=regularization['l2'])
+
+def pretty_loss(loss):
+    if loss == 'mean_squared_error':
+        return 'mse'
+    elif loss == 'mean_absolute_error':
+        return 'mae'
+    else:
+        return loss
+
+def pretty_print_config(configuration):
+
+    return "{optimizer}_{loss}_{selection}_{regularizer}".format(
+        optimizer = post_process_hyperparameters.get_optimizer(configuration)[0],
+        loss = pretty_loss(post_process_hyperparameters.get_loss(configuration)),
+        selection = post_process_hyperparameters.get_selection(configuration)[0],
+        regularizer = regularization_to_str_pretty(post_process_hyperparameters.get_regularization(configuration))
+    )
+
+
+def print_table_from_config(filename, configurations, targets, functionals, all_stats):
+    for functional in functionals:
+        table_builder = print_table.TableBuilder()
+        targets_short_names = [t.split('.')[-1] for t in targets]
+
+
+        upper_header = [k for k in targets_short_names]
+        lower_header = []
+        for target, short_target in zip(targets, targets_short_names):
+            for stat in all_stats.keys():
+                name = "{}".format(stat)
+                lower_header.append(name)
+        table_builder.set_upper_header(upper_header)
+        table_builder.set_lower_header(lower_header)
+
+        for config in configurations:
+            row = [pretty_print_config(config)]
+            for target, short_target in zip(targets, targets_short_names):
+                for stat in all_stats.keys():
+                    row.append('{:.3e}'.format(all_stats[stat][config_to_str(config)][functional]))
+            table_builder.add_row(row)
+
+        table_builder.set_title("Sensitivity for {functional} for best configurations".format(functional=functional))
+        table_builder.print_table("{filename}_{functional}".format(filename=filename, functional=functional))
+    
