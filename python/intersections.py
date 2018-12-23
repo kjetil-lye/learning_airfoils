@@ -178,9 +178,9 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate, get_
     targets_to_store = copy.deepcopy(targets)
     stats = {
         'min' : lambda x, target: np.min(get_retraining_values(x, target)),
-        #'selected' : lambda x, target: get_dict_path(x, target),
-        #'std' : lambda x, target: np.sqrt(np.var(get_retraining_values(x, target))),
-        #'mean' : lambda x, target: np.mean(get_retraining_values(x, target)),
+        'selected' : lambda x, target: get_dict_path(x, target),
+        'std' : lambda x, target: np.sqrt(np.var(get_retraining_values(x, target))),
+        'mean' : lambda x, target: np.mean(get_retraining_values(x, target)),
         'max' : lambda x, target: np.max(get_retraining_values(x, target))
     }
     all_intersections = None
@@ -226,7 +226,9 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate, get_
                  for stat in all_stats.keys():
                      if config_to_str(close_configuration) not in all_stats[stat].keys():
                           all_stats[stat][config_to_str(close_configuration)] = {}
-                     all_stats[stat][config_to_str(close_configuration)][functional] = stats[stat](close_configuration, target)
+                     if functional not in  all_stats[stat][config_to_str(close_configuration)].keys():
+                          all_stats[stat][config_to_str(close_configuration)][functional] = {}
+                     all_stats[stat][config_to_str(close_configuration)][functional][target] = stats[stat](close_configuration, target)
                  actual_configurations[config_to_str(close_configuration)] = copy.deepcopy(close_configuration)
 
             configurations_as_str = [config_to_str(conf) for conf in close_configurations]
@@ -278,30 +280,79 @@ def pretty_print_config(configuration):
         selection = post_process_hyperparameters.get_selection(configuration)[0],
         regularizer = regularization_to_str_pretty(post_process_hyperparameters.get_regularization(configuration))
     )
+def regularization_to_row(regularization):
+    if regularization == "None":
+        return regularization_to_row({"l1":0, "l2":0})
+    else:
+        return ['{:.1e}'.format(regularization['l1']),
+                '{:.1e}'.format(regularization['l2'])]
 
+def config_to_row(configuration):
+    return [
+        post_process_hyperparameters.get_optimizer(configuration),
+        pretty_loss(post_process_hyperparameters.get_loss(configuration)),
+        post_process_hyperparameters.get_selection(configuration),
+        *regularization_to_row(post_process_hyperparameters.get_regularization(configuration))
+    ]
+def config_header_row():
+    return ["Optimizer", "Loss", "Selection", "L1reg", "L2reg"]
 
 def print_table_from_config(filename, configurations, targets, functionals, all_stats):
+    stats = {
+        'min' : lambda x: np.min(x),
+        'std' : lambda x: np.sqrt(np.var(x)),
+        'mean' : lambda x: np.mean(x),
+        'max' : lambda x: np.max(x)
+    }
+
+    stats_to_print = [
+        "selected",
+        "min",
+        "mean",
+        "max",
+        "std"
+    ]
+    targets_short_names = [t.split('.')[-1] for t in targets]
     for functional in functionals:
-        table_builder = print_table.TableBuilder()
-        targets_short_names = [t.split('.')[-1] for t in targets]
-
-
-        upper_header = [k for k in targets_short_names]
-        lower_header = []
         for target, short_target in zip(targets, targets_short_names):
-            for stat in all_stats.keys():
+            table_builder = print_table.TableBuilder()
+
+
+
+            lower_header = config_header_row()
+
+            for stat in stats_to_print:
                 name = "{}".format(stat)
                 lower_header.append(name)
-        table_builder.set_upper_header(upper_header)
-        table_builder.set_lower_header(lower_header)
 
-        for config in configurations:
-            row = [pretty_print_config(config)]
-            for target, short_target in zip(targets, targets_short_names):
-                for stat in all_stats.keys():
-                    row.append('{:.3e}'.format(all_stats[stat][config_to_str(config)][functional]))
-            table_builder.add_row(row)
 
-        table_builder.set_title("Sensitivity for {functional} for best configurations".format(functional=functional))
-        table_builder.print_table("{filename}_{functional}".format(filename=filename, functional=functional))
-    
+            table_builder.set_header(lower_header)
+            values = {}
+            for k in stats_to_print:
+                values[k] = []
+
+            for config in configurations:
+                row = config_to_row(config)
+
+                for stat in stats_to_print:
+                    row.append('{:.3e}'.format(all_stats[stat][config_to_str(config)][functional][target]))
+
+                    values[stat].append(all_stats[stat][config_to_str(config)][functional][target])
+                table_builder.add_row(row)
+            for stat in stats.keys():
+                row = []
+                for k in config_header_row()[:2]:
+                    row.append('--')
+
+                row.append('{stat}'.format(stat=stat))
+
+                for k in config_header_row()[3:]:
+                    row.append('--')
+
+                for stat2 in stats_to_print:
+                    row.append('{:.3e}'.format(stats[stat](values[stat2])))
+                table_builder.add_row(row)
+
+
+            table_builder.set_title("Sensitivity for {functional} ({target}) for best configurations".format(target=short_target, functional=functional))
+            table_builder.print_table("{filename}_{functional}_{target}".format(filename=filename, functional=functional, target=short_target))

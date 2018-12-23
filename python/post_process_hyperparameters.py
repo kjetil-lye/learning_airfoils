@@ -148,8 +148,8 @@ def plot_all(filenames, convergence_rate, latex_out):
     }
 
     filters_single = {}
-    for f in [best_configuration_1, best_configuration_2, best_configuration_3, best_configuration_4]:
-        filters_single[f.__doc__] = f
+    #for f in [best_configuration_1, best_configuration_2, best_configuration_3, best_configuration_4]:
+    #    filters_single[f.__doc__] = f
     if not os.path.exists('acceptable.json'):
         raise Exception("You should run the notebook Intersection.ipynb to generate the acceptable.json file!")
     for f in get_filters_from_file('acceptable.json'):
@@ -291,7 +291,10 @@ def get_dict_path(dictionary, path):
 # As a function of training size
 def plot_as_training_size(functional, data, title="all configurations"):
     if len(data['configurations']) == 0:
+        
         print("No configurations!")
+
+        return
 
     train_sizes = []
 
