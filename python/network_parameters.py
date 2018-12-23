@@ -68,7 +68,7 @@ def get_learning_rates():
 get_learning_rates.key = 'MACHINE_LEARNING_LEARNING_RATE'
 
 def get_epochs():
-    epochs = [50, 500000, 5000000]
+    epochs = [5000, 50000, 500000, 5000000]
 
     if get_epochs.key in os.environ:
         epochs = [epochs[int(os.environ[get_epochs.key])]]
