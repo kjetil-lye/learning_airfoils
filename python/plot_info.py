@@ -93,6 +93,8 @@ def writeMetadata(filename, data):
 def only_alphanum(s):
     return ''.join(ch for ch in s if ch.isalnum() or ch =='_')
 def savePlot(name):
+    if savePlot.disabled:
+        return
     name = showAndSave.prefix + name
     name = ''.join(ch for ch in name if ch.isalnum() or ch =='_')
     name = name.lower()
@@ -146,6 +148,8 @@ def showAndSave(name):
 
 showAndSave.prefix=''
 showAndSave.silent=False
+
+savePlot.disabled = 'MACHINE_LEARNING_DO_NOT_SAVE_PLOTS' in os.environ and os.environ['MACHINE_LEARNING_DO_NOT_SAVE_PLOTS'].lower() == 'on'
 
 
 def legendLeft():

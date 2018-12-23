@@ -35,47 +35,56 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
                                     regularization_name = "l2 (%f)" % regularization.l2
                                 else:
                                     regularization_name = "l1 (%f)" % regularization.l1
-                            tables = Tables.make_default()
-                            display(HTML("<h4>%s</h4>" % regularization_name))
-                            seed_random_number(random_seed)
 
-                            showAndSave.silent = False
-                            print_comparison_table.silent = False
-                            title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size)
-                            network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epochs,
-                                                                     network=network, train_size=train_size,
-                                                                     validation_size=train_size,
-                                                                     loss=loss,
-                                                                     large_integration_points=large_integration_points,
-                                                                     selection=selection, tries=5,
-                                                                     kernel_regularizer = regularization)
+                            learning_rates = network_parameters.get_learning_rates()
+                            for learning_rate in learning_rates:
+                                epochs = network_parameters.get_epochs()
+                                for epoch in epochs:
+                                    tables = Tables.make_default()
+                                    display(HTML("<h4>%s</h4>" % regularization_name))
+                                    seed_random_number(random_seed)
 
-                            output_information = OutputInformation(tables=tables, title=title,
-                                                                  short_title=title, enable_plotting=True,
-                                                                  sampling_method=sampling_method)
-                            showAndSave.prefix = '%s_%s_%s_%s_%s_%s_%d' % (only_alphanum(base_title),
-                                only_alphanum(regularization_name), only_alphanum(selection_type),
-                                only_alphanum(selection), loss, only_alphanum(optimizer), train_size)
+                                    showAndSave.silent = False
+                                    print_comparison_table.silent = False
+                                    title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d\nEpochs: %d, learning rate: %f' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size, epoch, learning_rate)
+                                    network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epochs,
+                                                                             network=network, train_size=train_size,
+                                                                             validation_size=train_size,
+                                                                             loss=loss,
+                                                                             learning_rate=learning_rate,
+                                                                             epochs=epoch,
+                                                                             large_integration_points=large_integration_points,
+                                                                             selection=selection, tries=5,
+                                                                             kernel_regularizer = regularization)
 
-                            get_network_and_postprocess(parameters, samples, network_information = network_information,
-                                output_information = output_information)
+                                    output_information = OutputInformation(tables=tables, title=title,
+                                                                          short_title=title, enable_plotting=True,
+                                                                          sampling_method=sampling_method)
+                                    showAndSave.prefix = '%s_%s_%s_%s_%s_%s_%d_%s_%s' % (only_alphanum(base_title),
+                                        only_alphanum(regularization_name), only_alphanum(selection_type),
+                                        only_alphanum(selection), loss, only_alphanum(optimizer), train_size,
+                                        str(epoch),
+                                        only_alphanum("{}".format(learning_rate)))
 
-                            prediction_error = output_information.prediction_error[2]
+                                    get_network_and_postprocess(parameters, samples, network_information = network_information,
+                                        output_information = output_information)
 
-                            mean_error= copy.deepcopy(output_information.stat_error['mean'])
-                            variance_error = copy.deepcopy(output_information.stat_error['var'])
-                            wasserstein_error = copy.deepcopy(output_information.stat_error['wasserstein'])
-                            selection_error = copy.deepcopy(output_information.selection_error)
+                                    prediction_error = output_information.prediction_error[2]
 
-                            error_map = {"main_error" : mean_error,
-                                        "variance_error" : variance_error,
-                                        "wasserstein_error" : wasserstein_error,
-                                        "selection_error" : selection_error,
-                                        "prediction_error" : prediction_error}
+                                    mean_error= copy.deepcopy(output_information.stat_error['mean'])
+                                    variance_error = copy.deepcopy(output_information.stat_error['var'])
+                                    wasserstein_error = copy.deepcopy(output_information.stat_error['wasserstein'])
+                                    selection_error = copy.deepcopy(output_information.selection_error)
 
-                            with open('results/' + showAndSave.prefix + '_errors.json', 'w') as out:
-                                json.dump(error_map, out)
+                                    error_map = {"main_error" : mean_error,
+                                                "variance_error" : variance_error,
+                                                "wasserstein_error" : wasserstein_error,
+                                                "selection_error" : selection_error,
+                                                "prediction_error" : prediction_error}
 
-                            print(json.dumps(error_map))
-                            console_log(json.dumps(error_map))
-                            tables.write_tables()
+                                    with open('results/' + showAndSave.prefix + '_errors.json', 'w') as out:
+                                        json.dump(error_map, out)
+
+                                    print(json.dumps(error_map))
+                                    console_log(json.dumps(error_map))
+                                    tables.write_tables()

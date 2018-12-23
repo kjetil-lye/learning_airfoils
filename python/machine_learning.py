@@ -58,7 +58,8 @@ class NetworkInformation(object):
                  selection='train',
                  large_integration_points=None,
                  activity_regularizer=None,
-                 kernel_regularizer = None):
+                 kernel_regularizer = None,
+                 learning_rate=0.01):
         self.network = network
         self.optimizer = optimizer
         self.epochs = epochs
@@ -72,6 +73,7 @@ class NetworkInformation(object):
         self.large_integration_points = large_integration_points
         self.activity_regularizer = activity_regularizer
         self.kernel_regularizer = kernel_regularizer
+        self.learning_rate = learning_rate
 
 
 
@@ -165,7 +167,7 @@ def get_network(parameters, data, *, network_information, output_information):
 
 
 
-        model.compile(optimizer=optimizer(lr=0.01),
+        model.compile(optimizer=optimizer(lr=network_information.learning_rate),
                       loss=network_information.loss)
 
         weights = np.copy(model.get_weights())
@@ -861,9 +863,10 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
         'var_error' : lambda x, all_data: abs(np.var(x)-np.var(all_data)),
         'mean_error_relative' : lambda x, all_data: abs(np.mean(x)-np.mean(all_data))/abs(np.mean(all_data)),
         'var_error_relative' : lambda x, all_data: abs(np.var(x)-np.var(all_data))/abs(np.var(all_data)),
-        'mean_bilevel_error' : lambda x, all_data: abs(mean_bilevel(x, all_data, train_size) - np.mean(x)),
-        'var_bilevel_error' :  lambda x, all_data: abs(var_bilevel(x, all_data, train_size) - np.var(x)),
-        'var_bilevel_error_alternative' :  lambda x, all_data: abs(var_bilevel_alternative(x, all_data, train_size) - np.var(x)),
+        'speedup_mean_bilevel' : lambda x, all_data: abs(np.var(all_data)/np.var(all_data[:min(train_size, x.shape[0])]-x[:min(train_size, x.shape[0])])),
+        'mean_bilevel_error' : lambda x, all_data: abs(mean_bilevel(x, all_data, train_size) - np.mean(all_data)),
+        'var_bilevel_error' :  lambda x, all_data: abs(var_bilevel(x, all_data, train_size) - np.var(all_data)),
+        'var_bilevel_error_alternative' :  lambda x, all_data: abs(var_bilevel_alternative(x, all_data, train_size) - np.var(all_data)),
         'mean' : lambda x, all_data: float(np.mean(x)),
         'var' : lambda x, all_data: float(np.var(x)),
         'mean_bilevel' : lambda x, all_data : float(mean_bilevel(x, all_data, train_size)),
