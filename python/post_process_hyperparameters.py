@@ -113,7 +113,7 @@ def get_filters_from_file(filename):
         json_content = json.load(infile)
 
         for configuration in json_content['configurations']:
-            filters.append(FilterFromConfiguration(json_content,
+            filters.append(FilterFromConfiguration(configuration,
                 config_to_str(configuration)))
     return filters
 
@@ -186,9 +186,7 @@ def plot_all(filenames, convergence_rate, latex_out):
                                   filtername+" " + only)
         for filtername in filters_single:
             heading(1, filtername)
-            plot_as_training_size(functional, filter_configs(data[functional], test_functions=[filters_single[filtername]],
-                                onlys=onlys[only]), \
-                              filtername+" " + only)
+            plot_as_training_size(functional, filter_configs(data[functional], test_functions=[filters_single[filtername]]), filtername)
 
     with open(latex_out) as f:
         f.write(latex.get_latex())
@@ -744,9 +742,10 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                                                 include_retraining, include_min, include_max, include_std, include_competitor,
                                                                 include_extra_competitor and has_extra_competitor,
                                                                 tactics_in_same_plot))
+                                                plt.show()
                                                 plt.close('all')
 
-                                                plt.show()
+
 
 
 
