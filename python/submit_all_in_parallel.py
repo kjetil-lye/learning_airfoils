@@ -91,7 +91,7 @@ def submit_notebook_in_parallel(notebook_name, depth, width):
                                 exports[network_parameters.get_learning_rates.key] = str(n)
                                 epochs = network_parameters.get_epochs()
                                 for m, learning_rates in enumerate(epochs):
-                                    exports[network_parameters.get_epochs.key] = str(n)
+                                    exports[network_parameters.get_epochs.key] = str(m)
 
                                     folder_name = "_".join([exports[k] for k in exports.keys()])
                                     folder_name = os.path.splitext(notebook_name)[0] +"_"+ folder_name
