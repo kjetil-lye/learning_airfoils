@@ -291,7 +291,7 @@ def get_dict_path(dictionary, path):
 # As a function of training size
 def plot_as_training_size(functional, data, title="all configurations"):
     if len(data['configurations']) == 0:
-        
+
         print("No configurations!")
 
         return
@@ -746,7 +746,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                                                 tactics_in_same_plot))
                                                 plt.close('all')
 
-
+                                                plt.show()
 
 
 
@@ -765,8 +765,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                                             include_extra_competitor and has_extra_competitor,
                                                             tactics_in_same_plot))
 
-                                            if include_competitor and include_extra_competitor and include_selected and include_max and include_min and include_retraining and not include_std:
-                                                plt.show()
+
 
                                             plt.close('all')
 

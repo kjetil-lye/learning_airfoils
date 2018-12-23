@@ -101,7 +101,7 @@ def submit_notebook_in_parallel(notebook_name, depth, width):
                                         train_size = train_size,
                                         regularizer = regularizer,
                                         learning_rate = learning_rate,
-                                        epochs=epochs)
+                                        epochs=epoch)
 
                                     os.chdir('..')
 
