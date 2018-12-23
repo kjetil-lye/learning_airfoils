@@ -10,7 +10,7 @@ import network_parameters
 import copy
 import os
 
-def try_best_network_sizes(*, parameters, samples, base_title, epochs):
+def try_best_network_sizes(*, parameters, samples, base_title):
     optimizers = network_parameters.get_optimizers()
 
     losses = network_parameters.get_losses()
@@ -77,12 +77,12 @@ def try_best_network_sizes(*, parameters, samples, base_title, epochs):
 
                                         tables = Tables.make_default()
 
-                                        network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epochs,
+                                        network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epoch,
                                                                                  network=None, train_size=None,
                                                                                  validation_size=None,
                                                                                 loss=loss, tries=5,
                                                                                 learning_rate=learning_rate,
-                                                                                epochs=epoch,
+
                                                                                 selection=selection, kernel_regularizer = regularization)
 
 

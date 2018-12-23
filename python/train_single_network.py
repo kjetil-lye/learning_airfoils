@@ -8,7 +8,7 @@ import keras
 import network_parameters
 import json
 
-def train_single_network(*, parameters, samples, base_title, network, epochs, large_integration_points = None, sampling_method='QMC'):
+def train_single_network(*, parameters, samples, base_title, network,  large_integration_points = None, sampling_method='QMC'):
     train_sizes = network_parameters.get_training_sizes()
 
     optimizers = network_parameters.get_optimizers()
@@ -47,7 +47,7 @@ def train_single_network(*, parameters, samples, base_title, network, epochs, la
                                     showAndSave.silent = False
                                     print_comparison_table.silent = False
                                     title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d\nEpochs: %d, learning rate: %f' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size, epoch, learning_rate)
-                                    network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epochs,
+                                    network_information = NetworkInformation(optimizer=optimizers[optimizer],
                                                                              network=network, train_size=train_size,
                                                                              validation_size=train_size,
                                                                              loss=loss,
