@@ -100,7 +100,7 @@ class FilterFromConfiguration(object):
     def __call__(self, configuration_on_trial):
         for k in self.configuration.keys():
             value = get_dict_path(configuration_on_trial, k)
-            value_required = self.configuraiton[k]
+            value_required = self.configuration[k]
 
             if value != value_required:
                 return False
@@ -400,7 +400,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
     for error in errors.keys():
 
-        tactics=['ordinary', 'add']#, 'remove', 'replace']
+        tactics=['ordinary', 'replace']#, 'remove', 'add']
         error_per_tactics = {}
         var_error_per_tactics = {}
         min_error_per_tactics = {}
@@ -742,7 +742,9 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                                                 include_retraining, include_min, include_max, include_std, include_competitor,
                                                                 include_extra_competitor and has_extra_competitor,
                                                                 tactics_in_same_plot))
-                                                plt.show()
+
+                                                if tactic == 'ordinary' and include_competitor:
+                                                    plt.show()
                                                 plt.close('all')
 
 

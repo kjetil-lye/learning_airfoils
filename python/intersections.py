@@ -176,6 +176,7 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate, get_
     }
 
     targets_to_store = copy.deepcopy(targets)
+    targets_to_store.append('results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_real'.format(data_source=data_source))
     stats = {
         'min' : lambda x, target: np.min(get_retraining_values(x, target)),
         'selected' : lambda x, target: get_dict_path(x, target),
@@ -228,7 +229,8 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate, get_
                           all_stats[stat][config_to_str(close_configuration)] = {}
                      if functional not in  all_stats[stat][config_to_str(close_configuration)].keys():
                           all_stats[stat][config_to_str(close_configuration)][functional] = {}
-                     all_stats[stat][config_to_str(close_configuration)][functional][target] = stats[stat](close_configuration, target)
+                     for target_store in targets_to_store:
+                         all_stats[stat][config_to_str(close_configuration)][functional][target_store] = stats[stat](close_configuration, target_store)
                  actual_configurations[config_to_str(close_configuration)] = copy.deepcopy(close_configuration)
 
             configurations_as_str = [config_to_str(conf) for conf in close_configurations]
@@ -256,7 +258,7 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate, get_
         print_configurations_to_file(print_filename, [actual_configurations[k] for k in all_intersections])
 
     if table_filename is not None:
-        print_table_from_config(table_filename, [actual_configurations[k] for k in all_intersections], targets, functionals, all_stats)
+        print_table_from_config(table_filename, [actual_configurations[k] for k in all_intersections], targets_to_store, functionals, all_stats)
 
 def regularization_to_str_pretty(regularization):
     if regularization is None or regularization == "None":
@@ -330,7 +332,7 @@ def print_table_from_config(filename, configurations, targets, functionals, all_
             values = {}
             for k in stats_to_print:
                 values[k] = []
-
+            new_rows = []
             for config in configurations:
                 row = config_to_row(config)
 
@@ -338,6 +340,12 @@ def print_table_from_config(filename, configurations, targets, functionals, all_
                     row.append('{:.3e}'.format(all_stats[stat][config_to_str(config)][functional][target]))
 
                     values[stat].append(all_stats[stat][config_to_str(config)][functional][target])
+                new_rows.append(row)
+
+            new_rows = sorted(new_rows, key=lambda row: float(row[5]))
+            if 'speedup' in target:
+                new_rows.reverse()
+            for row in new_rows:
                 table_builder.add_row(row)
             for stat in stats.keys():
                 row = []
@@ -356,3 +364,49 @@ def print_table_from_config(filename, configurations, targets, functionals, all_
 
             table_builder.set_title("Sensitivity for {functional} ({target}) for best configurations".format(target=short_target, functional=functional))
             table_builder.print_table("{filename}_{functional}_{target}".format(filename=filename, functional=functional, target=short_target))
+    for target, short_target in zip(targets, targets_short_names):
+        table_builder = print_table.TableBuilder()
+        lower_header = config_header_row()
+
+        for functional in functionals:
+            name = "{}".format(functional)
+            lower_header.append(name)
+
+
+        table_builder.set_header(lower_header)
+        values = {}
+        for k in functionals:
+            values[k] = []
+
+        new_rows = []
+        for config in configurations:
+            row = config_to_row(config)
+
+            for functional in functionals:
+                row.append('{:.3e}'.format(all_stats['selected'][config_to_str(config)][functional][target]))
+
+                values[stat].append(all_stats['selected'][config_to_str(config)][functional][target])
+            new_rows.append(row)
+
+        new_rows = sorted(new_rows, key=lambda row: float(row[5]))
+        if 'speedup' in target:
+            new_rows.reverse()
+        for row in new_rows:
+            table_builder.add_row(row)
+        for stat in stats.keys():
+            row = []
+            for k in config_header_row()[:2]:
+                row.append('--')
+
+            row.append('{stat}'.format(stat=stat))
+
+            for k in config_header_row()[3:]:
+                row.append('--')
+
+            for stat2 in stats_to_print:
+                row.append('{:.3e}'.format(stats[stat](values[stat2])))
+            table_builder.add_row(row)
+
+
+        table_builder.set_title("Best retrained values for best configurations for {target}".format(target=short_target, functional=functional))
+        table_builder.print_table("{filename}_selected_{target}".format(filename=filename, functional=functional, target=short_target))
