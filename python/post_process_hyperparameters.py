@@ -92,7 +92,7 @@ def config_to_str_from_json(configuration):
         optimizer = get_optimizer(configuration),
         loss = get_loss(configuration),
         selection = get_selection(configuration),
-        train_size = get_dict_path(configuration, 'settings.train_size')
+        train_size = get_dict_path(configuration, 'settings.train_size'),
         regularizer = regularization_to_str(get_regularization(configuration))
     )
 def config_to_str(configuration):
