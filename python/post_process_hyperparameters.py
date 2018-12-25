@@ -88,10 +88,11 @@ def regularization_to_str(regularization):
         return "l1_{l1}_l2_{l2}".format(l1=regularization['l1'], l2=regularization['l2'])
 
 def config_to_str_from_json(configuration):
-    return "{optimizer}_{loss}_{selection}_{regularizer}".format(
+    return "{optimizer}_{loss}_{selection}_{regularizer}_{train_size}".format(
         optimizer = get_optimizer(configuration),
         loss = get_loss(configuration),
         selection = get_selection(configuration),
+        train_size = get_dict_path(configuration, 'settings.train_size')
         regularizer = regularization_to_str(get_regularization(configuration))
     )
 def config_to_str(configuration):
