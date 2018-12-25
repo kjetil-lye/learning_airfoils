@@ -153,7 +153,7 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
         for config in  data[functional]['configurations']:
             if config_to_str_from_json(config) in found_configs.keys():
                 if [get_dict_path(config, tar) for tar in targets_to_store] != [get_dict_path(found_configs[config_to_str_from_json(config)], tar) for tar in targets_to_store]:
-                    raise Exception("Same config appearead twice: {} ({})\n\n{}\n\n{}\n\n{}\n{}".format(config_to_str_from_json(config), filename, str(config['settings']), str(found_configs[config_to_str(config)]['settings']),
+                    raise Exception("Same config appearead twice: {} ({})\n\n{}\n\n{}\n\n{}\n{}".format(config_to_str_from_json(config), filename, str(config['settings']), str(found_configs[config_to_str_from_json(config)]['settings']),
                         [get_dict_path(config, tar) for tar in targets_to_store],
                             [get_dict_path(found_configs[config_to_str_from_json(config)], tar) for tar in targets_to_store]
                             ))
