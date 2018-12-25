@@ -4,7 +4,7 @@ import glob
 import sys
 
 import matplotlib
-matplotlib.rcParams['savefig.dpi']=600
+matplotlib.rcParams['savefig.dpi']=150
 from numpy import *
 import matplotlib.pyplot as plt
 
@@ -19,16 +19,20 @@ from IPython.core.display import display, HTML
 try:
     import git
     def get_git_metadata():
-        repo = git.Repo(search_parent_directories=True)
-        sha = repo.head.object.hexsha
-        modified= repo.is_dirty()
-        activeBranch = repo.active_branch
-        url = repo.remotes.origin.url
+        if not get_git_metadata.cached:
+            get_git_metadata.repo = git.Repo(search_parent_directories=True)
+            get_git_metadata.sha = get_git_metadata.repo.head.object.hexsha
+            get_git_metadata.modified= get_git_metadata.repo.is_dirty()
+            get_git_metadata.activeBranch = get_git_metadata.repo.active_branch
+            get_git_metadata.url = get_git_metadata.repo.remotes.origin.url
+            get_git_metadata.cached = True
 
-        return {'git_commit': str(sha),
-                'git_repo_modified':str(modified),
-                'git_branch' : str(activeBranch),
-                'git_remote_url' : str(url)}
+        return {'git_commit': str(get_git_metadata.sha),
+                'git_repo_modified':str(get_git_metadata.modified),
+                'git_branch' : str(get_git_metadata.activeBranch),
+                'git_remote_url' : str(get_git_metadata.url)}
+
+    get_git_metadata.cached = False
 
 
     def add_git_information(filename):
@@ -89,9 +93,11 @@ def writeMetadata(filename, data):
 def only_alphanum(s):
     return ''.join(ch for ch in s if ch.isalnum() or ch =='_')
 def savePlot(name):
+    if savePlot.disabled:
+        return
     name = showAndSave.prefix + name
     name = ''.join(ch for ch in name if ch.isalnum() or ch =='_')
-
+    name = name.lower()
 
     fig = plt.gcf()
     ax = plt.gca()
@@ -105,10 +111,11 @@ def savePlot(name):
     # We don't want all the output from matplotlib2tikz
 
     with RedirectStdStreamsToNull():
-        matplotlib2tikz.save('img_tikz/' + name + '.tikz',
-           figureheight = '\\figureheight',
-           figurewidth = '\\figurewidth',
-           show_info = False)
+        if savePlot.saveTikz:
+            matplotlib2tikz.save('img_tikz/' + name + '.tikz',
+                figureheight = '\\figureheight',
+                figurewidth = '\\figurewidth',
+                show_info = False)
 
 
     savenamepng = 'img/' + name + '.png'
@@ -121,6 +128,18 @@ def savePlot(name):
     writeMetadata(savenamepng, {'working_directory': os.getcwd(),
                                 'hostname':socket.gethostname(),
                                 'generated_on_date': str(datetime.datetime.now())})
+
+    if savePlot.callback is not None:
+        title = 'Unknown title'
+        try:
+            title = plt.gcf()._suptitle.get_text()
+        except:
+            pass
+        savePlot.callback(savenamepng, name, title)
+
+savePlot.callback = None
+savePlot.saveTikz = True
+
 def showAndSave(name):
     savePlot(name)
     if not showAndSave.silent:
@@ -129,6 +148,8 @@ def showAndSave(name):
 
 showAndSave.prefix=''
 showAndSave.silent=False
+
+savePlot.disabled = 'MACHINE_LEARNING_DO_NOT_SAVE_PLOTS' in os.environ and os.environ['MACHINE_LEARNING_DO_NOT_SAVE_PLOTS'].lower() == 'on'
 
 
 def legendLeft():

@@ -10,7 +10,7 @@ import network_parameters
 import copy
 import os
 
-def try_best_network_sizes(*, parameters, samples, base_title, epochs):
+def try_best_network_sizes(*, parameters, samples, base_title):
     optimizers = network_parameters.get_optimizers()
 
     losses = network_parameters.get_losses()
@@ -62,39 +62,48 @@ def try_best_network_sizes(*, parameters, samples, base_title, epochs):
                                     regularization_name = "l2 (%f)" % regularization.l2
                                 else:
                                     regularization_name = "l1 (%f)" % regularization.l1
-                            display(HTML("<h4>%s</h4>" % regularization_name))
 
-                            title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size)
-                            short_title = title
-                            run_function = TrainingFunction(parameters=parameters,
-                                samples = samples,
-                                title = title)
+                                learning_rates = network_parameters.get_learning_rates()
+                                for learning_rate in learning_rates:
+                                    epochs = network_parameters.get_epochs()
+                                    for epoch in epochs:
+                                        display(HTML("<h4>%s</h4>" % regularization_name))
 
-                            tables = Tables.make_default()
+                                        title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d\nLearning rate: %f, Epochs: %d' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size, learning_rate, epoch)
+                                        short_title = title
+                                        run_function = TrainingFunction(parameters=parameters,
+                                            samples = samples,
+                                            title = title)
 
-                            network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epochs,
-                                                                     network=None, train_size=None,
-                                                                     validation_size=None,
-                                                                    loss=loss, tries=5,
-                                                                    selection=selection, kernel_regularizer = regularization)
+                                        tables = Tables.make_default()
+
+                                        network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epoch,
+                                                                                 network=None, train_size=None,
+                                                                                 validation_size=None,
+                                                                                loss=loss, tries=5,
+                                                                                learning_rate=learning_rate,
+
+                                                                                selection=selection, kernel_regularizer = regularization)
 
 
 
-                            output_information = OutputInformation(tables=tables, title=title,
-                                                                  short_title=title, enable_plotting=False)
+                                        output_information = OutputInformation(tables=tables, title=title,
+                                                                              short_title=title, enable_plotting=False)
 
-                            showAndSave.prefix = '%s_%s_%s_%s_%s_%s_%d' % (only_alphanum(base_title), only_alphanum(regularization_name),
-                                only_alphanum(selection_type), only_alphanum(selection), loss, only_alphanum(optimizer), train_size)
+                                        showAndSave.prefix = '%s_%s_%s_%s_%s_%s_%d_%s_%s' % (only_alphanum(base_title), only_alphanum(regularization_name),
+                                            only_alphanum(selection_type), only_alphanum(selection), loss, only_alphanum(optimizer), train_size,
+                                            only_alphanum(str(epoch)),
+                                            only_alphanum(str(learning_rate)))
 
 
-                            selection_error, error_map = find_best_network_size_notebook(network_information = network_information,
-                                output_information = output_information,
-                                train_size = train_size,
-                                run_function = run_function,
-                                number_of_depths = number_of_depths,
-                                number_of_widths = number_of_widths,
-                                base_title = title,
-                                only_selection = False)
+                                        selection_error, error_map = find_best_network_size_notebook(network_information = network_information,
+                                            output_information = output_information,
+                                            train_size = train_size,
+                                            run_function = run_function,
+                                            number_of_depths = number_of_depths,
+                                            number_of_widths = number_of_widths,
+                                            base_title = title,
+                                            only_selection = False)
 
 
 

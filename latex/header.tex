@@ -1,0 +1,36 @@
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{pgfplots}
+\usepgfplotslibrary{groupplots}
+\usepackage{amsmath,amssymb,amsfonts, amsthm}
+\usepackage{nicefrac}
+\usepackage{cprotect}
+\newlength\figureheight
+\newlength\figurewidth
+\usepackage{etoolbox}
+\usepackage{graphicx}
+
+\newtoggle{usetikz}
+\togglefalse{usetikz}
+\newcommand{\InputImage}[3]{}
+\iftoggle{usetikz}{%
+	\renewcommand{\InputImage}[3]{%
+		\setlength\figureheight{#2}%
+		\setlength\figurewidth{#1}%
+		\input{img_tikz/#3.tikz}%
+	}%
+} { %
+	\renewcommand{\InputImage}[3]{%
+		
+		\includegraphics[width=#1]{img_downscaled/#3}%
+	}%
+}
+
+
+%\usepgfplotslibrary{external} 
+%\tikzexternalize
+
+
+
+
+

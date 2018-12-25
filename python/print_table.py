@@ -10,6 +10,7 @@ class TableBuilder(object):
 
         self.lower_header = None
         self.upper_header = None
+        self.title = "No title"
 
     def set_lower_header(self, lower_header):
         self.lower_header = copy.deepcopy(lower_header)
@@ -37,9 +38,10 @@ class TableBuilder(object):
 
         multicolumn = self.lower_header is not None
 
-        print_comparison_table(outname, data, multicolumn)
+        print_comparison_table(outname, data, multicolumn, self.title)
 
-
+    def set_title(self, title):
+        self.title = copy.deepcopy(title)
 def format_latex(d):
 
     if type(d) == str:
@@ -84,6 +86,8 @@ def make_classical_table_multicolumn(data, start):
 
         table += "\\hline\n"
     table += "\\end{tabular}\n"
+
+
     return table
 
 def make_classical_table(data, start):
@@ -161,11 +165,13 @@ def make_booktabs_table_multicolumn(data, start):
 
 
 
-def print_comparison_table(outname, data, multicolumn = False):
+def print_comparison_table(outname, data, multicolumn = False, title= "No title"):
+    outname = outname.lower()
     if showAndSave.prefix != '':
         outname = '%s_%s' % (showAndSave.prefix, outname)
     outname.replace(" ", "_")
     outname = ''.join(ch for ch in outname if ch.isalnum() or ch =='_')
+
     start = 0
     data = copy.deepcopy(data)
 
@@ -187,12 +193,23 @@ def print_comparison_table(outname, data, multicolumn = False):
 
 
     with open('tables/%s.tex' % outname, 'w') as f:
+
+        f.write("%% INCLUDE THE COMMENTS AT THE END WHEN COPYING\n")
+        f.write("%%%%%%%%%%%%%TITLE%%%%%%%%%%%%%%%%%\n")
+        for line in title.splitlines():
+            f.write("%% {}\n".format(line))
+        f.write("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
         f.write(latex)
         git_metadata = get_git_metadata()
         f.write("\n")
+        f.write("%% ALWAYS INCLUDE THE COMMENTS WHEN COPYING THIS TABLE\n")
+        f.write("%% DO NOT REMOVE THE COMMNENTS BELOW!\n")
         for k in git_metadata.keys():
 
             f.write("%% GIT {} : {}\n".format(k, git_metadata[k]))
+
+    if print_comparison_table.callback is not None:
+        print_comparison_table.callback('tables/%s.tex' % outname, title)
 
     if not multicolumn:
         latex_classical = make_classical_table(data, start)
@@ -200,9 +217,16 @@ def print_comparison_table(outname, data, multicolumn = False):
         latex_classical = make_classical_table_multicolumn(data, start)
 
     with open('tables/%s_classical.tex' % outname, 'w') as f:
+        f.write("%% INCLUDE THE COMMENTS AT THE END WHEN COPYING\n")
+        f.write("%%%%%%%%%%%%%TITLE%%%%%%%%%%%%%%%%%\n")
+        for line in title.splitlines():
+            f.write("%% {}\n".format(line))
+        f.write("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
         f.write(latex_classical)
         git_metadata = get_git_metadata()
         f.write("\n")
+        f.write("%% ALWAYS INCLUDE THE COMMENTS WHEN COPYING THIS TABLE\n")
+        f.write("%% DO NOT REMOVE THE COMMNENTS BELOW!\n")
         for k in git_metadata.keys():
 
             f.write("%% GIT {} : {}\n".format(k, git_metadata[k]))
@@ -242,6 +266,7 @@ def print_comparison_table(outname, data, multicolumn = False):
             writer.writerow(r)
 
 print_comparison_table.silent = False
+print_comparison_table.callback = None
 
 def print_keras_model_as_table(outname, model):
     data = [["Layer", "Size", "Parameters"]]

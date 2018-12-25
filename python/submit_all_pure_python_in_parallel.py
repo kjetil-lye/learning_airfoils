@@ -11,9 +11,13 @@ def writeConfig(*,
     selection_type,
     selection,
     train_size,
-    regularizer):
+    regularizer,
+    learning_rate,
+    epochs):
 
     config_map = {
+    "learning_rate" : learning_rate,
+    "epochs" : epochs,
     "number_of_depths" : depth,
     "number_of_widths" : width,
     "optimizer" : optimizer,
@@ -64,34 +68,42 @@ def submit_notebook_in_parallel(notebook_name, depth, width):
 
                         for k, regularizer in enumerate(regularizers):
                             exports[network_parameters.get_regularizations.key] = str(k)
+                            learning_rates = network_parameters.get_learning_rates()
+                            for n, learning_rate in enumerate(learning_rates):
+                                exports[network_parameters.get_learning_rates.key] = str(n)
+                                epochs = network_parameters.get_epochs()
+                                for m, epoch in enumerate(epochs):
+                                    exports[network_parameters.get_epochs.key] = str(m)
 
-                            folder_name = "_".join([exports[k] for k in exports.keys()])
-                            folder_name = os.path.splitext(notebook_name)[0] +"_"+ folder_name
-                            folder_name = ''.join(ch for ch in folder_name if ch.isalnum() or ch =='_')
-                            print(folder_name)
-                            os.mkdir(folder_name)
-                            os.chdir(folder_name)
-                            print(os.getcwd())
-                            shutil.copyfile('../python/{}'.format(notebook_name), '{}'.format(notebook_name))
-                            os.mkdir('img')
-                            os.mkdir('img_tikz')
-                            os.mkdir('tables')
-                            os.mkdir('results')
-                            output = notebook.replace('.ipynb', 'Output.ipynb')
-                            submit('python {notebook}'.format(
-                                notebook = notebook
-                            ), exports)
+                                    folder_name = "_".join([exports[k] for k in exports.keys()])
+                                    folder_name = os.path.splitext(notebook_name)[0] +"_"+ folder_name
+                                    folder_name = ''.join(ch for ch in folder_name if ch.isalnum() or ch =='_')
+                                    print(folder_name)
+                                    os.mkdir(folder_name)
+                                    os.chdir(folder_name)
+                                    print(os.getcwd())
+                                    shutil.copyfile('../python/{}'.format(notebook_name), '{}'.format(notebook_name))
+                                    os.mkdir('img')
+                                    os.mkdir('img_tikz')
+                                    os.mkdir('tables')
+                                    os.mkdir('results')
+                                    output = notebook.replace('.ipynb', 'Output.ipynb')
+                                    submit('python {notebook}'.format(
+                                        notebook = notebook
+                                    ), exports)
 
-                            writeConfig(depth=depth,
-                                width=width,
-                                optimizer = optimizer,
-                                loss = loss,
-                                selection_type = selection_type,
-                                selection = selection,
-                                train_size = train_size,
-                                regularizer = regularizer)
+                                    writeConfig(depth=depth,
+                                        width=width,
+                                        optimizer = optimizer,
+                                        loss = loss,
+                                        selection_type = selection_type,
+                                        selection = selection,
+                                        train_size = train_size,
+                                        regularizer = regularizer,
+                                        learning_rate = learning_rate,
+                                        epochs=epoch)
 
-                            os.chdir('..')
+                                    os.chdir('..')
 
 if __name__ == '__main__':
     import sys
