@@ -385,7 +385,7 @@ def print_table_from_config(filename, configurations, targets, functionals, all_
             for functional in functionals:
                 row.append('{:.3e}'.format(all_stats['selected'][config_to_str(config)][functional][target]))
 
-                values[stat].append(all_stats['selected'][config_to_str(config)][functional][target])
+                values[functional].append(all_stats['selected'][config_to_str(config)][functional][target])
             new_rows.append(row)
 
         new_rows = sorted(new_rows, key=lambda row: float(row[5]))
@@ -403,8 +403,8 @@ def print_table_from_config(filename, configurations, targets, functionals, all_
             for k in config_header_row()[3:]:
                 row.append('--')
 
-            for stat2 in stats_to_print:
-                row.append('{:.3e}'.format(stats[stat](values[stat2])))
+            for functional in functionals:
+                row.append('{:.3e}'.format(stats[stat](values[functional])))
             table_builder.add_row(row)
 
 
