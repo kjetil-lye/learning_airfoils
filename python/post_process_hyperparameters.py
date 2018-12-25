@@ -118,7 +118,7 @@ def get_filters_from_file(filename):
     return filters
 
 
-def plot_all(filenames, convergence_rate, latex_out):
+def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'):
     functionals = [k for k in filenames.keys()]
     data = {}
 
