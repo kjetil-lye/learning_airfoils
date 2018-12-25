@@ -46,6 +46,7 @@ for folder in folders:
         json_config = json.load(config_file)
     best_files = glob.glob(os.path.join(folder, 'results/*{}*combination_stats.json'.format(functional_name)))
     configuration = {}
+    configuration['from_folder'] = folder
     configuration['results'] = {}
     configuration['network_sizes'] = []
     configuration['settings'] = copy.deepcopy(json_config)
