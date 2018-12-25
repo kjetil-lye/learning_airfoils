@@ -133,6 +133,23 @@ def plot_all(filenames, convergence_rate, latex_out):
             add_wasserstein_speedup(json_content, convergence_rate)
             data[functional] = copy.deepcopy(json_content)
 
+        targets_to_store = [
+            'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source),
+            'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_l2_relative'.format(data_source=data_source)
+
+        ]
+        found_configs = {}
+        # check for uniqueness
+        for config in  data[functional]['configurations']:
+            if config_to_str(config) in found_configs.keys():
+                if [get_dict_path(config, tar) for tar in targets_to_store] != [get_dict_path(found_configs[config_to_str(config)], tar) for tar in targets_to_store]:
+                    raise Exception("Same config appearead twice: {} ({})\n\n{}\n\n{}\n\n{}\n{}".format(config_to_str(config), filename, str(config['settings']), str(found_configs[config_to_str(config)]['settings']),
+                        [get_dict_path(config, tar) for tar in targets_to_store],
+                            [get_dict_path(found_configs[config_to_str(config)], tar) for tar in targets_to_store]
+                            ))
+                else:
+                    data[functional]['configurations'].remove(config)
+            found_configs[config_to_str(config)] = config
 
     onlys = {
         "" : {},
