@@ -216,7 +216,7 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
             heading(1, filtername)
             plot_as_training_size(functional, filter_configs(data[functional], test_functions=[filters_single[filtername]]), filtername)
 
-    with open(latex_out) as f:
+    with open(latex_out, 'w') as f:
         f.write(latex.get_latex())
 
 
