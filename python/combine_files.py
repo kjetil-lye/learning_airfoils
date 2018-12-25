@@ -6,6 +6,7 @@ import copy
 import re
 import git
 import datetime
+import numpy as np
 basename = sys.argv[1]
 functional_name = sys.argv[2]
 
@@ -23,7 +24,7 @@ configuration_top['script_git_version'] = script_git_repo.head.object.hexsha
 configuration_top['script_git_url'] = script_git_repo.remotes.origin.url
 
 configuration_top['configurations'] = []
-configuration_top['command_issued'] = "{} {}".format(sys.executable + " ".join(sys.argv))
+configuration_top['command_issued'] = "{} {}".format(sys.executable, " ".join(sys.argv))
 configuration_top['generated_at'] = datetime.datetime.now().isoformat()
 configuration_top['working_directory'] = os.getcwd()
 
@@ -39,32 +40,56 @@ for folder in folders:
         continue
     
     config_file_name = os.path.join(folder, 'config_run.json')
-    configuration = {}
+
+    
     with open(config_file_name) as config_file:
         json_config = json.load(config_file)
-    configuration['settings'] = copy.deepcopy(json_config)
-    
+    best_files = glob.glob(os.path.join(folder, 'results/*{}*combination_stats.json'.format(functional_name)))
+    configuration = {}
+
     configuration['results'] = {}
-    configuration['results']['retrainings'] = {}
+    configuration['network_sizes'] = []
+    configuration['settings'] = copy.deepcopy(json_config)
+    configuration['settings']['from_folder'] = folder
+    for best_file in best_files:
+        with open(best_file) as best_result_file:
+            if 'network_size' not in best_file:
+                configuration['results']['best_network'] = copy.deepcopy(json.load(best_result_file))
+                current_configuration = configuration
+            else:
+                configuration['network_sizes'].append({})
+                current_configuration = configuration['network_sizes'][-1]
+                current_configuration['results'] = {}
+                current_configuration['settings'] = copy.deepcopy(json_config)
+                current_configuration['results']['best_network'] = copy.deepcopy(json.load(best_result_file))
     
-    retraining_files = glob.glob(os.path.join(folder, 'results/*{}*combination_stats_try_*.json'.format(functional_name)))
-    for retraining_file_name in retraining_files:
-        if 'network_size' in retraining_file_name:
-            continue
-        retraining_number = int(re.search(r'combination_stats_try_(\d+)\.json', retraining_file_name).group(1))
-        with open(retraining_file_name) as retraining_file:
-            configuration['results']['retrainings'][retraining_number] = json.load(retraining_file)
+        
     
-    best_file = glob.glob(os.path.join(folder, 'results/*{}*combination_stats.json'.format(functional_name)))
-
-    for best_file_name in best_file:
-        if 'network_size' in best_file_name:
-            best_file.remove(best_file_name)
-    if len(best_file) != 1:
-        raise Exception ("too many or too few files found: {} found in {}".format(len(best_file), folder))
-
-    with open(best_file[0]) as best_result_file:
-        configuration['results']['best_network'] = copy.deepcopy(json.load(best_result_file))
+        basename = re.search(r'results\/(.+)_combination_stats\.json', best_file).group(1)
+        
+        model_name = '{}model.json'.format(basename)
+        with open(os.path.join(os.path.join(folder, 'results'),model_name)) as model_file:
+            model = json.load(model_file)
+            depth = len(model['config']['layers'])
+            widths = [model['config']['layers'][k]['config']['units'] for k in range(depth)]
+            
+        current_configuration['settings']['depth'] = copy.deepcopy(depth)
+        current_configuration['settings']['widths'] = copy.deepcopy(widths)
+        current_configuration['settings']['min_width'] = min(widths)
+        current_configuration['settings']['max_width'] = max(widths)
+        current_configuration['settings']['average_width'] = np.mean(widths)
+        
+        
+                
+        
+        current_configuration['results']['retrainings'] = {}
+    
+        retraining_files = glob.glob(os.path.join(folder, 'results/{basename}_combination_stats_try_*.json'.format(basename=basename)))
+        for retraining_file_name in retraining_files:
+            retraining_number = int(re.search(r'combination_stats_try_(\d+)\.json', retraining_file_name).group(1))
+            with open(retraining_file_name) as retraining_file:
+                current_configuration['results']['retrainings'][retraining_number] = json.load(retraining_file)
+    
     
 
     
