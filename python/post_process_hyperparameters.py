@@ -81,9 +81,19 @@ def add_wasserstein_speedup(configuration, convergence_rate):
 
                         source[algorithm][fit][tactic]['wasserstein_speedup_real'] = (base/wasserstein)**(1.0/convergence_rate)
 
+def regularization_to_str(regularization):
+    if regularization is None or regularization == "None":
+        return "None"
+    else:
+        return "l1_{l1}_l2_{l2}".format(l1=regularization['l1'], l2=regularization['l2'])
 
-
-
+def config_to_str_from_json(configuration):
+    return "{optimizer}_{loss}_{selection}_{regularizer}".format(
+        optimizer = get_optimizer(configuration),
+        loss = get_loss(configuration),
+        selection = get_selection(configuration),
+        regularizer = regularization_to_str(get_regularization(configuration))
+    )
 def config_to_str(configuration):
     return "{optimizer}_{loss}_{selection}_{regularizer}".format(
         optimizer = configuration['settings.optimizer'],
@@ -141,15 +151,15 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
         found_configs = {}
         # check for uniqueness
         for config in  data[functional]['configurations']:
-            if config_to_str(config) in found_configs.keys():
-                if [get_dict_path(config, tar) for tar in targets_to_store] != [get_dict_path(found_configs[config_to_str(config)], tar) for tar in targets_to_store]:
-                    raise Exception("Same config appearead twice: {} ({})\n\n{}\n\n{}\n\n{}\n{}".format(config_to_str(config), filename, str(config['settings']), str(found_configs[config_to_str(config)]['settings']),
+            if config_to_str_from_json(config) in found_configs.keys():
+                if [get_dict_path(config, tar) for tar in targets_to_store] != [get_dict_path(found_configs[config_to_str_from_json(config)], tar) for tar in targets_to_store]:
+                    raise Exception("Same config appearead twice: {} ({})\n\n{}\n\n{}\n\n{}\n{}".format(config_to_str_from_json(config), filename, str(config['settings']), str(found_configs[config_to_str(config)]['settings']),
                         [get_dict_path(config, tar) for tar in targets_to_store],
-                            [get_dict_path(found_configs[config_to_str(config)], tar) for tar in targets_to_store]
+                            [get_dict_path(found_configs[config_to_str_from_json(config)], tar) for tar in targets_to_store]
                             ))
                 else:
                     data[functional]['configurations'].remove(config)
-            found_configs[config_to_str(config)] = config
+            found_configs[config_to_str_from_json(config)] = config
 
     onlys = {
         "" : {},
