@@ -1106,10 +1106,9 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
                 source_names = [k for k in sources.keys()]
                 # see https://stackoverflow.com/questions/6871201/plot-two-histograms-at-the-same-time-with-matplotlib
                 plt.hist([errors_local[source] for source in source_names],
-                        bins=20, label = source_names, alpha=0.5, stacked=True,
-                        density=True)
+                        bins=20, label = source_names, alpha=0.5, stacked=True)
                 plt.xlabel(names[error])
-                plt.ylabel("Number of configurations (normalized)")
+                plt.ylabel("Number of configurations")
 
                 plt.legend()
                 if 'prediction' in error.lower():
