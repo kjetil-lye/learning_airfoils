@@ -172,3 +172,18 @@ def console_log(x):
     with open('/dev/stdout', 'w') as f:
         f.write("DEBUG: %s\n"%x)
         f.flush()
+
+def to_percent(y, position):
+    # see https://stackoverflow.com/questions/31357611/format-y-axis-as-percent
+    s = "{:.1f}".format(y*100)
+
+    if matplotlib.rcParams['text.usetex'] is True:
+        return s + r'%\%$'
+    else:
+        return s + '%'
+
+
+
+def set_percentage_ticks(ax):
+    """ ax is either plt.gca().xaxis or plt.gca().yaxis"""
+    ax.set_major_formatter(matplotlib.ticker.FuncFormatter(to_percent))

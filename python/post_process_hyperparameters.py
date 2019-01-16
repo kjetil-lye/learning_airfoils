@@ -28,6 +28,7 @@ def fix_bilevel(configuration):
     for config in configuration['configurations']:
         sources = [config['results']['best_network']['algorithms']]
         sources.extend([config['results']['retrainings'][k]['algorithms'] for k in config['results']['retrainings'].keys()])
+        sources.extend([config['network_sizes'][k]['results']['best_network']['algorithms'] for k in range(len(config['network_sizes']))])
         basemean = config['results']['best_network']['reference_sampling_error']['mean']
         basevar = config['results']['best_network']['reference_sampling_error']['var']
 
@@ -65,7 +66,7 @@ def add_wasserstein_speedup(configuration, convergence_rate):
     for config in configuration['configurations']:
         sources = [config['results']['best_network']['algorithms']]
         sources.extend([config['results']['retrainings'][k]['algorithms'] for k in config['results']['retrainings'].keys()])
-
+        sources.extend([config['network_sizes'][k]['results']['best_network']['algorithms'] for k in range(len(config['network_sizes']))])
         # Speedup is always one when we compare to ourself:
         config['results']['best_network']['base_sampling_error']['wasserstein_speedup'] = 1
 
@@ -205,8 +206,27 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
         display(HTML("<{ht}>{title}<{ht}>".format(ht=html_code, title=content)))
         latex.text+= "\\{latex_code}{{{title}}}\n\n".format(latex_code=latex_code, title=content)
 
+    comparisons = [
+        ["Good Adam", only_adam_and_no_regularization_for_mse_and_reg_for_l1, "Bad Adam", and_config(get_only_adam, complement(only_adam_and_low_regularization_for_mse_and_reg_for_l1))],
+        ["SGD", get_only_sgd, "Adam", get_only_adam],
+        ["Good Adam MSE", and_config(get_only_mse, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam MAE", and_config(get_only_mae, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam L1 reg", and_config(only_l1_reg, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam L2 reg", and_config(only_l2_reg, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam with Ray prediction", and_config(only_ray_prediction, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam with train", and_config(only_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam with Ray prediction", and_config(only_ray_prediction, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam with Wasserstein", and_config(only_wasserstein_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam with train", and_config(only_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam with Wasserstein", and_config(only_wasserstein_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam with mean train", and_config(only_mean_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam with Wasserstein", and_config(only_wasserstein_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
+    ]
     for functional in functionals:
         heading(0, functional)
+        for comparison in comparisons:
+            for only in onlys:
+                compare_two_sets(functional,
+                    data1 = filter_configs(data[functional], test_functions = [comparison[1]]),
+                    title1 = comparison[0],
+                    data2 = filter_configs(data[functional], test_functions = [comparison[3]]),
+                    title2 = comparison[2],
+                    main_title=only
+                    )
         for filtername in filters:
             heading(1, filtername)
             for only in onlys:
@@ -524,9 +544,14 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 plt.title("{error} for {functional} as a function of width\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
                     functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
-                plot_info.showAndSave("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+
+                plot_info.savePlot("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                     functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
+
+                if train_size == 128:
+                    plt.show()
+                plt.close()
 
                 plt.figure()
                 plt.loglog(depths, np.mean(errors_per_depth), '-o', label='DNN selected retraining', basex=2, basey=2)
@@ -544,6 +569,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
                 plt.figure(10*(len(tactics)+1))
                 plt.hist(errors_local, bins=20)
+                if 'prediction' in error.lower():
+                    plot_info.set_percentage_ticks(plt.gca().xaxis)
                 plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
                 plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
@@ -552,14 +579,14 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 ))
 
                 plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
-                plt.text(competitor[error][n],2, competitor_names[error],rotation=90)
+                plt.text(competitor[error][n], 0.2*np.diff(plt.gca().get_ylim())[0], competitor_names[error],rotation=90)
                 plot_info.savePlot("hist_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                     functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
 
                 if error in extra_competitor_keys.keys():
                     plt.axvline(x=extra_competitor, linestyle='--',color='green')
-                    plt.text(extra_competitor, 2, extra_competitor_names[error],rotation=90)
+                    plt.text(extra_competitor,  0.2*np.diff(plt.gca().get_ylim())[0], extra_competitor_names[error],rotation=90)
                     plot_info.savePlot("hist_lsq_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                         functional=functional, title=title, train_size=train_size,
                         tactic=tactic
@@ -589,6 +616,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
 
                 plt.figure(20*(len(tactics)+1))
                 plt.hist(errors_local_retrainings, bins=20)
+                if 'prediction' in error.lower():
+                    plot_info.set_percentage_ticks(plt.gca().xaxis)
                 plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
                 plt.title("Histograms for distribution (retrainings) for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples\n Tactic: {tactic}".format(error=names[error],
@@ -596,14 +625,14 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 ))
 
                 plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
-                plt.text(competitor[error][n],2, competitor_names[error],rotation=90)
+                plt.text(competitor[error][n],  0.2*np.diff(plt.gca().get_ylim())[0], competitor_names[error],rotation=90)
                 plot_info.savePlot("hist_retraining_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                     functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
 
                 if error in extra_competitor_keys.keys():
                     plt.axvline(x=extra_competitor, linestyle='--',color='green')
-                    plt.text(extra_competitor,2, extra_competitor_names[error],rotation=90)
+                    plt.text(extra_competitor,  0.2*np.diff(plt.gca().get_ylim())[0], extra_competitor_names[error],rotation=90)
                     plot_info.savePlot("hist_retraining_lsq_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                         functional=functional, title=title, train_size=train_size, tactic = tactic
                     ))
@@ -615,6 +644,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 plt.figure(30*(len(tactics)+1))
                 plt.hist(errors_local_retrainings, bins=20, alpha=0.5, label='Retrainings')
                 plt.hist(errors_local, bins=20, alpha=0.5, label='Selected retrainings')
+                if 'prediction' in error.lower():
+                    plot_info.set_percentage_ticks(plt.gca().xaxis)
                 plot_info.legendLeft()
                 plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
@@ -623,14 +654,14 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 ))
 
                 plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
-                plt.text(competitor[error][n],2, competitor_names[error],rotation=90)
+                plt.text(competitor[error][n], 0.2*np.diff(plt.gca().get_ylim())[0], competitor_names[error],rotation=90)
                 plot_info.savePlot("hist_both_retraining_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                     functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
 
                 if error in extra_competitor_keys.keys():
                     plt.axvline(x=extra_competitor, linestyle='--',color='green')
-                    plt.text(extra_competitor,2, extra_competitor_names[error],rotation=90)
+                    plt.text(extra_competitor, 0.2*np.diff(plt.gca().get_ylim())[0], extra_competitor_names[error],rotation=90)
                     plot_info.savePlot("hist_both_retraining_lsq_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                         functional=functional, title=title, train_size=train_size, tactic=tactic
                     ))
@@ -780,9 +811,9 @@ def plot_as_training_size(functional, data, title="all configurations"):
         on_array = [True]
         for include_selected in on_array:
             for include_retraining in on_array:
-                for include_min in on_array:
-                    for include_max in on_array:
-                        for include_std in on_array:
+                for include_min in ['speedup' not in error]:
+                    for include_max in ['speedup' in error]:
+                        for include_std in off_array:
                             for include_competitor in on_off_array:
                                 for tactics_in_same_plot in off_array:
                                     for include_extra_competitor in [include_competitor]:
@@ -940,6 +971,7 @@ def has_regularization(config):
 
 def get_regularization(config):
     return config['settings']['regularizer']
+
 def get_optimizer(config):
     return config['settings']['optimizer']
 
@@ -957,74 +989,142 @@ def only_adam_and_no_regularization_for_mse_and_reg_for_l1(config):
     else:
         return not has_regularization(config)
 
-def best_configuration_1(config):
-    """Adam, mean_absolute_error, ray_prediction, l2 reg"""
+def only_adam_and_low_regularization_for_mse_and_reg_for_l1(config):
     if get_optimizer(config) != 'Adam':
         return False
+    if get_loss(config) == 'mean_absolute_error':
+        return has_regularization(config)
+    else:
+        return (not has_regularization(config)) or (get_regularization_type(config) == "l2" and get_regularization_size(config) < 1e7)
 
-    if get_loss(config) != 'mean_absolute_error':
-        return False
+def get_only_sgd(config):
+    return get_optimizer(config) == "SGD"
 
-    if get_selection(config) != 'ray_prediction':
-        return False
+def get_only_adam(config):
+    return get_optimizer(config) == "Adam"
 
+def get_only_mse(config):
+    return get_loss(config) == 'mean_squared_error'
+
+def get_only_mae(config):
+    return get_loss(config) == 'mean_absolute_error'
+
+def complement(f):
+    return lambda x: not f(x)
+
+def and_config(f1, f2):
+    return lambda x: f1(x) and f2(x)
+
+def only_l1_reg(config):
+    return get_regularization_type(config) == "l1"
+
+def only_l2_reg(config):
+    return get_regularization_type(config) == "l2"
+
+def get_regularization_type(config):
     if not has_regularization(config):
-        return False
+        return "None"
+    reg = get_regularization(config)
 
-    return get_regularization(config)['l2'] > 0 and get_regularization(config)['l1'] == 0
+    if reg['l1'] > 0:
+        return "l1"
+    else:
+        return "l2"
 
-def best_configuration_2(config):
-    """Adam, mean_squared_error, train, No reg"""
-    if get_optimizer(config) != 'Adam':
-        return False
+def only_wasserstein_train(config):
+    return get_selection(config) == 'wasserstein_train'
 
-    if get_loss(config) != 'mean_squared_error':
-        return False
+def only_ray_prediction(config):
+    return get_selection(config) == 'ray_prediction'
 
-    if get_selection(config) != 'train':
-        return False
+def only_train(config):
+    return get_selection(config) == 'train'
 
-    return not has_regularization(config)
-
-
-def best_configuration_3(config):
-    """Adam, mean_absolute_error, wasserstein_train, l2 reg"""
-    if get_optimizer(config) != 'Adam':
-        return False
-
-    if get_loss(config) != 'mean_absolute_error':
-        return False
-
-    if get_selection(config) != 'wasserstein_train':
-        return False
-
-    if not has_regularization(config):
-        return False
-
-    return get_regularization(config)['l2'] > 0 and get_regularization(config)['l1'] == 0
-
-
-def best_configuration_4(config):
-    """Adam, mean_absolute_error, ray_prediction, l1 reg"""
-    if get_optimizer(config) != 'Adam':
-        return False
-
-    if get_loss(config) != 'mean_absolute_error':
-        return False
-
-    if get_selection(config) != 'ray_prediction':
-        return False
-
-    if not has_regularization(config):
-        return False
-
-    return get_regularization(config)['l1'] > 0 and get_regularization(config)['l2'] == 0
-
-
-# In[ ]:
+def only_mean_train(config):
+    return get_selection(config) == 'mean_train'
 
 
 
+def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
+    if len(data1['configurations']) + len(data2['configurations']) == 0:
+
+        print("No configurations!")
+
+        return
+
+    train_sizes = []
+
+    for configuration in data1['configurations']:
+        train_size = int(configuration['settings']['train_size'])
+        if train_size not in train_sizes:
+            train_sizes.append(train_size)
+    print(train_sizes)
+    train_sizes = sorted(train_sizes)
+
+    data_source_names = data1['configurations'][0]['results']['best_network']['algorithms'].keys()
+    for k in data_source_names:
+        if re.match(r'^[Q]?MC_from_data$', k):
+            data_source = k
+            break
+
+    sampling_method = re.search(r'(^[Q]?MC)_from_data$', data_source).group(1)
+    names = {
+        "mean_error_relative" : "mean relative error",
+        "var_error_relative" : "variance relative error",
+        "wasserstein_error_cut" : "Wasserstein",
+        "mean_bilevel_error_relative": "relative error bilevel mean",
+        "var_bilevel_error_relative" :"relative error bilevel variance",
+        "prediction_l1_relative": 'relative prediction error ($L^1$)',
+        "prediction_l2_relative" : 'relative prediction error ($L^2$)',
+        'wasserstein_speedup_raw' : 'Raw Wasserstein speedup',
+        'wasserstein_speedup_real' : 'Wasserstein speedup with convergence rate',
+    }
 
 
-# In[ ]:
+    for error in names.keys():
+
+        tactics=['ordinary', 'replace']#, 'remove', 'add']
+
+
+
+
+
+
+        sources = {title1: data1, title2: data2}
+        for t, tactic in enumerate(tactics):
+            for (n, train_size) in enumerate(train_sizes):
+                errors_local = {}
+                for source in sources.keys():
+                    errors_local[source] = []
+                for source_name in sources.keys():
+                    for configuration in sources[source_name]['configurations']:
+                        ts = int(configuration['settings']['train_size'])
+                        if ts == train_size:
+
+                            errors_local[source_name].append(configuration['results']['best_network']['algorithms'][data_source]['ml'][tactic][error])
+
+                source_names = [k for k in sources.keys()]
+                # see https://stackoverflow.com/questions/6871201/plot-two-histograms-at-the-same-time-with-matplotlib
+                plt.hist([errors_local[source] for source in source_names],
+                        bins=20, label = source_names, alpha=0.5, stacked=True,
+                        density=True)
+                plt.xlabel(names[error])
+                plt.ylabel("Number of configurations (normalized)")
+
+                plt.legend()
+                if 'prediction' in error.lower():
+                    plot_info.set_percentage_ticks(plt.gca().xaxis)
+                plt.title("Comparison histograms for distribution for {error} for {functional}\nConfigurations: {title1} versus {title2}\n{main_title}\nUsing {train_size} samples\nTactic: {tactic}".format(
+                    error=names[error],
+                    functional=functional, title2=title2, title1=title1, train_size=train_size,
+                    main_title = main_title,
+                    tactic=tactic
+                ))
+
+                plot_info.savePlot('comparison_histogram_{error}_{functional}_{title1}_{title2}_{train_size}_{tactic}'.format(
+                    functional=functional, title1 = title1, title2 = title2, train_size = train_size, tactic = tactic, error = error
+                ))
+
+                if train_size == 128:
+                    plt.show()
+                plt.close('all')
