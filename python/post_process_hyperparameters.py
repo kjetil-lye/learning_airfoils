@@ -129,6 +129,8 @@ def get_filters_from_file(filename):
     return filters
 
 
+
+
 def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'):
     functionals = [k for k in filenames.keys()]
     data = {}
@@ -314,6 +316,7 @@ def get_dict_path(dictionary, path):
         dictionary = dictionary[s]
     return dictionary
 
+
 # As a function of training size
 def plot_as_training_size(functional, data, title="all configurations"):
     if len(data['configurations']) == 0:
@@ -426,6 +429,14 @@ def plot_as_training_size(functional, data, title="all configurations"):
         competitor[k]  = np.zeros(len(train_sizes))
 
 
+
+    errors_per_network_size = {}
+    for k in names.keys():
+        errors_per_network_size[k] = []
+        for i in range(len(train_sizes)):
+            errors_per_network_size[k].append({})
+
+
     for error in errors.keys():
 
         tactics=['ordinary', 'replace']#, 'remove', 'add']
@@ -437,6 +448,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
         var_error_per_tactics_retraining = {}
         min_error_per_tactics_retraining = {}
         max_error_per_tactics_retraining = {}
+
 
         pairing = {
             'mean_error': [error_per_tactics, errors],
@@ -457,6 +469,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
             for (n, train_size) in enumerate(train_sizes):
                 errors_local = []
                 errors_local_regularization = {}
+                errors_local_network_size = {}
                 for configuration in data['configurations']:
                     ts = int(configuration['settings']['train_size'])
                     if ts == train_size:
@@ -469,25 +482,87 @@ def plot_as_training_size(functional, data, title="all configurations"):
                         if error in extra_competitor_keys.keys():
                             extra_competitor = get_dict_path(configuration, extra_competitor_keys[error])
                             extra_competitors[error][n] = extra_competitor
+
+                        for size_configuration in configuration['network_sizes']:
+                            depth = get_dict_path(size_configuration, 'settings.depth')
+                            width = get_dict_path(size_configuration, 'settings.max_width')
+
+                            if depth not in errors_local_network_size.keys():
+                                errors_local_network_size[depth] = {}
+                            if width not in errors_local_network_size[depth].keys():
+                                errors_local_network_size[depth][width] = []
+
+                            errors_local_network_size[depth][width].append(size_configuration['results']['best_network']['algorithms'][data_source]['ml'][tactic][error])
+
+
+                depths = np.array(sorted([k for k in errors_local_network_size.keys()]))
+                widths = np.array(sorted([k for k in errors_local_network_size[depths[0]].keys()]))
+
+                print(depths)
+                print(widths)
+
+                errors_per_width = []
+
+                for width in widths:
+                    errors_per_width.append([])
+                    for depth in depths:
+                        errors_per_width[-1].append(errors_local_network_size[depth][width])
+
+                errors_per_depth = []
+                for width in widths:
+                    errors_per_depth.append([])
+                    for depth in depths:
+                        errors_per_depth[-1].append(errors_local_network_size[depth][width])
+
+                plt.figure()
+                plt.loglog(widths, np.mean(errors_per_width), '-o', label='DNN selected retraining', basex=2, basey=2)
+                plt.loglog(widths, np.max(errors_per_width), 'v', markersize=12, label='Max')
+                plt.loglog(widths, np.min(errors_per_width), '^', markersize=12, label='Min')
+                plt.xlabel('Network width')
+                plt.ylabel(names[error])
+                plt.grid(True)
+                plt.title("{error} for {functional} as a function of width\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
+                    functional=functional, title=title, train_size=train_size, tactic=tactic
+                ))
+                plot_info.showAndSave("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                    functional=functional, title=title, train_size=train_size, tactic=tactic
+                ))
+
+                plt.figure()
+                plt.loglog(depths, np.mean(errors_per_depth), '-o', label='DNN selected retraining', basex=2, basey=2)
+                plt.loglog(depths, np.max(errors_per_depth), 'v', markersize=12, label='Max')
+                plt.loglog(depths, np.min(errors_per_depth), '^', markersize=12, label='Min')
+                plt.xlabel('Network depth')
+                plt.ylabel(names[error])
+                plt.grid(True)
+                plt.title("{error} for {functional} as a function of depth\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
+                    functional=functional, title=title, train_size=train_size, tactic=tactic
+                ))
+                plot_info.showAndSave("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                    functional=functional, title=title, train_size=train_size, tactic=tactic
+                ))
+
                 plt.figure(10*(len(tactics)+1))
                 plt.hist(errors_local, bins=20)
                 plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
-                plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples".format(error=names[error],
-                    functional=functional, title=title, train_size=train_size
+                plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
+                    functional=functional, title=title, train_size=train_size,
+                    tactic=tactic
                 ))
 
                 plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
                 plt.text(competitor[error][n],2, competitor_names[error],rotation=90)
-                plot_info.savePlot("hist_{error}_{functional}_{title}_{train_size}".format(error=error,
-                    functional=functional, title=title, train_size=train_size
+                plot_info.savePlot("hist_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                    functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
 
                 if error in extra_competitor_keys.keys():
                     plt.axvline(x=extra_competitor, linestyle='--',color='green')
                     plt.text(extra_competitor, 2, extra_competitor_names[error],rotation=90)
-                    plot_info.savePlot("hist_lsq_{error}_{functional}_{title}_{train_size}".format(error=error,
-                        functional=functional, title=title, train_size=train_size
+                    plot_info.savePlot("hist_lsq_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                        functional=functional, title=title, train_size=train_size,
+                        tactic=tactic
                     ))
 
                 plt.close(10*(len(tactics)+1))
@@ -516,21 +591,21 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 plt.hist(errors_local_retrainings, bins=20)
                 plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
-                plt.title("Histograms for distribution (retrainings) for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples".format(error=names[error],
-                    functional=functional, title=title, train_size=train_size
+                plt.title("Histograms for distribution (retrainings) for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples\n Tactic: {tactic}".format(error=names[error],
+                    functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
 
                 plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
                 plt.text(competitor[error][n],2, competitor_names[error],rotation=90)
-                plot_info.savePlot("hist_retraining_{error}_{functional}_{title}_{train_size}".format(error=error,
-                    functional=functional, title=title, train_size=train_size
+                plot_info.savePlot("hist_retraining_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                    functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
 
                 if error in extra_competitor_keys.keys():
                     plt.axvline(x=extra_competitor, linestyle='--',color='green')
                     plt.text(extra_competitor,2, extra_competitor_names[error],rotation=90)
-                    plot_info.savePlot("hist_retraining_lsq_{error}_{functional}_{title}_{train_size}".format(error=error,
-                        functional=functional, title=title, train_size=train_size
+                    plot_info.savePlot("hist_retraining_lsq_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                        functional=functional, title=title, train_size=train_size, tactic = tactic
                     ))
 
                 plt.close(20*(len(tactics)+1))
@@ -543,21 +618,21 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 plot_info.legendLeft()
                 plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
-                plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples".format(error=names[error],
-                    functional=functional, title=title, train_size=train_size
+                plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
+                    functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
 
                 plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
                 plt.text(competitor[error][n],2, competitor_names[error],rotation=90)
-                plot_info.savePlot("hist_both_retraining_{error}_{functional}_{title}_{train_size}".format(error=error,
-                    functional=functional, title=title, train_size=train_size
+                plot_info.savePlot("hist_both_retraining_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                    functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
 
                 if error in extra_competitor_keys.keys():
                     plt.axvline(x=extra_competitor, linestyle='--',color='green')
                     plt.text(extra_competitor,2, extra_competitor_names[error],rotation=90)
-                    plot_info.savePlot("hist_both_retraining_lsq_{error}_{functional}_{title}_{train_size}".format(error=error,
-                        functional=functional, title=title, train_size=train_size
+                    plot_info.savePlot("hist_both_retraining_lsq_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                        functional=functional, title=title, train_size=train_size, tactic=tactic
                     ))
 
                 plt.close(30*(len(tactics)+1))
