@@ -927,12 +927,12 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
 
     all_results_with_information['mc_speedup'] = {}
-    if network_information.monte_carlo_parameters:
+    if network_information.monte_carlo_parameters is not None:
         mc_parameters = network_information.monte_carlo_parameters
         mc_values = network_information.monte_carlo_values
 
         for modifier in modifiers.keys():
-
+            all_results_with_information['mc_speedup'][modifier] = {}
 
             modified_data = modifiers[modifier](predicted_data, mc_values, train_size)
             for error_functional in errors_functionals.keys():
