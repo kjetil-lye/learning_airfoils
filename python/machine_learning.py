@@ -954,7 +954,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 row.append("{:.3f}".format(all_results_with_information['mc_speedup'][modifier][error_functional]))
             table_speedup.add_row(row)
 
-        table_speedup.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}".format(epochs=epochs, learning_rate=learning_rate))
+        table_speedup.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}".format(epochs=network_information.epochs, learning_rate=network_information.learning_rate))
         table_speedup.print_table("mc_speedups")
 
 
