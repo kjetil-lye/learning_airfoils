@@ -937,7 +937,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
             modified_data = modifiers[modifier](predicted_data, mc_values, train_size)
             for error_functional in errors_functionals.keys():
                 error = errors_functionals[error_functional](modified_data, mc_values)
-                base_error = errors_functionals[error_functional](mc_values[train_size], mc_values)
+                base_error = errors_functionals[error_functional](mc_values[:train_size], mc_values)
 
                 all_results_with_information['mc_speedup'][modifier][error_functional] = error / base_error
 
