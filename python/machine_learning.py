@@ -939,9 +939,12 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 error = errors_functionals[error_functional](modified_data, mc_values)
                 base_error = errors_functionals[error_functional](mc_values[:train_size], mc_values)
 
-                all_results_with_information['mc_speedup'][modifier][error_functional] = error / base_error
+                try:
+                    all_results_with_information['mc_speedup'][modifier][error_functional] = base_error / error
+                except:
+                    all_results_with_information['mc_speedup'][modifier][error_functional] = 0.1
 
-        table_speedup = print_table.TableBuilder()
+        table_speedup = TableBuilder()
         table_speedup.set_header(["Error", *modifiers.keys()])
 
         for error_functional in errors_functionals.keys():
@@ -951,7 +954,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 row.append("{:.3f}".format(all_results_with_information['mc_speedup'][modifier][error_functional]))
             table_speedup.add_row(row)
 
-        table_speedup.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics")
+        table_speedup.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}".format(epochs=epochs, learning_rate=learning_rate))
         table_speedup.print_table("mc_speedups")
 
 
