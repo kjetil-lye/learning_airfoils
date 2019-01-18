@@ -18,61 +18,50 @@ import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
-
+import SodShockTube
 # In[2]:
+def get_sod_data_qmc():
+
+    data = []
+    with open('../SOD_QMC_DATA.dat', 'r') as inputfile:
+        for l in inputfile:
+            data.append([float(x) for x in l.split(',')])
+    data = np.array(data)
+
+    parameters = data[:,:6]
+    samples = data[:,6:]
+
+    func_names = ['Q1', 'Q2', 'Q3']
+
+    data_by_func = {}
+
+    mc_parameters, mc_data = SodShockTube.get_sod_data()
+    for n, func_name in enumerate(func_names):
+        data_by_func[func_name] =  samples[:,n]
+
+    return parameters, data_by_func, mc_parameters, mc_data
+
+def get_network():
+    return [10, 10, 10, 10, 10,1]
+
+if __name__ == '__main__':
+
+    network = get_sod_network()
+
+    parameters, data_by_func,_,_ = get_sod_data_qmc()
+
+    for func_name in data_by_func.keys():
+        try_best_network_sizes(parameters=parameters,
+                               samples=data_by_func[func_name],
+                               base_title='Sod Shock QMC %s' % func_name)
 
 
-data = []
-with open('../SOD_QMC_DATA.dat', 'r') as inputfile:
-    for l in inputfile:
-        data.append([float(x) for x in l.split(',')])
-data = np.array(data)
-
-parameters = data[:,:6]
-samples = data[:,6:]
+    for n, func_name in enumerate(func_names):
+        train_single_network(parameters=parameters,
+                             samples=data_by_func[func_name],
+                             base_title='Sod Shock QMC %s' % func_name,
+                             network = network,
+                             large_integration_points = None)
 
 
-# In[3]:
-
-
-epochs = 500000
-network = [10, 10, 10, 10, 10,1]
-
-
-# # Network sizes
-# 
-
-# In[4]:
-
-
-func_names=['Q1', 'Q2', 'Q3']
-
-for n, func_name in enumerate(func_names):
-    try_best_network_sizes(parameters=parameters, 
-                           samples=samples[:,n], 
-                           base_title='Sod Shock QMC %s' % func_name,
-                          epochs=epochs)
-
-
-# # Single network
-
-# In[ ]:
-
-
-func_names=['Q1', 'Q2', 'Q3']
-
-
-for n, func_name in enumerate(func_names):
-    train_single_network(parameters=parameters, 
-                         samples=samples[:,n], 
-                         base_title='Sod Shock QMC %s' % func_name,
-                         network = network,
-                         epochs=epochs, 
-                         large_integration_points = None)
-
-
-# In[ ]:
-
-
-
-
+    # In[ ]:

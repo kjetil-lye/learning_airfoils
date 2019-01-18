@@ -8,26 +8,49 @@ import keras
 import network_parameters
 import json
 
-def train_single_network(*, parameters, samples, base_title, network,  large_integration_points = None, sampling_method='QMC'):
+def train_single_network(*, parameters, samples, base_title, network,
+    large_integration_points = None,
+    sampling_method='QMC',
+    base_config = None,
+    monte_carlo_parameters = None,
+    monte_carlo_values = None):
+
+    losses = None
+    optimizers_to_choose = None
+    selection_to_choose = None
+    regularizations = None
+
+    if base_config is not None:
+        losses = [base_config['loss']]
+        optimizers_to_choose = base_config['optimizer']
+        selection_to_choose = base_config['selection']
+        regularizations = [base_config['regularization']]
+
+
     train_sizes = network_parameters.get_training_sizes()
 
-    optimizers = network_parameters.get_optimizers()
 
-    losses = network_parameters.get_losses()
+    optimizers = network_parameters.get_optimizers()
+    losses = losses or network_parameters.get_losses()
     selections = network_parameters.get_selections()
+
 
 
     for selection_type in selections.keys():
 
         display(HTML("<h1>%s</h1>" % selection_type))
         for selection in selections[selection_type]:
+            if selection_to_choose and selection != selection_to_choose:
+                continue
             for optimizer in optimizers.keys():
+                if optimizers_to_choose and optimizer != optimizers_to_choose:
+                    continue
                 for loss in losses:
                     display(HTML("<h1>{} with {}</h1>".format(optimizer, loss)))
 
                     for train_size in train_sizes:
 
-                        regularizations = network_parameters.get_regularizations(train_size)
+                        regularizations = regularizations or network_parameters.get_regularizations(train_size)
                         for regularization in regularizations:
                             regularization_name = "No regularization"
                             if regularization is not None:
@@ -55,7 +78,9 @@ def train_single_network(*, parameters, samples, base_title, network,  large_int
                                                                              epochs=epoch,
                                                                              large_integration_points=large_integration_points,
                                                                              selection=selection, tries=5,
-                                                                             kernel_regularizer = regularization)
+                                                                             kernel_regularizer = regularization,
+                                                                             monte_carlo_values= monte_carlo_values,
+                                                                             monte_carlo_parameters = monte_carlo_parameters)
 
                                     output_information = OutputInformation(tables=tables, title=title,
                                                                           short_title=title, enable_plotting=True,
@@ -88,3 +113,36 @@ def train_single_network(*, parameters, samples, base_title, network,  large_int
                                     print(json.dumps(error_map))
                                     console_log(json.dumps(error_map))
                                     tables.write_tables()
+
+
+def compute_for_all_in_json(json_file, *, parameters, samples, base_title, network,
+    large_integration_points = None,
+    sampling_method='QMC',
+    monte_carlo_values = None,
+    monte_carlo_parameters = None):
+
+    with open(json_file) as infile:
+        configurations = json.load(infile)
+
+        for configuration_name in configurations.keys():
+            config = configurations[configuration_name]
+
+            if config['regularization'] == 'None':
+                config['regularization'] = None
+            else:
+                if config['regularization']['l1'] > 0:
+                    config['regularization'] = keras.regularizers.l1(config['regularization']['l1'] )
+                else:
+                    config['regularization'] = keras.regularizers.l2(config['regularization']['l2'] )
+
+            display(HTML("<h1>{}</h1>".format(configuration_name)))
+
+            train_single_network(parameters=parameters,
+                                 samples=samples,
+                                 base_title=base_title,
+                                 network=network,
+                                 large_integration_points=large_integration_points,
+                                 sampling_method=sampling_method,
+                                 base_config = config,
+                                 monte_carlo_values = monte_carlo_values,
+                                 monte_carlo_parameters = monte_carlo_parameters)
