@@ -53,7 +53,7 @@ def get_airfoil_data():
         data_per_func[force_name] = forces[:, n+1]
 
     mc_params, mc_values = MachineLearningSixParametersAirfoilMonteCarlo.get_airfoils_mc_data()
-    return qmc_points, data_per_func, mc_paras, mc_values
+    return qmc_points, data_per_func, mc_params, mc_values
 
 
 def get_airfoils_network():
