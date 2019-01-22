@@ -255,18 +255,20 @@ class LatexWithAllPlots(object):
 \\clearpage
         """
     def __call__(self, image_path, basename, title):
+        title = title.replace("_", " ")
         self.text +=         """
 %%%%%%%%%%%%%
 % {full_path}
 \\begin{{figure}}
 \\InputImage{{0.8\\textwidth}}{{0.6\\textheight}}{{{image_name}}}
 \\cprotect\\caption{{{title}\\\\
-\\textbf{{To include:}}\\\\ \\verb|\\InputImage{{0.8\\textwidth}}{{0.6\\textheight}}{{{image_name}}}|\\\\
+\\textbf{{To include:}}\\\\ \\verb|\\includegraphics[width=0.8\\textwidth]{{img/{image_name}}}|\\\\
 Full path:\\
 (\\verb|{full_path}|)
 }}
 
 \\end{{figure}}
+\\clearpage
 """.format(image_name=basename, full_path=image_path, title=title)
 
     def get_latex(self):
@@ -274,6 +276,7 @@ Full path:\\
 
 
     def add_table(self, tablefile, title):
+        title=title.replace("_", " ")
         self.text +=         """
 %%%%%%%%%%%%%
 % {full_path}
@@ -290,6 +293,7 @@ The other tactics are: add, replace, remove.
 }}
 
 \\end{{table}}
+\\clearpage
 """.format(full_path=tablefile, title=title)
 
 def generate_plot_name(error, functional, tactic, config, include_selected,
@@ -533,39 +537,38 @@ def plot_as_training_size(functional, data, title="all configurations"):
                     errors_per_depth.append([])
                     for depth in depths:
                         errors_per_depth[-1].append(errors_local_network_size[depth][width])
-
-                plt.figure()
-                plt.loglog(widths, np.mean(errors_per_width), '-o', label='DNN selected retraining', basex=2, basey=2)
-                plt.loglog(widths, np.max(errors_per_width), 'v', markersize=12, label='Max')
-                plt.loglog(widths, np.min(errors_per_width), '^', markersize=12, label='Min')
-                plt.xlabel('Network width')
-                plt.ylabel(names[error])
-                plt.grid(True)
-                plt.title("{error} for {functional} as a function of width\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
-                    functional=functional, title=title, train_size=train_size, tactic=tactic
-                ))
-
-                plot_info.savePlot("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
-                    functional=functional, title=title, train_size=train_size, tactic=tactic
-                ))
-
                 if train_size == 128:
-                    plt.show()
-                plt.close()
+                    plt.figure()
+                    plt.loglog(widths, np.mean(errors_per_width), '-o', label='DNN selected retraining', basex=2, basey=2)
+                    plt.loglog(widths, np.max(errors_per_width), 'v', markersize=12, label='Max')
+                    plt.loglog(widths, np.min(errors_per_width), '^', markersize=12, label='Min')
+                    plt.xlabel('Network width')
+                    plt.ylabel(names[error])
+                    plt.grid(True)
+                    plt.title("{error} for {functional} as a function of width\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
+                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic
+                ))
 
-                plt.figure()
-                plt.loglog(depths, np.mean(errors_per_depth), '-o', label='DNN selected retraining', basex=2, basey=2)
-                plt.loglog(depths, np.max(errors_per_depth), 'v', markersize=12, label='Max')
-                plt.loglog(depths, np.min(errors_per_depth), '^', markersize=12, label='Min')
-                plt.xlabel('Network depth')
-                plt.ylabel(names[error])
-                plt.grid(True)
-                plt.title("{error} for {functional} as a function of depth\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
-                    functional=functional, title=title, train_size=train_size, tactic=tactic
-                ))
-                plot_info.showAndSave("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
-                    functional=functional, title=title, train_size=train_size, tactic=tactic
-                ))
+                    plot_info.savePlot("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                                                                                                        functional=functional, title=title, train_size=train_size, tactic=tactic
+                    ))
+
+                    plt.show()
+                    plt.close()
+
+                    plt.figure()
+                    plt.loglog(depths, np.mean(errors_per_depth), '-o', label='DNN selected retraining', basex=2, basey=2)
+                    plt.loglog(depths, np.max(errors_per_depth), 'v', markersize=12, label='Max')
+                    plt.loglog(depths, np.min(errors_per_depth), '^', markersize=12, label='Min')
+                    plt.xlabel('Network depth')
+                    plt.ylabel(names[error])
+                    plt.grid(True)
+                    plt.title("{error} for {functional} as a function of depth\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
+                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic
+                    ))
+                    plot_info.showAndSave("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                                                                                                           functional=functional, title=title, train_size=train_size, tactic=tactic
+                    ))
 
                 plt.figure(10*(len(tactics)+1))
                 plt.hist(errors_local, bins=20)
@@ -1120,8 +1123,8 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
                     tactic=tactic
                 ))
 
-                plot_info.savePlot('comparison_histogram_{error}_{functional}_{title1}_{title2}_{train_size}_{tactic}'.format(
-                    functional=functional, title1 = title1, title2 = title2, train_size = train_size, tactic = tactic, error = error
+                plot_info.savePlot('comparison_histogram_{error}_{functional}_{title1}_{title2}_{train_size}_{tactic}_{main_title}'.format(
+                    functional=functional, title1 = title1, title2 = title2, train_size = train_size, tactic = tactic, error = error, main_title=main_title
                 ))
 
                 if train_size == 128:
