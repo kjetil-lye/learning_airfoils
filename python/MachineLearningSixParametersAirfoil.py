@@ -63,14 +63,14 @@ if __name__ == '__main__':
     airfoils_network = get_airfoils_network()
 
 
-    parameters, data_per_func = get_airfoil_data()
+    parameters, data_per_func,_,_ = get_airfoil_data()
 
 
     for force_name in data_per_func.keys():
         try_best_network_sizes(parameters=parameters,
                                samples=data_per_func[force_name],
-                               base_title='Airfoils %s' % force_name,
-                              epochs=epochs)
+                               base_title='Airfoils %s' % force_name)
+
 
 
 
@@ -79,5 +79,4 @@ if __name__ == '__main__':
                              samples=data_per_func[force_name],
                              base_title='Airfoils %s' % force_name,
                              network = airfoils_network,
-                             epochs=epochs,
                              large_integration_points = large_qmc_points)

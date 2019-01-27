@@ -46,7 +46,7 @@ def get_network():
 
 if __name__ == '__main__':
 
-    network = get_sod_network()
+    network = get_network()
 
     parameters, data_by_func,_,_ = get_sod_data_qmc()
 
