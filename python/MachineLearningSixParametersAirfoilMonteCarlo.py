@@ -11,7 +11,7 @@ import sys
 sys.path.append('../python')
 
 import matplotlib
-get_ipython().run_line_magic('matplotlib', 'inline')
+
 import matplotlib.pyplot as plt
 
 from machine_learning import *
