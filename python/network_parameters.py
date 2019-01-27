@@ -60,7 +60,8 @@ def get_regularizations(train_size):
 get_regularizations.key = 'MACHINE_LEARNING_REGULARIZATION'
 
 def get_learning_rates():
-    learning_rates = [0.1, 0.01, 0.001]
+    #learning_rates = [0.1, 0.01, 0.001]
+    learning_rates = [0.01]
     if get_learning_rates.key in os.environ:
         learning_rates = [learning_rates[int(os.environ[get_learning_rates.key])]]
 
@@ -68,8 +69,8 @@ def get_learning_rates():
 get_learning_rates.key = 'MACHINE_LEARNING_LEARNING_RATE'
 
 def get_epochs():
-    epochs = [5000, 50000, 500000, 5000000]
-
+    #epochs = [5000, 50000, 500000, 5000000]
+    epochs = [500000]
     if get_epochs.key in os.environ:
         epochs = [epochs[int(os.environ[get_epochs.key])]]
     return epochs

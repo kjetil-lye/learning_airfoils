@@ -59,7 +59,9 @@ class NetworkInformation(object):
                  large_integration_points=None,
                  activity_regularizer=None,
                  kernel_regularizer = None,
-                 learning_rate=0.01):
+                 learning_rate=0.01,
+                 monte_carlo_parameters = None,
+                 monte_carlo_values = None):
         self.network = network
         self.optimizer = optimizer
         self.epochs = epochs
@@ -74,6 +76,8 @@ class NetworkInformation(object):
         self.activity_regularizer = activity_regularizer
         self.kernel_regularizer = kernel_regularizer
         self.learning_rate = learning_rate
+        self.monte_carlo_parameters = monte_carlo_parameters
+        self.monte_carlo_values = monte_carlo_values
 
 
 
@@ -918,6 +922,40 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
 
         all_results_with_information['prediction_error']['LSQ'][norm_name] = compute_prediction_error(data, np.reshape(lsq_predictor.predict(parameters), data.shape),train_size, norm)
+
+
+
+
+    all_results_with_information['mc_speedup'] = {}
+    if network_information.monte_carlo_parameters is not None:
+        mc_parameters = network_information.monte_carlo_parameters
+        mc_values = network_information.monte_carlo_values
+
+        for modifier in modifiers.keys():
+            all_results_with_information['mc_speedup'][modifier] = {}
+
+            modified_data = modifiers[modifier](predicted_data, mc_values, train_size)
+            for error_functional in errors_functionals.keys():
+                error = errors_functionals[error_functional](modified_data, mc_values)
+                base_error = errors_functionals[error_functional](mc_values[:train_size], mc_values)
+
+                try:
+                    all_results_with_information['mc_speedup'][modifier][error_functional] = base_error / error
+                except:
+                    all_results_with_information['mc_speedup'][modifier][error_functional] = 0.1
+
+        table_speedup = TableBuilder()
+        table_speedup.set_header(["Error", *modifiers.keys()])
+
+        for error_functional in errors_functionals.keys():
+            row = [error_functional]
+
+            for modifier in modifiers.keys():
+                row.append("{:.3f}".format(all_results_with_information['mc_speedup'][modifier][error_functional]))
+            table_speedup.add_row(row)
+
+        table_speedup.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}".format(epochs=network_information.epochs, learning_rate=network_information.learning_rate))
+        table_speedup.print_table("mc_speedups")
 
 
     if len(postfix) > 0 and postfix[0] != "_":
