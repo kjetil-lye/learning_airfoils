@@ -1096,6 +1096,8 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
         sources = {title1: data1, title2: data2}
         for t, tactic in enumerate(tactics):
             for (n, train_size) in enumerate(train_sizes):
+                if train_size != 128:
+                    continue
                 errors_local = {}
                 for source in sources.keys():
                     errors_local[source] = []
@@ -1107,9 +1109,15 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
                             errors_local[source_name].append(configuration['results']['best_network']['algorithms'][data_source]['ml'][tactic][error])
 
                 source_names = [k for k in sources.keys()]
+
+                min_value = np.amin([np.amin(errors_local[source]) for source in source_names])
+                max_value = np.amax([np.amax(errors_local[source]) for source in source_names])
+
+                for source in sources.keys():
+                    plt.hist(errors_local[source], bins=20, label=source, alpha=0.5)
                 # see https://stackoverflow.com/questions/6871201/plot-two-histograms-at-the-same-time-with-matplotlib
-                plt.hist([errors_local[source] for source in source_names],
-                        bins=20, label = source_names, alpha=0.5, stacked=True)
+                #plt.hist([errors_local[source] for source in source_names],
+                #        bins=20, label = source_names, alpha=0.5, stacked=True)
                 plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
 
