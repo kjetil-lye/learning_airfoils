@@ -97,25 +97,25 @@ def train_single_network(*, parameters, samples, base_title, network,
                                         get_network_and_postprocess(parameters, samples, network_information = network_information,
                                         output_information = output_information)
 
-                                    prediction_error = output_information.prediction_error[2]
+                                        prediction_error = output_information.prediction_error[2]
 
-                                    mean_error= copy.deepcopy(output_information.stat_error['mean'])
-                                    variance_error = copy.deepcopy(output_information.stat_error['var'])
-                                    wasserstein_error = copy.deepcopy(output_information.stat_error['wasserstein'])
-                                    selection_error = copy.deepcopy(output_information.selection_error)
+                                        mean_error= copy.deepcopy(output_information.stat_error['mean'])
+                                        variance_error = copy.deepcopy(output_information.stat_error['var'])
+                                        wasserstein_error = copy.deepcopy(output_information.stat_error['wasserstein'])
+                                        selection_error = copy.deepcopy(output_information.selection_error)
 
-                                    error_map = {"main_error" : mean_error,
-                                                "variance_error" : variance_error,
-                                                "wasserstein_error" : wasserstein_error,
-                                                "selection_error" : selection_error,
-                                                "prediction_error" : prediction_error}
+                                        error_map = {"main_error" : mean_error,
+                                                    "variance_error" : variance_error,
+                                                    "wasserstein_error" : wasserstein_error,
+                                                    "selection_error" : selection_error,
+                                                    "prediction_error" : prediction_error}
 
-                                    with open('results/' + showAndSave.prefix + '_errors.json', 'w') as out:
-                                        json.dump(error_map, out)
+                                        with open('results/' + showAndSave.prefix + '_errors.json', 'w') as out:
+                                            json.dump(error_map, out)
 
-                                    print(json.dumps(error_map))
-                                    console_log(json.dumps(error_map))
-                                    tables.write_tables()
+                                        print(json.dumps(error_map))
+                                        console_log(json.dumps(error_map))
+                                        tables.write_tables()
 
 
 def compute_for_all_in_json(json_file, *, parameters, samples, base_title, network,

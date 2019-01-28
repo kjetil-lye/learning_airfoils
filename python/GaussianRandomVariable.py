@@ -55,7 +55,7 @@ def get_sine_data():
 
         data_per_func["{}".format(functional_name)] = functionals[functional_name](parameters, dim)
 
-    return parameters, data_per_func
+    return parameters, data_per_func, None, None
 
 
 def get_sine_network():
