@@ -91,7 +91,7 @@ def train_single_network(*, parameters, samples, base_title, network,
                                         only_alphanum(selection), loss, only_alphanum(optimizer), train_size,
                                         str(epoch),
                                         only_alphanum("{}".format(learning_rate)))
-                                    print("Training: {}".format(title)))
+                                    print("Training: {}".format(title))
 
                                     with RedirectStdStreamsToNull() as _:
                                         get_network_and_postprocess(parameters, samples, network_information = network_information,
