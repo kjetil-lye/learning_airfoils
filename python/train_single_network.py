@@ -63,6 +63,7 @@ def train_single_network(*, parameters, samples, base_title, network,
                             for learning_rate in learning_rates:
                                 epochs = network_parameters.get_epochs()
                                 for epoch in epochs:
+
                                     tables = Tables.make_default()
                                     display(HTML("<h4>%s</h4>" % regularization_name))
                                     seed_random_number(random_seed)
@@ -90,8 +91,10 @@ def train_single_network(*, parameters, samples, base_title, network,
                                         only_alphanum(selection), loss, only_alphanum(optimizer), train_size,
                                         str(epoch),
                                         only_alphanum("{}".format(learning_rate)))
+                                    print("Training: {}".format(title)))
 
-                                    get_network_and_postprocess(parameters, samples, network_information = network_information,
+                                    with RedirectStdStreamsToNull() as _:
+                                        get_network_and_postprocess(parameters, samples, network_information = network_information,
                                         output_information = output_information)
 
                                     prediction_error = output_information.prediction_error[2]
