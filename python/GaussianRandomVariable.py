@@ -53,7 +53,7 @@ def get_sine_data():
 
     for functional_name in functionals.keys():
 
-        data_per_func["{}".format(functional_name)] = functionals[functional_name](parameters)
+        data_per_func["{}".format(functional_name)] = functionals[functional_name](parameters, dim)
 
     return parameters, data_per_func
 
@@ -67,13 +67,13 @@ def get_sine_network():
 
     return gaussian_network
 
-def sine_functional(x):
+def sine_functional(x, dim):
     return np.sum(np.sin(4*np.pi*x), 1)
 
-def sine_functional_1(x):
+def sine_functional_1(x, dim):
     return np.sum(np.sin(4*np.pi*x)/np.arange(1, dim+1), 1)
 
-def sine_functional_3(x):
+def sine_functional_3(x, dim):
     return np.sum(np.sin(4*np.pi*x)/np.arange(1,dim+1)**3, 1)
 
 

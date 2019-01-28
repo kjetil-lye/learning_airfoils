@@ -1114,7 +1114,7 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
                 max_value = np.amax([np.amax(errors_local[source]) for source in source_names])
 
                 for source in sources.keys():
-                    plt.hist(errors_local[source], bins=20, label=source, alpha=0.5)
+                    plt.hist(errors_local[source], bins=20, label=source, alpha=0.5, range=[min_value, max_value])
                 # see https://stackoverflow.com/questions/6871201/plot-two-histograms-at-the-same-time-with-matplotlib
                 #plt.hist([errors_local[source] for source in source_names],
                 #        bins=20, label = source_names, alpha=0.5, stacked=True)
