@@ -18,9 +18,7 @@ import GaussianRandomVariable
 from train_single_network import compute_for_all_in_json
 from post_process_hyperparameters import LatexWithAllPlots
 
-
-# In[2]:
-
+import argparse
 
 data_sources = {
     'Airfoils' : [
@@ -42,7 +40,17 @@ data_sources = {
 json_file = '../data/best_networks.json'
 
 
-# In[ ]:
+parser = argparse.ArgumentParser(description='Compute all test cases with the best networks')
+parser.add_argument('--data_source', type=str, default=None,
+                    help='The datasource to choose from, possibilities: {}'.format("".join(["\t- {}\n".format(k) for k in data_sources.keys()])))
+
+
+parser.add_argument('--functional_name',
+                    default=None,
+                    help='The functional to use')
+
+args = parser.parse_args()
+
 
 
 latex_out = 'computing_best_networks.tex'
@@ -51,11 +59,19 @@ plot_info.savePlot.callback = latex
 print_table.print_comparison_table.callback = lambda x, title: latex.add_table(x, title)
 
 
-for data_source_name in data_sources.keys():
+if args.data_source is None:
+    data_source_names = data_sources.keys()
+else:
+    data_source_names = [args.data_source]
+
+for data_source_name in data_source_names:
     parameters, data_per_func, monte_carlo_parameters, monte_carlo_values = data_sources[data_source_name][0]()
     network = data_sources[data_source_name][1]()
-
-    for func_name in data_per_func.keys():
+    if args.functional_name is None:
+        functional_names = data_per_func.keys()
+    else:
+        functional_names = [args.functional_name]
+    for func_name in functional_names:
         compute_for_all_in_json(json_file, parameters=parameters,
                                samples=data_per_func[func_name],
                                 network=network,
