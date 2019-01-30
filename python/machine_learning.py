@@ -940,22 +940,24 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
             }
 
         for parameter_source_name in parameter_sources.keys():
-
+            all_results_with_information['mc_speedups'][parameter_source_name] = {}
+            all_results_with_information['mc_errors'][parameter_source_name] = {}
             predicted_data = predictors['ml'](parameter_sources[parameter_source_name])
-
+            all_results_with_information['mc_errors'][parameter_source_name]['mc_base_error'] = {}
             for modifier in modifiers.keys():
-                all_results_with_information['mc_speedup'][modifier] = {}
-                all_results_with_information['mc_errors'][modifier] = {}
+                all_results_with_information['mc_speedup'][parameter_source_name][modifier] = {}
+                all_results_with_information['mc_errors'][parameter_source_name][modifier] = {}
+
                 modified_data = modifiers[modifier](predicted_data, mc_values, train_size)
                 for error_functional in errors_functionals.keys():
                     error = errors_functionals[error_functional](modified_data, mc_values)
                     base_error = errors_functionals[error_functional](mc_values[:train_size], mc_values)
-                    all_results_with_information['mc_errors'][modifier][error_functional] = error
+                    all_results_with_information['mc_errors'][parameter_source_name][modifier][error_functional] = error
                     try:
-                        all_results_with_information['mc_speedup'][modifier][error_functional] = base_error / error
+                        all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional] = base_error / error
                     except:
-                        all_results_with_information['mc_speedup'][modifier][error_functional] = 0.1
-            all_results_with_information['mc_errors']['mc_base_error'][error_functional] = base_error
+                        all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional] = 0.1
+            all_results_with_information['mc_errors'][parameter_source_name]['mc_base_error'][error_functional] = base_error
             table_speedup = TableBuilder()
             table_speedup.set_header(["Error name", *modifiers.keys()])
 
@@ -963,7 +965,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 row = [error_functional]
 
                 for modifier in modifiers.keys():
-                    row.append("{:.3f}".format(all_results_with_information['mc_speedup'][modifier][error_functional]))
+                    row.append("{:.3f}".format(all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional]))
                 table_speedup.add_row(row)
 
             table_speedup.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}, using {parameter_source_name} as parameters".format(epochs=network_information.epochs,
@@ -979,7 +981,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 row = [error_functional]
 
                 for modifier in modifiers.keys():
-                    row.append("{:.3f}".format(all_results_with_information['mc_error'][modifier][error_functional]))
+                    row.append("{:.3f}".format(all_results_with_information['mc_error'][parameter_source_name][modifier][error_functional]))
                 table_error.add_row(row)
 
             table_error.set_title("Errors of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}, using {parameter_source_name} as parameters".format(epochs=network_information.epochs,
