@@ -940,7 +940,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
             }
 
         for parameter_source_name in parameter_sources.keys():
-            all_results_with_information['mc_speedups'][parameter_source_name] = {}
+            all_results_with_information['mc_speedup'][parameter_source_name] = {}
             all_results_with_information['mc_errors'][parameter_source_name] = {}
             predicted_data = predictors['ml'](parameter_sources[parameter_source_name])
             all_results_with_information['mc_errors'][parameter_source_name]['mc_base_error'] = {}
