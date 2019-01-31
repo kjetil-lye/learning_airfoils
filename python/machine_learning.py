@@ -973,7 +973,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
             error = all_results_with_information['prediction_error'][method][norm_name]
             variance = all_results_with_information['prediction_error'][method][norm_name + '_variance']
 
-            row.append(error, variance, np.sqrt(variance))
+            row.extend([error, variance, np.sqrt(variance)])
 
         prediction_table.add_row(row)
 
