@@ -78,5 +78,4 @@ if __name__ == '__main__':
         train_single_network(parameters=parameters,
                              samples=data_per_func[force_name],
                              base_title='Airfoils %s' % force_name,
-                             network = airfoils_network,
-                             large_integration_points = large_qmc_points)
+                             network = airfoils_network)

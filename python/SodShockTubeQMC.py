@@ -60,8 +60,7 @@ if __name__ == '__main__':
         train_single_network(parameters=parameters,
                              samples=data_by_func[func_name],
                              base_title='Sod Shock QMC %s' % func_name,
-                             network = network,
-                             large_integration_points = None)
+                             network = network)
 
 
     # In[ ]:
