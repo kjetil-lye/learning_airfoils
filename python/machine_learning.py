@@ -59,7 +59,7 @@ class NetworkInformation(object):
                  large_integration_points=None,
                  activity_regularizer=None,
                  kernel_regularizer = None,
-                 learning_rate=0.                                                                                             01,
+                 learning_rate=0.01,
                  monte_carlo_parameters = None,
                  monte_carlo_values = None):
         self.network = network
