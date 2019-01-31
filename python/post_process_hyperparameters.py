@@ -207,7 +207,7 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
         latex.text+= "\\{latex_code}{{{title}}}\n\n".format(latex_code=latex_code, title=content)
 
     comparisons = [
-        ["Good Adam", only_adam_and_no_regularization_for_mse_and_reg_for_l1, "Bad Adam", and_config(get_only_adam, complement(only_adam_and_low_regularization_for_mse_and_reg_for_l1))],
+        ["Good Adam", only_adam_and_low_regularization_for_mse_and_reg_for_l1, "Bad Adam", and_config(get_only_adam, complement(only_adam_and_low_regularization_for_mse_and_reg_for_l1))],
         ["SGD", get_only_sgd, "Adam", get_only_adam],
         ["Good Adam MSE", and_config(get_only_mse, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam MAE", and_config(get_only_mae, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
         ["Good Adam L1 reg", and_config(only_l1_reg, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam L2 reg", and_config(only_l2_reg, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
@@ -1114,7 +1114,7 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
                 max_value = np.amax([np.amax(errors_local[source]) for source in source_names])
 
                 for source in sources.keys():
-                    plt.hist(errors_local[source], bins=20, label=source, alpha=0.5)
+                    plt.hist(errors_local[source], bins=20, label=source, alpha=0.5, range=[min_value, max_value])
                 # see https://stackoverflow.com/questions/6871201/plot-two-histograms-at-the-same-time-with-matplotlib
                 #plt.hist([errors_local[source] for source in source_names],
                 #        bins=20, label = source_names, alpha=0.5, stacked=True)

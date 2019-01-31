@@ -40,6 +40,7 @@ def get_sine_data():
     parameters =  generate_sobol_points(M, dim)
 
 
+    parameters_mc = np.random.uniform(0, 1, (M, dim))
     functionals = {
                "Sine" : sine_functional,
                "Sine/d" : sine_functional_1,
@@ -50,12 +51,15 @@ def get_sine_data():
 
     data_per_func = {}
 
+    data_per_func_mc = {}
 
     for functional_name in functionals.keys():
 
-        data_per_func["{}".format(functional_name)] = functionals[functional_name](parameters)
+        data_per_func["{}".format(functional_name)] = functionals[functional_name](parameters, dim)
 
-    return parameters, data_per_func
+        data_per_func_mc["{}".format(functional_name)] = functionals[functional_name](parameters_mc, dim)
+
+    return parameters, data_per_func, parameters_mc, data_per_func_mc
 
 
 def get_sine_network():
@@ -67,13 +71,13 @@ def get_sine_network():
 
     return gaussian_network
 
-def sine_functional(x):
+def sine_functional(x, dim):
     return np.sum(np.sin(4*np.pi*x), 1)
 
-def sine_functional_1(x):
+def sine_functional_1(x, dim):
     return np.sum(np.sin(4*np.pi*x)/np.arange(1, dim+1), 1)
 
-def sine_functional_3(x):
+def sine_functional_3(x, dim):
     return np.sum(np.sin(4*np.pi*x)/np.arange(1,dim+1)**3, 1)
 
 

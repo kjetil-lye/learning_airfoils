@@ -927,35 +927,67 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
 
     all_results_with_information['mc_speedup'] = {}
+    all_results_with_information['mc_errors'] = {}
+
+
     if network_information.monte_carlo_parameters is not None:
         mc_parameters = network_information.monte_carlo_parameters
         mc_values = network_information.monte_carlo_values
 
-        for modifier in modifiers.keys():
-            all_results_with_information['mc_speedup'][modifier] = {}
+        parameter_sources = {
+            '{}_from_data'.format(output_information.sampling_method): parameters,
+            'MC' : mc_parameters
+            }
 
-            modified_data = modifiers[modifier](predicted_data, mc_values, train_size)
-            for error_functional in errors_functionals.keys():
-                error = errors_functionals[error_functional](modified_data, mc_values)
-                base_error = errors_functionals[error_functional](mc_values[:train_size], mc_values)
-
-                try:
-                    all_results_with_information['mc_speedup'][modifier][error_functional] = base_error / error
-                except:
-                    all_results_with_information['mc_speedup'][modifier][error_functional] = 0.1
-
-        table_speedup = TableBuilder()
-        table_speedup.set_header(["Error", *modifiers.keys()])
-
-        for error_functional in errors_functionals.keys():
-            row = [error_functional]
-
+        for parameter_source_name in parameter_sources.keys():
+            all_results_with_information['mc_speedup'][parameter_source_name] = {}
+            all_results_with_information['mc_errors'][parameter_source_name] = {}
+            predicted_data = predictors['ml'](parameter_sources[parameter_source_name])
+            all_results_with_information['mc_errors'][parameter_source_name]['mc_base_error'] = {}
             for modifier in modifiers.keys():
-                row.append("{:.3f}".format(all_results_with_information['mc_speedup'][modifier][error_functional]))
-            table_speedup.add_row(row)
+                all_results_with_information['mc_speedup'][parameter_source_name][modifier] = {}
+                all_results_with_information['mc_errors'][parameter_source_name][modifier] = {}
 
-        table_speedup.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}".format(epochs=network_information.epochs, learning_rate=network_information.learning_rate))
-        table_speedup.print_table("mc_speedups")
+                modified_data = modifiers[modifier](predicted_data, mc_values, train_size)
+                for error_functional in errors_functionals.keys():
+                    error = errors_functionals[error_functional](modified_data, mc_values)
+                    base_error = errors_functionals[error_functional](mc_values[:train_size], mc_values)
+                    all_results_with_information['mc_errors'][parameter_source_name][modifier][error_functional] = error
+                    try:
+                        all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional] = base_error / error
+                    except:
+                        all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional] = 0.1
+            all_results_with_information['mc_errors'][parameter_source_name]['mc_base_error'][error_functional] = base_error
+            table_speedup = TableBuilder()
+            table_speedup.set_header(["Error name", *modifiers.keys()])
+
+            for error_functional in errors_functionals.keys():
+                row = [error_functional]
+
+                for modifier in modifiers.keys():
+                    row.append("{:.3f}".format(all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional]))
+                table_speedup.add_row(row)
+
+            table_speedup.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}, using {parameter_source_name} as parameters".format(epochs=network_information.epochs,
+                learning_rate=network_information.learning_rate,
+                parameter_source_name=parameter_source_name))
+            table_speedup.print_table("mc_speedups_{}".format(parameter_source_name.lower()))
+
+
+            table_error = TableBuilder()
+            table_error.set_header(["Error name", *modifiers.keys()])
+
+            for error_functional in errors_functionals.keys():
+                row = [error_functional]
+
+                for modifier in modifiers.keys():
+                    row.append("{:.3f}".format(all_results_with_information['mc_errors'][parameter_source_name][modifier][error_functional]))
+                table_error.add_row(row)
+
+            table_error.set_title("Errors of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}, using {parameter_source_name} as parameters".format(epochs=network_information.epochs,
+                learning_rate=network_information.learning_rate,
+                parameter_source_name=parameter_source_name))
+            table_error.print_table("mc_errors_{}".format(parameter_source_name.lower()))
 
 
     if len(postfix) > 0 and postfix[0] != "_":
