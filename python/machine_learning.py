@@ -120,6 +120,16 @@ class OutputInformation(object):
         self.tables.write_tables()
 
 
+def compute_mean_prediction_error(data, data_predicted, train_size, norm_ord):
+    base = np.mean(data**norm_ord)
+
+    if base < 0.001:
+        base = 1
+
+    samples = abs(data[train_size:]-data_predicted[train_size:])**norm_ord
+
+    return (np.mean(samples) / base)**(1.0/norm_ord)
+
 def compute_prediction_error(data, data_predicted, train_size, norm_ord):
     base = np.linalg.norm(data, ord=norm_ord)/data.shape[0]
 
@@ -892,8 +902,10 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
         'wasserstein_error_cut' : wasserstein_error_cut,
         'wasserstein_error_extend' : wasserstein_error_extend,
         'prediction_l1_relative' : lambda x, all_data: float(compute_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 1)),
+        'prediction_mean_l1_relative' : lambda x, all_data: float(compute_mean_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 1)),
         'prediction_l1_relative_variance' : lambda x, all_data: float(compute_prediction_error_variance(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 1)),
         'prediction_l2_relative' : lambda x, all_data: float(compute_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 2)),
+        'prediction_mean_l2_relative' : lambda x, all_data: float(compute_mean_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 2)),
         'prediction_l2_relative_variance' : lambda x, all_data: float(compute_prediction_error_variance(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 2)),
     }
 
@@ -937,11 +949,14 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
     for norm, norm_name in zip(norms, norm_names):
         all_results_with_information['prediction_error']['ML'][norm_name] = compute_prediction_error(data, np.reshape(network.predict(parameters), data.shape), train_size, norm)
+        all_results_with_information['prediction_error']['ML'][norm_name+"_mean"] = compute_mean_prediction_error(data, np.reshape(network.predict(parameters), data.shape), train_size, norm)
 
         all_results_with_information['prediction_error']['ML'][norm_name + "_variance"] = compute_prediction_error_variance(data, np.reshape(network.predict(parameters), data.shape), train_size, norm)
 
         all_results_with_information['prediction_error']['LSQ'][norm_name] = compute_prediction_error(data, np.reshape(lsq_predictor.predict(parameters), data.shape),train_size, norm)
+        all_results_with_information['prediction_error']['LSQ'][norm_name + "_mean"] = compute_mean_prediction_error(data, np.reshape(lsq_predictor.predict(parameters), data.shape),train_size, norm)
         all_results_with_information['prediction_error']['LSQ'][norm_name + "_variance"] = compute_prediction_error_variance(data, np.reshape(lsq_predictor.predict(parameters), data.shape),train_size, norm)
+
 
 
     prediction_table = TableBuilder()
