@@ -132,15 +132,15 @@ def compute_prediction_error(data, data_predicted, train_size, norm_ord):
 
 
 def compute_prediction_error_variance(data, data_predicted, train_size, norm_ord):
-    base = np.linalg.norm(data, ord=norm_ord)/data.shape[0]
+    #base = np.linalg.norm(data, ord=norm_ord)/data.shape[0]
 
     if base < 0.001:
         base = 1
 
-    samples = [abs(data[train_size:]-data_predicted[train_size:])**norm_ord/base**norm_ord]
+    samples = abs(data[train_size:]-data_predicted[train_size:])**norm_ord
 
 
-    return np.var(samples)
+    return np.var(samples)/np.mean(data**norm_ord)
 
 
 def get_network(parameters, data, *, network_information, output_information):
