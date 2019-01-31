@@ -4,8 +4,6 @@ export MACHINE_LEARNING_TRAINING_SIZE=2
 export OMP_NUM_THREADS=1
 set -e
 
-module load python/3.6.1
-
 for func in 'Lift' 'Drag';
 do
 
