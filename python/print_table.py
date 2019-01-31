@@ -3,6 +3,7 @@ import csv
 from plot_info import get_git_metadata, showAndSave
 import numpy as np
 import copy
+import os
 
 class TableBuilder(object):
     def __init__(self):
