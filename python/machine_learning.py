@@ -122,7 +122,7 @@ class OutputInformation(object):
 
 
 def compute_mean_prediction_error(data, data_predicted, train_size, norm_ord):
-    base = np.mean(data**norm_ord)
+    base = np.mean(abs(data)**norm_ord)
 
     if base < 0.001:
         base = 1
@@ -143,7 +143,7 @@ def compute_prediction_error(data, data_predicted, train_size, norm_ord):
 
 
 def compute_prediction_error_variance(data, data_predicted, train_size, norm_ord):
-    #base = np.linalg.norm(data, ord=norm_ord)/data.shape[0]
+    base = np.mean(abs(data)**norm_ord)
 
     if base < 0.001:
         base = 1
