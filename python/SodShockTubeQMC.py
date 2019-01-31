@@ -56,7 +56,7 @@ if __name__ == '__main__':
                                base_title='Sod Shock QMC %s' % func_name)
 
 
-    for n, func_name in enumerate(func_names):
+    for func_name in data_by_func.keys():
         train_single_network(parameters=parameters,
                              samples=data_by_func[func_name],
                              base_title='Sod Shock QMC %s' % func_name,
