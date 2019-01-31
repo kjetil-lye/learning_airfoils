@@ -27,6 +27,9 @@ class TableBuilder(object):
 
 
     def print_table(self, outname):
+
+        if TableBuilder.disable_print:
+            return
         data = []
         if self.upper_header is not None:
             data.append(copy.deepcopy(self.upper_header))
@@ -42,6 +45,9 @@ class TableBuilder(object):
 
     def set_title(self, title):
         self.title = copy.deepcopy(title)
+
+TableBuilder.disable_print =  'MACHINE_LEARNING_DO_NOT_PRINT_TABLES' in os.environ and os.environ['MACHINE_LEARNING_DO_NOT_PRINT_TABLES'].lower() == 'on'
+
 def format_latex(d):
 
     if type(d) == str:

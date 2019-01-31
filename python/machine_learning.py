@@ -1,9 +1,10 @@
 # coding: utf-8
 
-
+import os
+DISABLE_NP_DATA_OUTPUT = 'MACHINE_LEARNING_DO_NOT_SAVE_NP_DATA' in os.environ and os.environ['MACHINE_LEARNING_DO_NOT_SAVE_NP_DATA'].lower() == 'on'
 import numpy.random
 import tensorflow
-import os
+
 import random
 def seed_random_number(seed):
     # see https://stackoverflow.com/a/52897216
@@ -289,8 +290,10 @@ def get_network(parameters, data, *, network_information, output_information):
             plt.ylabel('Loss')
             plt.title("Training and validation loss\n%s\n(epochs=%d)" % (title, epochs))
             showAndSave('dummy')
-        np.save("results/" + showAndSave.prefix + "training_losses_%d.npy" % trylearn, hist.history['loss'])
-        np.save("results/" + showAndSave.prefix + "validation_losses_%d.npy" % trylearn, hist.history['val_loss'])
+
+        if not DISABLE_NP_DATA_OUTPUT:
+            np.save("results/" + showAndSave.prefix + "training_losses_%d.npy" % trylearn, hist.history['loss'])
+            np.save("results/" + showAndSave.prefix + "validation_losses_%d.npy" % trylearn, hist.history['val_loss'])
         gc.collect()
 
 
@@ -312,7 +315,9 @@ def get_network(parameters, data, *, network_information, output_information):
     with open("results/" + showAndSave.prefix + "model.json", "w") as json_file:
         json_file.write(model_json)
     model.save_weights("results/" + showAndSave.prefix + "model.h5")
-    np.save("results/" + showAndSave.prefix + "intial.npy", weights)
+
+    if not DISABLE_NP_DATA_OUTPUT:
+        np.save("results/" + showAndSave.prefix + "intial.npy", weights)
 
     #plt.loglog(hist.history['loss'])
     #plt.title("Training loss\n%s\n(epochs=%d)" % (title, epochs))

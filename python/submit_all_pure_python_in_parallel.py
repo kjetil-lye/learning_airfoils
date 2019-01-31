@@ -38,6 +38,9 @@ def writeConfig(*,
 
 def submit(command, exports):
     exports = copy.deepcopy(exports)
+    exports['MACHINE_LEARNING_DO_NOT_SAVE_PLOTS'] = 'on'
+    exports['MACHINE_LEARNING_DO_NOT_PRINT_TABLES'] = 'on'
+    exports['MACHINE_LEARNING_DO_NOT_SAVE_NP_DATA'] = 'on'
     export_str = " ".join("{}={}".format(k, exports[k]) for k in exports.keys())
     command_to_run = "{} bsub -n 1 -W 120:00 {}".format(export_str, command)
     with open('exports.sh', 'w') as exp_file:

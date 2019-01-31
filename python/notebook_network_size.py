@@ -1,7 +1,7 @@
 import numpy as np
 
 import tensorflow as tf
-from machine_learning import NetworkInformation, OutputInformation, get_network_and_postprocess, random_seed, seed_random_number, print_memory_usage, Tables
+from machine_learning import NetworkInformation, OutputInformation, get_network_and_postprocess, random_seed, seed_random_number, print_memory_usage, Tables, DISABLE_NP_DATA_OUTPUT
 from plot_info import *
 from print_table import *
 import time
@@ -221,7 +221,8 @@ def find_best_network_size_notebook(*, network_information,
         plt.title("Experiment: {base_title}\n{error_name} with {train_size} samples\n".format(base_title=base_title,
             error_name=error_name, train_size=train_size))
 
-        np.save('results/' + showAndSave.prefix + '_{}.npy'.format(error_name.replace(" ", "")), all_errors_map[error_name])
+        if not DISABLE_NP_DATA_OUTPUT:
+            np.save('results/' + showAndSave.prefix + '_{}.npy'.format(error_name.replace(" ", "")), all_errors_map[error_name])
         print('all_errors_map[{error_name}]=\\ \n{errors}'.format(error_name=error_name, errors=str(all_errors_map[error_name])))
         showAndSave(error_name.replace(" ", ""))
 
@@ -246,9 +247,10 @@ def find_best_network_size_notebook(*, network_information,
     plt.ylabel("Width")
     plt.colorbar()
     showAndSave("depth_height_run_time")
-    np.save('results/' + showAndSave.prefix + '_depth_height_run_time.npy', training_times)
-    np.save('results/' + showAndSave.prefix + '_depth.npy', d)
-    np.save('results/' + showAndSave.prefix + '_width.npy', w)
+    if not DISABLE_NP_DATA_OUTPUT:
+        np.save('results/' + showAndSave.prefix + '_depth_height_run_time.npy', training_times)
+        np.save('results/' + showAndSave.prefix + '_depth.npy', d)
+        np.save('results/' + showAndSave.prefix + '_width.npy', w)
 
     plt.loglog(widths, training_times[-1,:], '-o')
     plt.xlabel("width")
