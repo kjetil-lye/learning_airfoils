@@ -56,22 +56,22 @@ def get_loaded_python_modules():
 
     for module_name in module_names:
         version = "Unknown"
-        name = module_name
+        name = str(module_name)
         file = "Unknown"
         module = sys.modules[module_name]
         try:
-            version = module.__version__
+            version = str(module.__version__)
 
         except:
             pass
 
         try:
-            name = module.__name__
+            name = str(module.__name__)
         except:
             pass
 
         try:
-            file = module.__file__
+            file = str(module.__file__)
         except:
             pass
 
