@@ -13,7 +13,7 @@ def get_optimizers():
 get_optimizers.key = 'MACHINE_LEARNING_OPTIMIZER'
 def get_losses():
 
-    losses = ["mean_squared_error", 'mean_absolute_error']
+    losses = ["mean_squared_error", 'mean_absolute_error', 'mean_m2']
     if get_losses.key in os.environ:
         losses = [losses[int(os.environ[get_losses.key])]]
     return losses
