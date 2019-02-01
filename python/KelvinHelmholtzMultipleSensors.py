@@ -55,6 +55,8 @@ def get_kh_data():
 
         data_per_func[func_name] = samples
 
+    parameters = parameters[:samples.shape[0],:]
+
     return parameters, data_per_func, parameters, data_per_func
 
 def get_kh_network():
