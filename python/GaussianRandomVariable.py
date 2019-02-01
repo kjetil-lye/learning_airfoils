@@ -90,7 +90,7 @@ def sine_functional_3(x, dim):
 
 
 if __name__ == '__main__':
-    parameters, data_per_func = get_sine_data()
+    parameters, data_per_func,_,_ = get_sine_data()
     for functional_name in data_per_func.keys():
         title = '%s %s' % (data_source_name, functional_name)
         display(HTML("<h1>%s</h1>" % title))
