@@ -88,6 +88,9 @@ def get_loaded_python_modules_formatted():
 
     return s
 
+def get_python_description():
+    return "{} (Version: {})".format(sys.executable, sys.version)
+
 # From https://stackoverflow.com/a/6796752
 class RedirectStdStreams(object):
     def __init__(self, stdout=None, stderr=None):
@@ -169,7 +172,8 @@ def savePlot(name):
                                 'hostname':socket.gethostname(),
                                 'generated_on_date': str(datetime.datetime.now())})
 
-    writeMetadata(savenamepng, {"modules loaded": get_loaded_python_modules_formatted()})
+    writeMetadata(savenamepng, {"modules_loaded": get_loaded_python_modules_formatted()})
+    writeMetadata(savenamepng, {"python_version": get_python_description()})
 
     if savePlot.callback is not None:
         title = 'Unknown title'
