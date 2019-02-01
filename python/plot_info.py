@@ -48,6 +48,46 @@ except:
                 'git_branch' : 'unknown',
                 'git_remote_url' : 'unknown'}
 
+
+def get_loaded_python_modules():
+    module_names = sys.modules.keys()
+
+    modules_dictionaries = []
+
+    for module_name in module_names:
+        version = "Unknown"
+        name = module_name
+        file = "Unknown"
+        module = sys.modules[module_name]
+        try:
+            version = module.__version__
+
+        except:
+            pass
+
+        try:
+            name = module.__name__
+        except:
+            pass
+
+        try:
+            file = module.__file__
+        except:
+            pass
+
+        modules_dictionaries.append({"name" : name, "version": version, "file": file})
+
+    return modules_dictionaries
+
+
+def get_loaded_python_modules_formatted():
+    module_list = get_loaded_python_modules()
+    s = ""
+    for m in module_list:
+        s += "{name}: {version} ({file})\n".format(**m)
+
+    return s
+
 # From https://stackoverflow.com/a/6796752
 class RedirectStdStreams(object):
     def __init__(self, stdout=None, stderr=None):
@@ -128,6 +168,8 @@ def savePlot(name):
     writeMetadata(savenamepng, {'working_directory': os.getcwd(),
                                 'hostname':socket.gethostname(),
                                 'generated_on_date': str(datetime.datetime.now())})
+
+    writeMetadata(savenamepng, {"modules loaded": get_loaded_python_modules_formatted()})
 
     if savePlot.callback is not None:
         title = 'Unknown title'

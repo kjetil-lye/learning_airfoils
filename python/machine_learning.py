@@ -1045,7 +1045,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 parameter_source_name=parameter_source_name))
             table_error.print_table("mc_errors_{}".format(parameter_source_name.lower()))
 
-
+    all_results_with_information['python_modules_loaded'] = get_loaded_python_modules()
     if len(postfix) > 0 and postfix[0] != "_":
         postfix= "_" + postfix
     with open('results/' + showAndSave.prefix + '_combination_stats{}.json'.format(postfix), 'w') as f:
