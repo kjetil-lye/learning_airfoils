@@ -211,7 +211,7 @@ def get_network(parameters, data, *, network_information, output_information):
             loss = mean_m2
         
         model.compile(optimizer=optimizer(lr=network_information.learning_rate),
-                      loss=network_information.loss)
+                      loss=loss)
 
         weights = np.copy(model.get_weights())
 

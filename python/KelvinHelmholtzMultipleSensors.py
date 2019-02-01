@@ -13,12 +13,14 @@ import sys
 import time
 sys.path.append('../python')
 from machine_learning import *
+from notebook_network_size import find_best_network_size_notebook, try_best_network_sizes
+from train_single_network import train_single_network
 import os
 
 
 def get_kh_data():
 
-    variables = ['rho']
+    variable = 'rho'
 
     points = [[0.55,0.35], [0.75,0.75]]
     func_names=["$Q_2$", "$Q_1$"]
@@ -40,17 +42,13 @@ def get_kh_data():
     parameters = np.loadtxt(parameter_path)
 
 
-    input_size=40
-    train_size=128
-    validation_size=128
-
 
 
     data_per_func = {}
     for (func_name, p) in zip(func_names, points):
         
         functional =  AreaFunctional(integrate_coordinate=p,
-                                     variable=v,
+                                     variable=variable,
                                      short_title=func_name)
                                 
         samples = get_samples(data_path, functional)
@@ -164,7 +162,6 @@ def get_samples(data_path, functional):
                 sys.stdout.write("%d\r" % len(samples))
                 sys.stdout.flush()
                 samples.append(functional(f.variables[k][:,:,0]))
-                
                
     print()
     return array(samples,dtype=float64)
