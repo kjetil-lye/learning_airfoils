@@ -51,7 +51,7 @@ def mean_m2(y_true, y_pred):
     m2_pred = K.mean(K.square(y_pred), axis=-1)
 
     return K.square(mean_true-mean_pred)/K.square(mean_true) + K.square(m2_true-m2_pred)/K.square(m2_true)
-    
+
 def print_memory_usage():
     gc.collect()
 
@@ -161,7 +161,7 @@ def compute_prediction_error_variance(data, data_predicted, train_size, norm_ord
     samples = abs(data[train_size:]-data_predicted[train_size:])**norm_ord
 
 
-    return np.var(samples)/np.mean(data**norm_ord)
+    return np.var(samples)/base
 
 
 def get_network(parameters, data, *, network_information, output_information):
@@ -209,7 +209,7 @@ def get_network(parameters, data, *, network_information, output_information):
 
         if loss == "mean_m2":
             loss = mean_m2
-        
+
         model.compile(optimizer=optimizer(lr=network_information.learning_rate),
                       loss=loss)
 
@@ -980,15 +980,16 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
 
     prediction_table = TableBuilder()
-    prediction_table.set_header(['Method', 'L1', 'Var L1', 'Std L1', 'L2', 'Var L2', 'Std L2'])
+    prediction_table.set_header(['Method', 'L1', 'Mean L1', 'Var L1', 'Std L1', 'L2', 'Mean L2', 'Var L2', 'Std L2'])
 
     for method in ['ML', 'LSQ']:
         row = [method]
         for norm_name in norm_names:
             error = all_results_with_information['prediction_error'][method][norm_name]
+            mean_error = all_results_with_information['prediction_error'][method][norm_name + "_mean"]
             variance = all_results_with_information['prediction_error'][method][norm_name + '_variance']
 
-            row.extend([error, variance, np.sqrt(variance)])
+            row.extend([error, mean_error, variance, np.sqrt(variance)])
 
         prediction_table.add_row(row)
 
