@@ -192,6 +192,6 @@ if __name__ == '__main__':
         train_single_network(parameters=parameters,
                              samples=data_per_func[force_name],
                              base_title='KH %s' % force_name,
-                             network = airfoils_network)
+                             network = kh_network)
 
 
