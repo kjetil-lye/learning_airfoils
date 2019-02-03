@@ -99,7 +99,7 @@ if __name__ == '__main__':
                          base_title=title,
                          network = get_sine_network(),
                          large_integration_points = None,
-                         sampling_method=sampling_method)
+                             sampling_method='QMC')
 
 
         display(HTML("<h1>%s</h1>" % title))
