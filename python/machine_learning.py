@@ -151,7 +151,7 @@ def compute_prediction_error_variance(data, data_predicted, train_size, norm_ord
     samples = abs(data[train_size:]-data_predicted[train_size:])**norm_ord
 
 
-    return np.var(samples)/np.mean(data**norm_ord)
+    return np.var(samples)/base
 
 
 def get_network(parameters, data, *, network_information, output_information):
