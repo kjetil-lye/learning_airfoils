@@ -23,7 +23,7 @@ def get_selections():
 
     selections = {}
     selections['Best performing'] = ['mean_train', 'ray_prediction', 'wasserstein_train', 'train']
-    selections['Emperically optimal'] = ['mean', 'mean_tail', 'prediction', 'wasserstein']
+    #selections['Emperically optimal'] = ['mean', 'mean_tail', 'prediction', 'wasserstein']
 
     if get_selections.key in os.environ:
         selection_key = os.environ[get_selections.key]
