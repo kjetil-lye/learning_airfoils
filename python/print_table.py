@@ -233,7 +233,7 @@ def print_comparison_table(outname, data, multicolumn = False, title= "No title"
         git_metadata = get_git_metadata()
         f.write("\n")
         f.write("%% ALWAYS INCLUDE THE COMMENTS WHEN COPYING THIS TABLE\n")
-        f.write("%% DO NOT REMOVE THE COMMNENTS BELOW!\n")
+        f.write("%% DO NOT REMOVE THE COMMENTS BELOW!\n")
         for k in git_metadata.keys():
 
             f.write("%% GIT {} : {}\n".format(k, git_metadata[k]))
