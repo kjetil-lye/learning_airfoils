@@ -42,6 +42,16 @@ import os
 from print_table import *
 import resource
 import gc
+
+def mean_m2(y_true, y_pred):
+    mean_true = K.mean(y_true, axis=-1)
+    mean_pred = K.mean(y_pred, axis=-1)
+
+    m2_true = K.mean(K.square(y_true), axis=-1)
+    m2_pred = K.mean(K.square(y_pred), axis=-1)
+
+    return K.square(mean_true-mean_pred)/K.square(mean_true) + K.square(m2_true-m2_pred)/K.square(m2_true)
+    
 def print_memory_usage():
     gc.collect()
 
@@ -195,8 +205,13 @@ def get_network(parameters, data, *, network_information, output_information):
 
 
 
+        loss = network_information.loss
+
+        if loss == "mean_m2":
+            loss = mean_m2
+        
         model.compile(optimizer=optimizer(lr=network_information.learning_rate),
-                      loss=network_information.loss)
+                      loss=loss)
 
         weights = np.copy(model.get_weights())
 
