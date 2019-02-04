@@ -209,12 +209,12 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
     comparisons = [
         ["Good Adam", only_adam_and_low_regularization_for_mse_and_reg_for_l1, "Bad Adam", and_config(get_only_adam, complement(only_adam_and_low_regularization_for_mse_and_reg_for_l1))],
         ["SGD", get_only_sgd, "Adam", get_only_adam],
-        ["Good Adam MSE", and_config(get_only_mse, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam MAE", and_config(get_only_mae, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
-        ["Good Adam L1 reg", and_config(only_l1_reg, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam L2 reg", and_config(only_l2_reg, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
-        ["Good Adam with Ray prediction", and_config(only_ray_prediction, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam with train", and_config(only_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
-        ["Good Adam with Ray prediction", and_config(only_ray_prediction, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam with Wasserstein", and_config(only_wasserstein_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
-        ["Good Adam with train", and_config(only_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam with Wasserstein", and_config(only_wasserstein_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
-        ["Good Adam with mean train", and_config(only_mean_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1), "Good Adam with Wasserstein", and_config(only_wasserstein_train, only_adam_and_no_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam MSE", and_config(get_only_mse, only_adam_and_low_regularization_for_mse_and_reg_for_l1), "Good Adam MAE", and_config(get_only_mae, only_adam_and_low_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam L1 reg", and_config(only_l1_reg, only_adam_and_low_regularization_for_mse_and_reg_for_l1), "Good Adam L2 reg", and_config(only_l2_reg, only_adam_and_low_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam with val", and_config(only_ray_prediction, only_adam_and_low_regularization_for_mse_and_reg_for_l1), "Good Adam with train", and_config(only_train, only_adam_and_low_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam with val", and_config(only_ray_prediction, only_adam_and_low_regularization_for_mse_and_reg_for_l1), "Good Adam with wass-train", and_config(only_wasserstein_train, only_adam_and_low_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam with train", and_config(only_train, only_adam_and_low_regularization_for_mse_and_reg_for_l1), "Good Adam with wass-train", and_config(only_wasserstein_train, only_adam_and_low_regularization_for_mse_and_reg_for_l1)],
+        ["Good Adam with mean-train", and_config(only_mean_train, only_adam_and_low_regularization_for_mse_and_reg_for_l1), "Good Adam with wass-train", and_config(only_wasserstein_train, only_adam_and_low_regularization_for_mse_and_reg_for_l1)],
     ]
     for functional in functionals:
         heading(0, functional)
@@ -677,9 +677,14 @@ def plot_as_training_size(functional, data, title="all configurations"):
                 reg_errors_var = [np.var(errors_local_regularization[k]) for k in regularization_sizes]
                 reg_errors_min = [np.min(errors_local_regularization[k]) for k in regularization_sizes]
                 reg_errors_max = [np.max(errors_local_regularization[k]) for k in regularization_sizes]
-                plt.errorbar(regularization_sizes, reg_errors, yerr=reg_errors_var, label='error')
-                plt.plot(regularization_sizes, reg_errors_min, '--o', label='minimum')
-                plt.plot(regularization_sizes, reg_errors_max, '--*', label='maximum')
+                plt.errorbar(regularization_sizes, reg_errors, yerr=reg_errors_var, label=names[error], linewidth=3)
+
+                plt.xticks(regularization_sizes, ['{:.1e}' for k in regularization_sizes])
+
+                if 'speedup' not in error:
+                    plt.plot(regularization_sizes, reg_errors_min, '--o', label='minimum')
+                else:
+                    plt.plot(regularization_sizes, reg_errors_max, '--*', label='maximum')
                 plot_info.legendLeft()
                 plt.title("Average error as a function of regularization size\n{functional}, configurations:{config},\nError: {error}, training size: {train_size}, tactic: {tactic}".
                     format(functional=functional, config=title, error=names[error], train_size=train_size, tactic=tactic))
@@ -813,7 +818,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
         off_array = [False]
         on_array = [True]
         for include_selected in on_array:
-            for include_retraining in on_array:
+            for include_retraining in off_array:
                 for include_min in ['speedup' not in error]:
                     for include_max in ['speedup' in error]:
                         for include_std in off_array:
@@ -831,10 +836,15 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                                     p = plt.errorbar(train_sizes, pairing['mean_error'][0][tactic],
                                                         yerr=np.sqrt(pairing['mean_error'][0][tactic]),
                                                         label='DNN selected retraining', ls='--',
-                                                        solid_capstyle='projecting', capsize=5)
+                                                        solid_capstyle='projecting', capsize=5, linewidth =3)
                                                 else:
                                                     p = plt.loglog(train_sizes, pairing['mean_error'][0][tactic], '--*',
-                                                        label='DNN selected retraining' + tactic_added_name, basex=2, basey=2)
+                                                        label='DNN selected retraining' + tactic_added_name, basex=2, basey=2, linewidth=3)
+
+                                                poly = np.polyfit(np.log(train_sizes), np.log(pairing['mean_error'][0][tactic]), 1)
+
+                                                plt.loglog(train_sizes, np.exp(poly[1])*train_sizes**poly[0],
+                                                           '--', label='$\\mathcal{O}(M^{%.2f})$' % poly[0])
 
                                                 if include_max:
                                                     plt.loglog(train_sizes, pairing['max_error'][0][tactic], 'v', label='Max DNN selected retraining' + tactic_added_name,
@@ -844,7 +854,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                                     plt.loglog(train_sizes, pairing['min_error'][0][tactic], '^', label='Min DNN selected retraining' + tactic_added_name,
                                                         markersize=12,
                                                                 color=p[0].get_color())
-
+                                            if 'prediction' in error:
+                                                plot_info.set_percentage_ticks(plt.gca().yaxis)
                                             if include_retraining:
                                                  if include_std:
                                                      p = plt.errorbar(train_sizes, pairing['mean_error_retraining'][0][tactic],
@@ -1115,9 +1126,7 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
 
                 for source in sources.keys():
                     plt.hist(errors_local[source], bins=20, label=source, alpha=0.5, range=[min_value, max_value])
-                # see https://stackoverflow.com/questions/6871201/plot-two-histograms-at-the-same-time-with-matplotlib
-                #plt.hist([errors_local[source] for source in source_names],
-                #        bins=20, label = source_names, alpha=0.5, stacked=True)
+
                 plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
 
