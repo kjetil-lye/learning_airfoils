@@ -1009,7 +1009,7 @@ def only_adam_and_low_regularization_for_mse_and_reg_for_l1(config):
     if get_loss(config) == 'mean_absolute_error':
         return has_regularization(config)
     else:
-        return (not has_regularization(config)) or (get_regularization_type(config) == "l2" and get_regularization_size(config) < 1e7)
+        return (not has_regularization(config)) or (get_regularization_type(config) == "l2" and get_regularization_size(config) < 1e-6)
 
 def get_only_sgd(config):
     return get_optimizer(config) == "SGD"
