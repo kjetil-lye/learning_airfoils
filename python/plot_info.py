@@ -4,7 +4,7 @@ import glob
 import sys
 
 import matplotlib
-matplotlib.rcParams['savefig.dpi']=150
+matplotlib.rcParams['savefig.dpi']=300
 from numpy import *
 import matplotlib.pyplot as plt
 
@@ -135,12 +135,24 @@ def writeMetadata(filename, data):
 
 def only_alphanum(s):
     return ''.join(ch for ch in s if ch.isalnum() or ch =='_')
+
+def get_current_title():
+    return plt.gcf().texts[0].get_text()
+
 def savePlot(name):
     if savePlot.disabled:
         return
+
+
     name = showAndSave.prefix + name
     name = ''.join(ch for ch in name if ch.isalnum() or ch =='_')
     name = name.lower()
+
+    if not name.endswith("_notitle"):
+        old_title = get_current_title()
+        plt.title("")
+        savePlot(name + "_notitle")
+        plt.title(old_title)
 
     fig = plt.gcf()
     ax = plt.gca()
@@ -155,7 +167,7 @@ def savePlot(name):
 
     with RedirectStdStreamsToNull():
         if savePlot.saveTikz:
-            matplotlib2tikz.save('img_tikz/' + name + '.tikz',
+            matplotlib2tikz.save('img_tikz/' + name + '.xyz',
                 figureheight = '\\figureheight',
                 figurewidth = '\\figurewidth',
                 show_info = False)
