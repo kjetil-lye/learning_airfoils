@@ -52,7 +52,7 @@ def get_airfoil_data():
     for n, force_name in enumerate(force_names):
         data_per_func[force_name] = forces[:, n+1]
 
-    mc_params, mc_values = MachineLearningSixParametersAirfoilMonteCarlo.get_airfoils_mc_data()
+    mc_params, mc_values = MachineLearningSixParametersAirfoilMonteCarlo.get_airfoils_mc_data(highres=True)
     return qmc_points, data_per_func, mc_params, mc_values
 
 

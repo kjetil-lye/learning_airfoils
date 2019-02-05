@@ -26,9 +26,14 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 # In[2]:
 
-def get_airfoils_mc_data():
+
+
+def get_airfoils_mc_data(highres=False):
     mc_points_preprocessed = np.loadtxt('../mc6.txt')
-    forces = np.loadtxt('../force_6_params_mc.dat')
+    if highres:
+        forces = np.loadtxt('../force_L2_mc_scaled.dat')
+    else:
+        forces = np.loadtxt('../force_6_params_mc.dat')
     mc_points = []
     for f in forces[:,0]:
         for n in range(mc_points_preprocessed.shape[0]):

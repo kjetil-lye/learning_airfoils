@@ -55,9 +55,9 @@ def train_single_network(*, parameters, samples, base_title, network,
                             regularization_name = "No regularization"
                             if regularization is not None:
                                 if regularization.l2 > 0:
-                                    regularization_name = "l2 (%f)" % regularization.l2
+                                    regularization_name = "l2 (%.4e)" % regularization.l2
                                 else:
-                                    regularization_name = "l1 (%f)" % regularization.l1
+                                    regularization_name = "l1 (%.4e)" % regularization.l1
 
                             learning_rates = network_parameters.get_learning_rates()
                             for learning_rate in learning_rates:
