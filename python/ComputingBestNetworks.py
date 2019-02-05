@@ -78,6 +78,15 @@ for data_source_name in data_source_names:
                                base_title='{} {}'.format(data_source_name, func_name),
                                monte_carlo_values = monte_carlo_values[func_name],
                                monte_carlo_parameters = monte_carlo_parameters)
+        try:
+            compute_for_all_in_json(json_file, parameters=monte_carlo_parameters,
+                               samples=monte_carlo_values[func_name],
+                                network=network,
+                               base_title='MC {} {}'.format(data_source_name, func_name),
+                               monte_carlo_values = monte_carlo_values[func_name],
+                               monte_carlo_parameters = monte_carlo_parameters)
+        except:
+            pass
 
 with open(latex_out, 'w') as f:
     f.write(latex.get_latex())
