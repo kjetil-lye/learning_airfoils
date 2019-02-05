@@ -211,16 +211,13 @@ def savePlot(name):
     savenamepng = 'img/' + name + '.png'
     plt.savefig(savenamepng, bbox_inches='tight')
 
-    writeMetadata(savenamepng, {'Copyright' : 'Copyright, Deep Ray@EPFL<deep.ray@gmail.com> and Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>'
-                               })
-
-    add_git_information(savenamepng)
-    writeMetadata(savenamepng, {'working_directory': os.getcwd(),
+    writeMetadata(savenamepng, {'Copyright' : 'Copyright, Deep Ray@EPFL<deep.ray@gmail.com> and Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>',
+                               'working_directory': os.getcwd(),
                                 'hostname':socket.gethostname(),
-                                'generated_on_date': str(datetime.datetime.now())})
-
-    writeMetadata(savenamepng, {"modules_loaded": get_loaded_python_modules_formatted()})
-    writeMetadata(savenamepng, {"python_version": get_python_description()})
+                                'generated_on_date': str(datetime.datetime.now()),
+                                **gitMetadata,
+                                "modules_loaded": get_loaded_python_modules_formatted(),
+                                "python_version": get_python_description()})
 
     if savePlot.callback is not None:
         title = 'Unknown title'
