@@ -137,7 +137,10 @@ def only_alphanum(s):
     return ''.join(ch for ch in s if ch.isalnum() or ch =='_')
 
 def get_current_title():
-    return plt.gcf().texts[0].get_text()
+    try:
+        return plt.gcf().texts[0].get_text()
+    except:
+        return ''
 
 def savePlot(name):
     if savePlot.disabled:
