@@ -26,11 +26,13 @@ try:
             get_git_metadata.activeBranch = get_git_metadata.repo.active_branch
             get_git_metadata.url = get_git_metadata.repo.remotes.origin.url
             get_git_metadata.cached = True
+            get_git_metadata.short_sha = get_git_metadata.repo.git.rev_parse(get_git_metadata.sha, short=1)
 
         return {'git_commit': str(get_git_metadata.sha),
                 'git_repo_modified':str(get_git_metadata.modified),
                 'git_branch' : str(get_git_metadata.activeBranch),
-                'git_remote_url' : str(get_git_metadata.url)}
+                'git_remote_url' : str(get_git_metadata.url),
+                'git_short_commit' : str(get_git_metadata.short_sha)}
 
     get_git_metadata.cached = False
 
@@ -46,7 +48,8 @@ except:
         return {'git_commit': 'unknown',
                 'git_repo_modified':'unknown',
                 'git_branch' : 'unknown',
-                'git_remote_url' : 'unknown'}
+                'git_remote_url' : 'unknown',
+                'git_short_commit': "unknown"}
 
 
 def get_loaded_python_modules():
@@ -156,7 +159,9 @@ def savePlot(name):
         plt.title("")
         savePlot(name + "_notitle")
         plt.title(old_title)
-
+        title = old_title
+    else:
+        title = "None"
     fig = plt.gcf()
     ax = plt.gca()
     gitMetadata = get_git_metadata()
@@ -166,6 +171,11 @@ def savePlot(name):
          fontsize=3, color='gray',
          ha='right', va='bottom', alpha=0.5, transform=ax.transAxes)
 
+    if gitMetadata['git_short_commit'] != "unkown":
+        if not name.endswith("_notitle"):
+            ax.text(0.13, 0.93, "@" + gitMetadata['git_short_commit'], fontsize=10,
+            ha='right', va='bottom', alpha=0.5, transform=ax.transAxes)
+
     # We don't want all the output from matplotlib2tikz
 
     with RedirectStdStreamsToNull():
@@ -174,6 +184,28 @@ def savePlot(name):
                 figureheight = '\\figureheight',
                 figurewidth = '\\figurewidth',
                 show_info = False)
+
+            with open ('img_tikz/' + name + '.xyz', 'a') as f:
+                f.write("\n\n")
+                f.write("%% INCLUDE THE COMMENTS AT THE END WHEN COPYING\n")
+                f.write("%%%%%%%%%%%%%TITLE%%%%%%%%%%%%%%%%%\n")
+                for line in title.splitlines():
+                    f.write("%% {}\n".format(line))
+                f.write("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+
+                f.write("\n")
+                f.write("%% ALWAYS INCLUDE THE COMMENTS WHEN COPYING THIS PLOT\n")
+                f.write("%% DO NOT REMOVE THE COMMENTS BELOW!\n")
+                for k in gitMetadata.keys():
+                    f.write("%% GIT {} : {}\n".format(k, gitMetadata[k]))
+
+                f.write("%% working_directory : {}\n".format(os.getcwd()))
+                f.write("%% hostname : {}\n".format(socket.gethostname()))
+                f.write("%% generated_on_date : {}\n".format(str(datetime.datetime.now())))
+                f.write("%% python_version: {}\n".format(get_python_description()))
+                f.write("%% python modules:\n")
+                for module in get_loaded_python_modules():
+                    f.write("%%     {name}: {version} ({file})\n".format(**module))
 
 
     savenamepng = 'img/' + name + '.png'
