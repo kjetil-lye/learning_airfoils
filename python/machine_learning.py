@@ -58,6 +58,11 @@ def print_memory_usage():
 
     print("Memory usage: %s" %  resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
+def reg_to_str(reg):
+    if reg is None:
+        return "None"
+    else:
+        return "l1: {}, l2: {}".format(reg.l1, reg.l2)
 
 class NetworkInformation(object):
     def __init__(self, *, optimizer, epochs, network,
@@ -90,6 +95,20 @@ class NetworkInformation(object):
         self.monte_carlo_parameters = monte_carlo_parameters
         self.monte_carlo_values = monte_carlo_values
 
+
+    def important_info_to_dict(self):
+        return {"optimizer":str(self.optimizer),
+                "epochs" : str(self.epochs),
+                "network" : str(self.network),
+                "train_size" : str(self.train_size),
+                "validation_size": str(self.validation_size),
+                "activation" : str(self.activation),
+                "loss" : self.loss,
+                "tries" : str(self.tries),
+                "selection" :self.selection,
+                "learning_rate" : str(self.learning_rate),
+                "activity_regularizer": reg_to_str(self.activity_regularizer),
+                "kernel_regularizer" : reg_to_str(self.kernel_regularizer) }
 
 
 class Tables(object):
@@ -985,6 +1004,18 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
 
 
+        # Now with training samples included
+        all_results_with_information['prediction_error']['ML'][norm_name + "_with_ts"] = compute_prediction_error(data, np.reshape(network.predict(parameters), data.shape), 0, norm)
+        all_results_with_information['prediction_error']['ML'][norm_name + "_with_ts"+"_mean"] = compute_mean_prediction_error(data, np.reshape(network.predict(parameters), data.shape), 0, norm)
+
+        all_results_with_information['prediction_error']['ML'][norm_name  + "_with_ts"+ "_variance"] = compute_prediction_error_variance(data, np.reshape(network.predict(parameters), data.shape), 0, norm)
+
+        all_results_with_information['prediction_error']['LSQ'][norm_name + "_with_ts"] = compute_prediction_error(data, np.reshape(lsq_predictor.predict(parameters), data.shape),0, norm)
+        all_results_with_information['prediction_error']['LSQ'][norm_name  + "_with_ts"+ "_mean"] = compute_mean_prediction_error(data, np.reshape(lsq_predictor.predict(parameters), data.shape),0, norm)
+        all_results_with_information['prediction_error']['LSQ'][norm_name  + "_with_ts"+ "_variance"] = compute_prediction_error_variance(data, np.reshape(lsq_predictor.predict(parameters), data.shape),0, norm)
+
+
+
     prediction_table = TableBuilder()
     prediction_table.set_header(['Method', 'L1', 'Mean L1', 'Var L1', 'Std L1', 'L2', 'Mean L2', 'Var L2', 'Std L2'])
 
@@ -1003,6 +1034,29 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
         learning_rate=network_information.learning_rate
         ))
     prediction_table.print_table("prediction_errors_with_std")
+
+
+
+    prediction_table_ts = TableBuilder()
+    prediction_table_ts.set_header(['Method', 'L1', 'Mean L1', 'Var L1', 'Std L1', 'L2', 'Mean L2', 'Var L2', 'Std L2'])
+
+    for method in ['ML', 'LSQ']:
+        row = [method]
+        for norm_name in norm_names:
+            error = all_results_with_information['prediction_error'][method][norm_name+ "_with_ts"]
+            mean_error = all_results_with_information['prediction_error'][method][norm_name + "_with_ts"+ "_mean"]
+            variance = all_results_with_information['prediction_error'][method][norm_name+ "_with_ts" + '_variance']
+
+            row.extend([error, mean_error, variance, np.sqrt(variance)])
+
+        prediction_table_ts.add_row(row)
+
+    prediction_table_ts.set_title("(Keeping training samples) Prediction error for Machine learning and LSQ, along with the variances, with {epochs} epochs, learning rate = {learning_rate}".format(epochs=network_information.epochs,
+        learning_rate=network_information.learning_rate
+        ))
+    prediction_table_ts.print_table("prediction_errors_with_std_ts")
+
+
 
     all_results_with_information['mc_speedup'] = {}
     all_results_with_information['mc_errors'] = {}
@@ -1069,6 +1123,8 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
     all_results_with_information['python_modules_loaded'] = get_loaded_python_modules()
     all_results_with_information["python_version"] = get_python_description()
+
+    all_results_with_information['network_information'] = network_information.important_info_to_dict()
     if len(postfix) > 0 and postfix[0] != "_":
         postfix= "_" + postfix
     with open('results/' + showAndSave.prefix + '_combination_stats{}.json'.format(postfix), 'w') as f:

@@ -1,6 +1,6 @@
 import tabulate
 import csv
-from plot_info import get_git_metadata, showAndSave
+from plot_info import get_git_metadata, showAndSave, get_stacktrace_str
 import numpy as np
 import copy
 import os
@@ -237,6 +237,9 @@ def print_comparison_table(outname, data, multicolumn = False, title= "No title"
         for k in git_metadata.keys():
 
             f.write("%% GIT {} : {}\n".format(k, git_metadata[k]))
+        f.write("%% stacktrace:\n")
+        for line in get_stacktrace_str().splitlines():
+            f.write("%%     {}\n".format(line))
 
     if multicolumn:
         new_header = []

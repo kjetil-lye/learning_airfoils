@@ -15,6 +15,7 @@ import os
 import os.path
 import datetime
 import traceback
+import inspect
 from IPython.core.display import display, HTML
 try:
     import git
@@ -50,6 +51,13 @@ except:
                 'git_branch' : 'unknown',
                 'git_remote_url' : 'unknown',
                 'git_short_commit': "unknown"}
+
+
+def get_stacktrace_str():
+    trace = ""
+    for k in inspect.stack()[1:]:
+        trace +=  "[function: {}, line: {}, file: {}]\n".format(k.function, k.lineno, k.filename)
+    return trace
 
 
 def get_loaded_python_modules():
@@ -203,9 +211,16 @@ def savePlot(name):
                 f.write("%% hostname : {}\n".format(socket.gethostname()))
                 f.write("%% generated_on_date : {}\n".format(str(datetime.datetime.now())))
                 f.write("%% python_version: {}\n".format(get_python_description()))
+
                 f.write("%% python modules:\n")
                 for module in get_loaded_python_modules():
                     f.write("%%     {name}: {version} ({file})\n".format(**module))
+
+                f.write("%% stacktrace:\n")
+                for line in get_stacktrace_str().splitlines():
+                    f.write("%%     {}\n".format(line))
+
+
 
 
     savenamepng = 'img/' + name + '.png'
@@ -217,7 +232,8 @@ def savePlot(name):
                                 'generated_on_date': str(datetime.datetime.now()),
                                 **gitMetadata,
                                 "modules_loaded": get_loaded_python_modules_formatted(),
-                                "python_version": get_python_description()})
+                                "python_version": get_python_description(),
+                                'stacktrace': get_stacktrace_str()})
 
     if savePlot.callback is not None:
         title = 'Unknown title'
