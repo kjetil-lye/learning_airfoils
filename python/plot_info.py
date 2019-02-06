@@ -211,7 +211,7 @@ def savePlot(name):
     savenamepng = 'img/' + name + '.png'
     plt.savefig(savenamepng, bbox_inches='tight')
 
-    writeMetadata(savenamepng, {'Copyright' : 'Copyright, Deep Ray@EPFL<deep.ray@gmail.com> and Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>',
+    writeMetadata(savenamepng, {'Copyright' : 'Copyright, Kjetil Lye@ETHZ <kjetil.o.lye@gmail.com>, Siddhartha Mishra@ETHZ<siddhartha.mishra@sam.math.ethz.ch> and Deep Ray@EPFL<deep.ray@gmail.com> and ',
                                'working_directory': os.getcwd(),
                                 'hostname':socket.gethostname(),
                                 'generated_on_date': str(datetime.datetime.now()),
