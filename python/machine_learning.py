@@ -926,7 +926,13 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
         'prediction_l1_relative_variance' : lambda x, all_data: float(compute_prediction_error_variance(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 1)),
         'prediction_l2_relative' : lambda x, all_data: float(compute_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 2)),
         'prediction_mean_l2_relative' : lambda x, all_data: float(compute_mean_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 2)),
-        'prediction_l2_relative_variance' : lambda x, all_data: float(compute_prediction_error_variance(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 2))
+        'prediction_l2_relative_variance' : lambda x, all_data: float(compute_prediction_error_variance(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 2)),
+        'prediction_l1_relative' : lambda x, all_data: float(compute_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], 0, 1)),
+        'prediction_mean_l1_relative_train_size_remove' : lambda x, all_data: float(compute_mean_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], train_size, 1)),
+        'prediction_l1_relative_variance_train_size_remove' : lambda x, all_data: float(compute_prediction_error_variance(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], train_size, 1)),
+        'prediction_l2_relative_train_size_remove' : lambda x, all_data: float(compute_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], train_size, 2)),
+        'prediction_mean_l2_relative_train_size_remove' : lambda x, all_data: float(compute_mean_prediction_error(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], train_size, 2)),
+        'prediction_l2_relative_variance_train_size_remove' : lambda x, all_data: float(compute_prediction_error_variance(all_data[:min(x.shape[0], all_data.shape[0])], x[:min(x.shape[0], all_data.shape[0])], train_size, 2))
     }
 
     predictors = {
