@@ -227,13 +227,13 @@ def get_network(parameters, data, *, network_information, output_information):
 
             loaded_model = keras.models.model_from_json(loaded_model_json)
             # load weights into new model
-            loaded_model.load_weights("model.h5")
+            loaded_model.load_weights(network_information.network_weights_filename)
 
 
             loaded_model.compile(optimizer=optimizer(lr=network_information.learning_rate),
                                   loss=loss)
 
-            
+
             return loaded_model, data, parameters
 
     for trylearn in range(network_information.tries):
