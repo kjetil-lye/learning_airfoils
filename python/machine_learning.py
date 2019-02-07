@@ -1090,8 +1090,24 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
 
     if network_information.monte_carlo_parameters is not None:
+
         mc_parameters = network_information.monte_carlo_parameters
         mc_values = network_information.monte_carlo_values
+        results = {}
+
+
+
+        for predictor in predictors.keys():
+            predicted_data = predictors[predictor](mc_parameters)
+            results[predictor] = {}
+            for modifier in modifiers.keys():
+                modified_data = modifiers[modifier](predicted_data, data, train_size)
+                results[predictor][modifier] = {}
+                for error_functional in errors_functionals.keys():
+
+                    results[predictor][modifier][error_functional] = errors_functionals[error_functional](modified_data, mc_values)
+
+        results['algorithms_against_other_sample_set'] = results
 
         parameter_sources = {
             '{}_from_data'.format(output_information.sampling_method): parameters,
