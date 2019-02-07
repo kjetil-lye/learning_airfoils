@@ -57,7 +57,7 @@ def get_airfoils_mc_network():
 def get_airfoils_mc_data_highres_with_qmc():
     mc_points, mc_data_per_func = get_airfoils_mc_data(True)
 
-    
+
     qmc_points = np.loadtxt('../sobol_6_8000.txt')
     qmc_points = qmc_points[1:].reshape((8000,6))
 
@@ -84,7 +84,7 @@ def get_airfoils_mc_data_highres_with_qmc():
 
 
 if __name__ == '__main__':
-    parameters, data_per_func, validation_parameters, validation_values = get_airfoils_mc_data()
+    parameters, data_per_func, validation_parameters, validation_values = get_airfoils_mc_data_highres_with_qmc()
     for n, force_name in enumerate(data_per_func):
         display(HTML("<h1>%s</h1>"% force_name))
         try_best_network_sizes(parameters=parameters,
