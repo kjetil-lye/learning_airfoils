@@ -13,7 +13,8 @@ def train_single_network(*, parameters, samples, base_title, network,
     sampling_method='QMC',
     base_config = None,
     monte_carlo_parameters = None,
-    monte_carlo_values = None):
+    monte_carlo_values = None,
+    load_network_weights = False):
 
     losses = None
     optimizers_to_choose = None
@@ -83,6 +84,7 @@ def train_single_network(*, parameters, samples, base_title, network,
                                                                              monte_carlo_values= monte_carlo_values,
                                                                              monte_carlo_parameters = monte_carlo_parameters)
 
+
                                     output_information = OutputInformation(tables=tables, title=title,
                                                                           short_title=title, enable_plotting=True,
                                                                           sampling_method=sampling_method)
@@ -94,6 +96,14 @@ def train_single_network(*, parameters, samples, base_title, network,
                                     print("Training: {}".format(title))
 
                                     with RedirectStdStreamsToNull() as _:
+                                        if load_network_weights:
+                                            network_weight_filename ='results/' + showAndSave.prefix +  'model.h5'
+                                            network_structure_filename = 'results/' + showAndSave.prefix +  'model.json'
+
+
+                                            network_information.network_weights_filename = network_weight_filename
+                                            network_information.network_structure_filename = network_structure_filename
+
                                         get_network_and_postprocess(parameters, samples, network_information = network_information,
                                         output_information = output_information)
 
@@ -122,7 +132,8 @@ def compute_for_all_in_json(json_file, *, parameters, samples, base_title, netwo
     large_integration_points = None,
     sampling_method='QMC',
     monte_carlo_values = None,
-    monte_carlo_parameters = None):
+    monte_carlo_parameters = None,
+    load_network_weights = False):
 
     with open(json_file) as infile:
         configurations = json.load(infile)
@@ -148,4 +159,5 @@ def compute_for_all_in_json(json_file, *, parameters, samples, base_title, netwo
                                  sampling_method=sampling_method,
                                  base_config = config,
                                  monte_carlo_values = monte_carlo_values,
-                                 monte_carlo_parameters = monte_carlo_parameters)
+                                 monte_carlo_parameters = monte_carlo_parameters,
+                                 load_network_weights = load_network_weights)

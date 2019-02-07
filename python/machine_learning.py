@@ -77,7 +77,9 @@ class NetworkInformation(object):
                  kernel_regularizer = None,
                  learning_rate=0.01,
                  monte_carlo_parameters = None,
-                 monte_carlo_values = None):
+                 monte_carlo_values = None,
+                 network_weights_filename = None,
+                 network_structure_filename = None):
         self.network = network
         self.optimizer = optimizer
         self.epochs = epochs
@@ -94,6 +96,8 @@ class NetworkInformation(object):
         self.learning_rate = learning_rate
         self.monte_carlo_parameters = monte_carlo_parameters
         self.monte_carlo_values = monte_carlo_values
+        self.network_weights_filename = network_weights_filename
+        self.network_structure_filename = network_structure_filename
 
 
     def important_info_to_dict(self):
@@ -108,7 +112,9 @@ class NetworkInformation(object):
                 "selection" :self.selection,
                 "learning_rate" : str(self.learning_rate),
                 "activity_regularizer": reg_to_str(self.activity_regularizer),
-                "kernel_regularizer" : reg_to_str(self.kernel_regularizer) }
+                "kernel_regularizer" : reg_to_str(self.kernel_regularizer),
+                'network_weights_filename' : self.network_weights_filename,
+                'network_structure_filename' : self.network_structure_filename}
 
 
 class Tables(object):
@@ -184,6 +190,10 @@ def compute_prediction_error_variance(data, data_predicted, train_size, norm_ord
 
 
 def get_network(parameters, data, *, network_information, output_information):
+
+
+
+
     train_size = network_information.train_size
 
     validation_size = network_information.validation_size
@@ -201,13 +211,30 @@ def get_network(parameters, data, *, network_information, output_information):
     best_learning_rate = None
 
 
-    tries = 5
+
     start_total_learning = time.time()
 
     y_train = data[:train_size]
     from sklearn import linear_model
     reg = linear_model.LinearRegression()
     lsq_predictor = reg.fit(parameters[:train_size,:], y_train)
+
+    if network_information.network_weights_filename is not None:
+        # see https://machinelearningmastery.com/save-load-keras-deep-learning-models/
+        with open(network_information.network_structure_filename) as json_file:
+
+            loaded_model_json = json_file.read()
+
+            loaded_model = keras.models.model_from_json(loaded_model_json)
+            # load weights into new model
+            loaded_model.load_weights("model.h5")
+
+
+            loaded_model.compile(optimizer=optimizer(lr=network_information.learning_rate),
+                                  loss=loss)
+
+            
+            return loaded_model, data, parameters
 
     for trylearn in range(network_information.tries):
         model = Sequential()

@@ -49,15 +49,18 @@ parser.add_argument('--functional_name',
                     default=None,
                     help='The functional to use')
 
+parser.add_argument('--load_weights', action='store_true',
+                    help='Load the weights from file (assumes the corresponding \n\tresults/<prefix>model.json and\n\tresults/<prefix>model.h5\n exists)')
 args = parser.parse_args()
 
 
+if args.load_weights:
+    print("Loading the weights from file")
 
 latex_out = 'computing_best_networks.tex'
 latex = LatexWithAllPlots()
 plot_info.savePlot.callback = latex
 print_table.print_comparison_table.callback = lambda x, title: latex.add_table(x, title)
-
 
 if args.data_source is None:
     data_source_names = data_sources.keys()
@@ -77,14 +80,16 @@ for data_source_name in data_source_names:
                                 network=network,
                                base_title='{} {}'.format(data_source_name, func_name),
                                monte_carlo_values = monte_carlo_values[func_name],
-                               monte_carlo_parameters = monte_carlo_parameters)
+                               monte_carlo_parameters = monte_carlo_parameters,
+                               load_network_weights = args.load_weights)
         try:
             compute_for_all_in_json(json_file, parameters=monte_carlo_parameters,
                                samples=monte_carlo_values[func_name],
                                 network=network,
                                base_title='MC {} {}'.format(data_source_name, func_name),
                                monte_carlo_values = monte_carlo_values[func_name],
-                               monte_carlo_parameters = monte_carlo_parameters)
+                               monte_carlo_parameters = monte_carlo_parameters,
+                               load_network_weights = args.load_weights)
         except:
             pass
 
