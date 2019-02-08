@@ -92,9 +92,9 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                     os.mkdir('results')
 
                                     if functional_name is not None:
-                                        notebook = "{} --functional_name {}".format(notebook, functional_name)
+                                        notebook_name = "{} --functional_name {}".format(notebook_name, functional_name)
                                     submit('python {notebook}'.format(
-                                        notebook = notebook
+                                        notebook = notebook_name
                                     ), exports)
 
                                     writeConfig(depth=depth,
