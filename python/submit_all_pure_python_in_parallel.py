@@ -36,7 +36,7 @@ def writeConfig(*,
 
 
 
-def submit(command, exports):
+def submit(command, exports, arguments):
     exports = copy.deepcopy(exports)
     exports['MACHINE_LEARNING_DO_NOT_SAVE_PLOTS'] = 'on'
     exports['MACHINE_LEARNING_DO_NOT_PRINT_TABLES'] = 'on'
@@ -46,6 +46,9 @@ def submit(command, exports):
     with open('exports.sh', 'w') as exp_file:
         for k in exports.keys():
             exp_file.write("export {}={}\n".format(k, exports[k]))
+
+    if arguments is not None:
+        command_to_run = "{} {}".format(command_to_run, arguments)
 
     os.system(command_to_run)
 
@@ -90,12 +93,12 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                     os.mkdir('img_tikz')
                                     os.mkdir('tables')
                                     os.mkdir('results')
-
+                                    arguments = None
                                     if functional_name is not None:
-                                        notebook_name = "{} --functional_name {}".format(notebook_name, functional_name)
+                                        arguments = "--functional_name {}".format(functional_name)
                                     submit('python {notebook}'.format(
                                         notebook = notebook_name
-                                    ), exports)
+                                    ), exports, arguments)
 
                                     writeConfig(depth=depth,
                                         width=width,
