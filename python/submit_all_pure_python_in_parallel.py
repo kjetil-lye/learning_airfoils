@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--script', default=None, help='The script to run', required=True)
     parser.add_argument('--number_of_widths', default=5, type=int, help='The number of widths to use')
-    parser.add_argumetn('--number_of_depths', default=5, type=int, help='The number of depths to use')
+    parser.add_argument('--number_of_depths', default=5, type=int, help='The number of depths to use')
 
     parser.add_argument('--functional_name',
                         default=None,
