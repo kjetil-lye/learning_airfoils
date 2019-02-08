@@ -3,6 +3,7 @@ import os
 import shutil
 import json
 import copy
+import glob
 def writeConfig(*,
     depth,
     width,
