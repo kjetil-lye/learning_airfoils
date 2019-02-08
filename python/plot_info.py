@@ -158,18 +158,19 @@ def savePlot(name):
         return
 
 
+
+
     name = showAndSave.prefix + name
     name = ''.join(ch for ch in name if ch.isalnum() or ch =='_')
     name = name.lower()
 
+
     if not name.endswith("_notitle"):
         old_title = get_current_title()
-        plt.title("")
-        savePlot(name + "_notitle")
-        plt.title(old_title)
         title = old_title
     else:
         title = "None"
+
     fig = plt.gcf()
     ax = plt.gca()
     gitMetadata = get_git_metadata()
@@ -242,6 +243,15 @@ def savePlot(name):
         except:
             pass
         savePlot.callback(savenamepng, name, title)
+
+    if not name.endswith("_notitle"):
+        old_title = get_current_title()
+        plt.title("")
+        savePlot(name + "_notitle")
+        plt.title(old_title)
+        title = old_title
+    else:
+        title = "None"
 
 savePlot.callback = None
 savePlot.saveTikz = True
