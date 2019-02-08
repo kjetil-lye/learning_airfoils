@@ -84,25 +84,39 @@ def get_airfoils_mc_data_highres_with_qmc():
 
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Compute airfoil case (with MC points)')
+
+
+    parser.add_argument('--functional_name',
+                        default=None,
+                        help='The functional to use options: (lift or drag)')
+
+    args = parser.parse_args()
+    functional_name = args.functional_name
+
     parameters, data_per_func, validation_parameters, validation_values = get_airfoils_mc_data_highres_with_qmc()
     for n, force_name in enumerate(data_per_func):
-        display(HTML("<h1>%s</h1>"% force_name))
-        try_best_network_sizes(parameters=parameters,
-                               samples=data_per_func[force_name],
-                               base_title='Airfoils MC %s' % force_name)
+        if functional_name is  None or (force_name.lower() == functional_name.lower()):
+            display(HTML("<h1>%s</h1>"% force_name))
+            try_best_network_sizes(parameters=parameters,
+                                   samples=data_per_func[force_name],
+                                   base_title='Airfoils MC %s' % force_name)
 
 
     for n, force_name in enumerate(data_per_func):
-        display(HTML("<h1>%s</h1>"% force_name))
-        train_single_network(parameters=parameters,
-                             samples=data_per_func[force_name],
-                             base_title='Airfoils MC %s' % force_name,
-                             network = get_airfoils_mc_network(),
-                             large_integration_points = None,
-                             sampling_method='MC',
-                             monte_carlo_values = validation_values,
-                             monte_carlo_parameters  = validation_parameters
-        )
+        if functional_name is  None or (force_name.lower() == functional_name.lower()):
+            display(HTML("<h1>%s</h1>"% force_name))
+            train_single_network(parameters=parameters,
+                                 samples=data_per_func[force_name],
+                                 base_title='Airfoils MC %s' % force_name,
+                                 network = get_airfoils_mc_network(),
+                                 large_integration_points = None,
+                                 sampling_method='MC',
+                                 monte_carlo_values = validation_values,
+                                 monte_carlo_parameters  = validation_parameters
+            )
 
 
     # In[ ]:

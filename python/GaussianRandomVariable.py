@@ -90,22 +90,35 @@ def sine_functional_3(x, dim):
 
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Compute sine case (with QMC points)')
+
+
+    parser.add_argument('--functional_name',
+                        default=None,
+                        help='The functional to use options: (sine, sined or sined3)')
+
+    args = parser.parse_args()
+    functional_name_arg = args.functional_name
+
     parameters, data_per_func,_,_ = get_sine_data()
     for functional_name in data_per_func.keys():
-        title = functional_name
-        display(HTML("<h1>%s</h1>" % title))
-        train_single_network(parameters=parameters,
-                           samples=data_per_func[functional_name],
-                         base_title=title,
-                         network = get_sine_network(),
-                         large_integration_points = None,
-                             sampling_method='QMC')
+        if functional_name_arg is  None or (functional_name_arg.lower() == functional_name.lower()):
+            title = functional_name
+            display(HTML("<h1>%s</h1>" % title))
+            train_single_network(parameters=parameters,
+                               samples=data_per_func[functional_name],
+                             base_title=title,
+                             network = get_sine_network(),
+                             large_integration_points = None,
+                                 sampling_method='QMC')
 
 
-        display(HTML("<h1>%s</h1>" % title))
-        try_best_network_sizes(parameters=parameters,
-                           samples=data_per_func[functional_name],
-                           base_title=title)
+            display(HTML("<h1>%s</h1>" % title))
+            try_best_network_sizes(parameters=parameters,
+                               samples=data_per_func[functional_name],
+                               base_title=title)
     # In[ ]:
 
 

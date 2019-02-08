@@ -45,22 +45,36 @@ def get_network():
     return [10, 10, 10, 10, 10,1]
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Compute sodshocktube case (with QMC points)')
+
+
+    parser.add_argument('--functional_name',
+                        default=None,
+                        help='The functional to use options: (q1, q2 or q3)')
+
+    args = parser.parse_args()
+    functional_name = args.functional_name
+
 
     network = get_network()
 
     parameters, data_by_func,_,_ = get_sod_data_qmc()
 
     for func_name in data_by_func.keys():
-        try_best_network_sizes(parameters=parameters,
-                               samples=data_by_func[func_name],
-                               base_title='Sod Shock QMC %s' % func_name)
+        if functional_name is  None or (func_name.lower() == functional_name.lower()):
+            try_best_network_sizes(parameters=parameters,
+                                   samples=data_by_func[func_name],
+                                   base_title='Sod Shock QMC %s' % func_name)
 
 
     for func_name in data_by_func.keys():
-        train_single_network(parameters=parameters,
-                             samples=data_by_func[func_name],
-                             base_title='Sod Shock QMC %s' % func_name,
-                             network = network)
+        if functional_name is  None or (func_name.lower() == functional_name.lower()):
+            train_single_network(parameters=parameters,
+                                 samples=data_by_func[func_name],
+                                 base_title='Sod Shock QMC %s' % func_name,
+                                 network = network)
 
 
     # In[ ]:

@@ -49,7 +49,7 @@ def submit(command, exports):
 
     os.system(command_to_run)
 
-def submit_notebook_in_parallel(notebook_name, depth, width):
+def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=None):
     exports = {}
     exports['MACHINE_LEARNING_NUMBER_OF_WIDTHS'] = str(width)
     exports["MACHINE_LEARNING_NUMBER_OF_DEPTHS"] = str(depth)
@@ -90,7 +90,9 @@ def submit_notebook_in_parallel(notebook_name, depth, width):
                                     os.mkdir('img_tikz')
                                     os.mkdir('tables')
                                     os.mkdir('results')
-                                    output = notebook.replace('.ipynb', 'Output.ipynb')
+
+                                    if functional_name is not None:
+                                        notebook = "{} --functional_name {}".format(notebook, functional_name)
                                     submit('python {notebook}'.format(
                                         notebook = notebook
                                     ), exports)
@@ -109,16 +111,27 @@ def submit_notebook_in_parallel(notebook_name, depth, width):
                                     os.chdir('..')
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Submit notebook in parallel')
+
+    parser.add_argument('--script', default=None, help='The script to run', required=True)
+    parser.add_argument('--number_of_widths', default=5, type=int, help='The number of widths to use')
+    parser.add_argumetn('--number_of_depths', default=5, type=int, help='The number of depths to use')
+
+    parser.add_argument('--functional_name',
+                        default=None,
+                        help='The functional to use options: depends on the script (optional)')
+
+    args = parser.parse_args()
+    functional_name = args.functional_name
+
     import sys
-    notebook = sys.argv[1]
+    notebook = parser.script
 
     notebook = os.path.basename(notebook)
-    width = 5
-    depth = 5
-    if len(sys.argv) == 4:
-
-        width = int(sys.argv[2])
-        depth = int(sys.argv[3])
+    width = parser.number_of_widths
+    depth = parser.number_of_depths
 
     print("Using depth = {}, width = {}".format(depth, width))
-    submit_notebook_in_parallel(notebook, depth, width)
+    submit_notebook_in_parallel(notebook, depth, width, functional_name = args.functional_name)

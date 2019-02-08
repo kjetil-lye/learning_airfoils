@@ -60,6 +60,18 @@ def get_airfoils_network():
     return [12, 12, 10, 12, 10, 12, 10, 10, 12,1]
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Compute airfoil case (with QMC points)')
+
+
+    parser.add_argument('--functional_name',
+                        default=None,
+                        help='The functional to use options: (lift or drag)')
+
+    args = parser.parse_args()
+    functional_name = args.functional_name
+
     airfoils_network = get_airfoils_network()
 
 
@@ -67,15 +79,17 @@ if __name__ == '__main__':
 
 
     for force_name in data_per_func.keys():
-        try_best_network_sizes(parameters=parameters,
-                               samples=data_per_func[force_name],
-                               base_title='Airfoils %s' % force_name)
+        if functional_name is  None or (force_name.lower() == functional_name.lower()):
+            try_best_network_sizes(parameters=parameters,
+                                   samples=data_per_func[force_name],
+                                   base_title='Airfoils %s' % force_name)
 
 
 
 
     for force_name in data_per_func.keys():
-        train_single_network(parameters=parameters,
-                             samples=data_per_func[force_name],
-                             base_title='Airfoils %s' % force_name,
-                             network = airfoils_network)
+        if functional_name is  None or (force_name.lower() == functional_name.lower()):
+            train_single_network(parameters=parameters,
+                                 samples=data_per_func[force_name],
+                                 base_title='Airfoils %s' % force_name,
+                                 network = airfoils_network)
