@@ -127,11 +127,11 @@ if __name__ == '__main__':
     functional_name = args.functional_name
 
     import sys
-    notebook = parser.script
+    notebook = args.script
 
     notebook = os.path.basename(notebook)
-    width = parser.number_of_widths
-    depth = parser.number_of_depths
+    width = args.number_of_widths
+    depth = args.number_of_depths
 
     print("Using depth = {}, width = {}".format(depth, width))
     submit_notebook_in_parallel(notebook, depth, width, functional_name = args.functional_name)
