@@ -32,7 +32,7 @@ def try_best_network_sizes_in_json(json_file,*, parameters, samples, base_title)
                                  base_config = config)
 
 
-def try_best_network_sizes(*, parameters, samples, base_title, base_config):
+def try_best_network_sizes(*, parameters, samples, base_title, base_config = None):
 
     losses = None
     optimizers_to_choose = None
