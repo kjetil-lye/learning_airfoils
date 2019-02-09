@@ -53,6 +53,7 @@ def get_airfoils_mc_data(highres=False):
 
 def get_airfoils_mc_network():
     airfoils_network = [12, 12, 10, 12, 10, 12, 10, 10, 12,1]
+    return airfoils_network
 
 def get_airfoils_mc_data_highres_with_qmc():
     mc_points, mc_data_per_func = get_airfoils_mc_data(True)
