@@ -19,13 +19,13 @@ def train_single_network(*, parameters, samples, base_title, network,
     losses = None
     optimizers_to_choose = None
     selection_to_choose = None
-    regularizations = None
+    regularizations_to_choose = None
 
     if base_config is not None:
         losses = [base_config['loss']]
         optimizers_to_choose = base_config['optimizer']
         selection_to_choose = base_config['selection']
-        regularizations = [base_config['regularization']]
+        regularizations_to_choose = [base_config['regularization']]
 
 
     train_sizes = network_parameters.get_training_sizes()
@@ -51,7 +51,7 @@ def train_single_network(*, parameters, samples, base_title, network,
 
                     for train_size in train_sizes:
 
-                        regularizations = regularizations or network_parameters.get_regularizations(train_size)
+                        regularizations = regularizations_to_choose or network_parameters.get_regularizations(train_size)
                         for regularization in regularizations:
                             regularization_name = "No regularization"
                             if regularization is not None:

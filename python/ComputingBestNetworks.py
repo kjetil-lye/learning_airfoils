@@ -17,7 +17,7 @@ import MachineLearningSixParametersAirfoil
 import GaussianRandomVariable
 from train_single_network import compute_for_all_in_json
 from post_process_hyperparameters import LatexWithAllPlots
-
+from notebook_network_size import find_best_network_size_notebook, try_best_network_sizes_in_json
 import argparse
 
 data_sources = {
@@ -51,6 +51,9 @@ parser.add_argument('--functional_name',
 
 parser.add_argument('--load_weights', action='store_true',
                     help='Load the weights from file (assumes the corresponding \n\tresults/<prefix>model.json and\n\tresults/<prefix>model.h5\n exists)')
+
+parser.add_argument('--try_network_sizes', action='store_true',
+                    help='Do the analysis of the network sizes')
 args = parser.parse_args()
 
 
@@ -75,23 +78,29 @@ for data_source_name in data_source_names:
     else:
         functional_names = [args.functional_name]
     for func_name in functional_names:
-        compute_for_all_in_json(json_file, parameters=parameters,
-                               samples=data_per_func[func_name],
-                                network=network,
-                               base_title='{} {}'.format(data_source_name, func_name),
-                               monte_carlo_values = monte_carlo_values[func_name],
-                               monte_carlo_parameters = monte_carlo_parameters,
-                               load_network_weights = args.load_weights)
-        try:
-            compute_for_all_in_json(json_file, parameters=monte_carlo_parameters,
-                               samples=monte_carlo_values[func_name],
-                                network=network,
-                               base_title='MC {} {}'.format(data_source_name, func_name),
-                               monte_carlo_values = monte_carlo_values[func_name],
-                               monte_carlo_parameters = monte_carlo_parameters,
-                               load_network_weights = args.load_weights)
-        except:
-            pass
+
+        if args.try_network_sizes:
+            try_best_network_sizes_in_json(json_file, parameters=parameters,
+                                   samples=data_per_func[func_name],
+                                   base_title='{} {}'.format(data_source_name, func_name))
+        else:
+            compute_for_all_in_json(json_file, parameters=parameters,
+                                   samples=data_per_func[func_name],
+                                    network=network,
+                                   base_title='{} {}'.format(data_source_name, func_name),
+                                   monte_carlo_values = monte_carlo_values[func_name],
+                                   monte_carlo_parameters = monte_carlo_parameters,
+                                   load_network_weights = args.load_weights)
+            try:
+                compute_for_all_in_json(json_file, parameters=monte_carlo_parameters,
+                                   samples=monte_carlo_values[func_name],
+                                    network=network,
+                                   base_title='MC {} {}'.format(data_source_name, func_name),
+                                   monte_carlo_values = monte_carlo_values[func_name],
+                                   monte_carlo_parameters = monte_carlo_parameters,
+                                   load_network_weights = args.load_weights)
+            except:
+                pass
 
 with open(latex_out, 'w') as f:
     f.write(latex.get_latex())

@@ -10,12 +10,47 @@ import network_parameters
 import copy
 import os
 
-def try_best_network_sizes(*, parameters, samples, base_title):
+def try_best_network_sizes_in_json(json_file,*, parameters, samples, base_title):
+    with open(json_file) as infile:
+        configurations = json.load(infile)
+
+        for configuration_name in configurations.keys():
+            config = configurations[configuration_name]
+
+            if config['regularization'] == 'None':
+                config['regularization'] = None
+            else:
+                if config['regularization']['l1'] > 0:
+                    config['regularization'] = keras.regularizers.l1(config['regularization']['l1'] )
+                else:
+                    config['regularization'] = keras.regularizers.l2(config['regularization']['l2'] )
+
+            display(HTML("<h1>{}</h1>".format(configuration_name)))
+            try_best_network_sizes(parameters=parameters,
+                                 samples=samples,
+                                 base_title=base_title,
+                                 base_config = config)
+
+
+def try_best_network_sizes(*, parameters, samples, base_title, base_config):
+
+    losses = None
+    optimizers_to_choose = None
+    selection_to_choose = None
+    regularizations_to_choose = None
+
+    if base_config is not None:
+        losses = [base_config['loss']]
+        optimizers_to_choose = base_config['optimizer']
+        selection_to_choose = base_config['selection']
+        regularizations_to_choose = [base_config['regularization']]
+    else:
+        losses = network_parameters.get_losses()
+
     optimizers = network_parameters.get_optimizers()
 
-    losses = network_parameters.get_losses()
-
     selections = network_parameters.get_selections()
+
 
 
     class TrainingFunction(object):
@@ -34,15 +69,20 @@ def try_best_network_sizes(*, parameters, samples, base_title):
     training_sizes = network_parameters.get_training_sizes()
 
     for optimizer in optimizers.keys():
+        if optimizers_to_choose is not None and optimizer != optimizers_to_choose:
+            continue
+
         for selection_type in selections.keys():
             display(HTML("<h1>%s</h1>" % selection_type))
 
             for selection in selections[selection_type]:
+                if selection_to_choose is not None and selection_to_choose != selection:
+                    continue
 
                 display(HTML("<h2>%s</h2>" % selection))
 
-                number_of_widths = 5
-                number_of_depths = 5
+                number_of_widths = 3
+                number_of_depths = 3
 
                 if "MACHINE_LEARNING_NUMBER_OF_WIDTHS" in os.environ:
                     number_of_widths = int(os.environ["MACHINE_LEARNING_NUMBER_OF_WIDTHS"])
@@ -54,56 +94,58 @@ def try_best_network_sizes(*, parameters, samples, base_title):
 
                 for train_size in training_sizes:
                     for loss in losses:
-                        regularizations = network_parameters.get_regularizations(train_size)
+
+                        regularizations = regularizations_to_choose or network_parameters.get_regularizations(train_size)
                         for regularization in regularizations:
                             regularization_name = "No regularization"
                             if regularization is not None:
+
                                 if regularization.l2 > 0:
-                                    regularization_name = "l2 (%f)" % regularization.l2
+                                    regularization_name = "l2 (%.4e)" % regularization.l2
                                 else:
-                                    regularization_name = "l1 (%f)" % regularization.l1
+                                    regularization_name = "l1 (%.4e)" % regularization.l1
 
-                                learning_rates = network_parameters.get_learning_rates()
-                                for learning_rate in learning_rates:
-                                    epochs = network_parameters.get_epochs()
-                                    for epoch in epochs:
-                                        display(HTML("<h4>%s</h4>" % regularization_name))
+                            learning_rates = network_parameters.get_learning_rates()
+                            for learning_rate in learning_rates:
+                                epochs = network_parameters.get_epochs()
+                                for epoch in epochs:
+                                    display(HTML("<h4>%s</h4>" % regularization_name))
 
-                                        title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d\nLearning rate: %f, Epochs: %d' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size, learning_rate, epoch)
-                                        short_title = title
-                                        run_function = TrainingFunction(parameters=parameters,
-                                            samples = samples,
-                                            title = title)
+                                    title = '%s\nRegularization:%s\nSelection Type: %s, Selection criterion: %s\nLoss function: %s, Optimizer: %s, Train size: %d\nLearning rate: %f, Epochs: %d' % (base_title, regularization_name, selection_type, selection, loss, optimizer, train_size, learning_rate, epoch)
+                                    short_title = title
+                                    run_function = TrainingFunction(parameters=parameters,
+                                        samples = samples,
+                                        title = title)
 
-                                        tables = Tables.make_default()
+                                    tables = Tables.make_default()
 
-                                        network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epoch,
-                                                                                 network=None, train_size=None,
-                                                                                 validation_size=None,
-                                                                                loss=loss, tries=5,
-                                                                                learning_rate=learning_rate,
+                                    network_information = NetworkInformation(optimizer=optimizers[optimizer], epochs=epoch,
+                                                                             network=None, train_size=None,
+                                                                             validation_size=None,
+                                                                            loss=loss, tries=5,
+                                                                            learning_rate=learning_rate,
 
-                                                                                selection=selection, kernel_regularizer = regularization)
-
-
-
-                                        output_information = OutputInformation(tables=tables, title=title,
-                                                                              short_title=title, enable_plotting=False)
-
-                                        showAndSave.prefix = '%s_%s_%s_%s_%s_%s_%d_%s_%s' % (only_alphanum(base_title), only_alphanum(regularization_name),
-                                            only_alphanum(selection_type), only_alphanum(selection), loss, only_alphanum(optimizer), train_size,
-                                            only_alphanum(str(epoch)),
-                                            only_alphanum(str(learning_rate)))
+                                                                            selection=selection, kernel_regularizer = regularization)
 
 
-                                        selection_error, error_map = find_best_network_size_notebook(network_information = network_information,
-                                            output_information = output_information,
-                                            train_size = train_size,
-                                            run_function = run_function,
-                                            number_of_depths = number_of_depths,
-                                            number_of_widths = number_of_widths,
-                                            base_title = title,
-                                            only_selection = False)
+
+                                    output_information = OutputInformation(tables=tables, title=title,
+                                                                          short_title=title, enable_plotting=False)
+
+                                    showAndSave.prefix = '%s_%s_%s_%s_%s_%s_%d_%s_%s' % (only_alphanum(base_title), only_alphanum(regularization_name),
+                                        only_alphanum(selection_type), only_alphanum(selection), loss, only_alphanum(optimizer), train_size,
+                                        only_alphanum(str(epoch)),
+                                        only_alphanum(str(learning_rate)))
+
+
+                                    selection_error, error_map = find_best_network_size_notebook(network_information = network_information,
+                                        output_information = output_information,
+                                        train_size = train_size,
+                                        run_function = run_function,
+                                        number_of_depths = number_of_depths,
+                                        number_of_widths = number_of_widths,
+                                        base_title = title,
+                                        only_selection = False)
 
 
 
