@@ -53,7 +53,7 @@ def submit(command, exports, arguments):
 
     os.system(command_to_run)
 
-def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=None, only_missing=False):
+def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=None, only_missing=False, prefix=''):
     exports = {}
     exports['MACHINE_LEARNING_NUMBER_OF_WIDTHS'] = str(width)
     exports["MACHINE_LEARNING_NUMBER_OF_DEPTHS"] = str(depth)
@@ -83,7 +83,7 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                     exports[network_parameters.get_epochs.key] = str(m)
 
                                     folder_name = "_".join([exports[k] for k in exports.keys()])
-                                    folder_name = os.path.splitext(notebook_name)[0] +"_"+ folder_name
+                                    folder_name = os.path.splitext(notebook_name)[0] +prefix + "_"+ folder_name
                                     folder_name = ''.join(ch for ch in folder_name if ch.isalnum() or ch =='_')
                                     print(folder_name)
                                     if not only_missing:
@@ -156,6 +156,13 @@ if __name__ == '__main__':
     notebook = os.path.basename(notebook)
     width = args.number_of_widths
     depth = args.number_of_depths
+    if functional_name is not None:
+        prefix = "_{}".format(functional_name)
+    else:
+        prefix = ""
 
     print("Using depth = {}, width = {}".format(depth, width))
-    submit_notebook_in_parallel(notebook, depth, width, functional_name = args.functional_name, only_missing=args.only_missing)
+    submit_notebook_in_parallel(notebook, depth, width,
+        functional_name = args.functional_name,
+        only_missing=args.only_missing,
+        prefix=prefix)
