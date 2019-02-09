@@ -7,7 +7,7 @@ set -e
 for func in 'Lift' 'Drag';
 do
 
-    screen -S $func -dm bash -c "python3 ../python/ComputingBestNetworks.py --data_source 'Airfoils' --functional_name ${func}";
+    screen -S $func -dm bash -c "python3 ../python/ComputingBestNetworks.py --data_source 'Airfoils' --functional_name ${func}&> log_best_airfoils_${func//\//}.txt";
 
 done
 
@@ -15,11 +15,11 @@ done
 for func in 'Q1' 'Q2' 'Q3';
 do
 
-    screen -S $func -dm bash -c "python3 ../python/ComputingBestNetworks.py --data_source 'SodShockTubeQMC' --functional_name ${func}";
+    screen -S $func -dm bash -c "python3 ../python/ComputingBestNetworks.py --data_source 'SodShockTubeQMC' --functional_name ${func}&> log_sod_${func//\//}.txt";
 done
 
 for func in 'Sine' 'Sine/d' 'Sine/d3';
 do
 
-    screen -S $func -dm bash -c "python3 ../python/ComputingBestNetworks.py --data_source 'Sine' --functional_name ${func}";
+    screen -S ${func//\//} -dm bash -c "python3 ../python/ComputingBestNetworks.py --data_source 'Sine' --functional_name ${func}&> log_best_sine_${func//\//}.txt";
 done
