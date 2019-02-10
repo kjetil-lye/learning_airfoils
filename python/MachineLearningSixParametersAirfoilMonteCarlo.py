@@ -115,7 +115,7 @@ if __name__ == '__main__':
                                  network = get_airfoils_mc_network(),
                                  large_integration_points = None,
                                  sampling_method='MC',
-                                 monte_carlo_values = validation_values,
+                                 monte_carlo_values = validation_values[force_name],
                                  monte_carlo_parameters  = validation_parameters
             )
 
