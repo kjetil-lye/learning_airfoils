@@ -16,6 +16,7 @@ import os.path
 import datetime
 import traceback
 import inspect
+import copy
 from IPython.core.display import display, HTML
 try:
     import git
@@ -154,6 +155,7 @@ def get_current_title():
         return ''
 
 def savePlot(name):
+    original_name = copy.deepcopy(name)
     if savePlot.disabled:
         return
 
@@ -247,7 +249,7 @@ def savePlot(name):
     if not name.endswith("_notitle"):
         old_title = get_current_title()
         plt.title("")
-        savePlot(name + "_notitle")
+        savePlot(original_name + "_notitle")
         plt.title(old_title)
         title = old_title
     else:
