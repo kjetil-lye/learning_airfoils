@@ -76,7 +76,7 @@ else:
     data_source_names = args.data_source
 
 
-if not args.try_best_network_sizes and not args.do_not_train_single_size_first:
+if not args.try_network_sizes and not args.do_not_train_single_size_first:
     for data_source_name in data_source_names:
         parameters, data_per_func, monte_carlo_parameters, monte_carlo_values = data_sources[data_source_name][0]()
         network = data_sources[data_source_name][1]()
