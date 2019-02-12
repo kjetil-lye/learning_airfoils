@@ -155,6 +155,17 @@ class OutputInformation(object):
     def write_tables(self):
         self.tables.write_tables()
 
+def load_network_from_file(base_filename):
+    with open(base_filename + ".json") as json_file:
+
+        loaded_model_json = json_file.read()
+
+        loaded_model = keras.models.model_from_json(loaded_model_json)
+        # load weights into new model
+        loaded_model.load_weights(base_filename + ".h5")
+
+        return loaded_model
+
 
 def compute_mean_prediction_error(data, data_predicted, train_size, norm_ord):
     base = np.mean(abs(data)**norm_ord)
@@ -235,7 +246,7 @@ def get_network(parameters, data, *, network_information, output_information):
 
 
             return loaded_model, data, parameters
-
+    runtimes = []
     for trylearn in range(network_information.tries):
         model = Sequential()
         model.add(Dense(network_information.network[0],
@@ -283,7 +294,7 @@ def get_network(parameters, data, *, network_information, output_information):
                          validation_data=(x_train[training_ray_samples:, :], y_train[training_ray_samples:]),verbose=0)
         print()
         end_training_time = time.time()
-
+        runtimes.append(end_training_time-start_training_time)
 
         print("Training took {} seconds".format(end_training_time-start_training_time))
         console_log("Training took {} seconds".format(end_training_time-start_training_time))
@@ -362,7 +373,7 @@ def get_network(parameters, data, *, network_information, output_information):
     output_information.selection_error = best_learning_rate
     end_total_learning = time.time()
 
-
+    np.save("results/" + showAndSave.prefix + "runtimes.npy", runtimes)
     print("Best network index: %d" % best_network_index)
     console_log("Best network index: %d" % best_network_index)
     print("Total learning time took: %d s" % (end_total_learning-start_total_learning))
@@ -927,6 +938,8 @@ def var_bilevel(x, all_data, train_size):
 def var_bilevel_alternative(x, all_data, train_size):
     m = mean_bilevel(x, all_data, train_size)
     return np.mean((all_data[:min(train_size, x.shape[0])]-m)**2-(x[:min(train_size, x.shape[0])]-m)**2)+np.mean((x-m)**2)
+
+
 
 
 def compute_stats_with_reuse(network, lsq_predictor, network_information, output_information, parameters, data, train_size, postfix=""):

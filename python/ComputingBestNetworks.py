@@ -17,22 +17,7 @@ from notebook_network_size import find_best_network_size_notebook, try_best_netw
 import argparse
 import os
 
-data_sources = {
-    'Airfoils' : [
-        MachineLearningSixParametersAirfoil.get_airfoil_data,
-        MachineLearningSixParametersAirfoil.get_airfoils_network
-    ],
-
-    'SodShockTubeQMC' : [
-        SodShockTubeQMC.get_sod_data_qmc,
-        SodShockTubeQMC.get_network
-    ],
-
-    'Sine' : [
-        GaussianRandomVariable.get_sine_data,
-        GaussianRandomVariable.get_sine_network
-    ]
-}
+from data_sources import data_sources
 
 
 parser = argparse.ArgumentParser(description='Compute all test cases with the best networks')
