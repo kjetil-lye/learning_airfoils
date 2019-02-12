@@ -18,6 +18,29 @@ import os
 from data_sources import data_sources
 import numpy as np
 import time
+import platform
+
+import os, platform, subprocess, re
+def get_processor_name():
+    """
+    adapted from https://stackoverflow.com/a/13078519
+    """
+    if platform.system() == "Windows":
+        return platform.processor()
+    elif platform.system() == "Darwin":
+        os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
+        command ="sysctl -n machdep.cpu.brand_string"
+        return subprocess.check_output(command).strip()
+    elif platform.system() == "Linux":
+        command = "cat /proc/cpuinfo"
+        all_info = str(subprocess.check_output(command, shell=True).strip())
+
+        for line in all_info.split("\\n"):
+            if "model name" in line:
+                return re.sub( ".*model name.*:", "", line,1)
+    return "Unknown"
+
+
 
 parser = argparse.ArgumentParser(description='Does a speed test for the given network and functional.')
 parser.add_argument('--data_source', type=str, default=None, action='append',
@@ -84,16 +107,19 @@ for data_source_name in data_source_names:
                 sys.stdout.flush()
 
                 start = time.time()
-                for q in range(50):
-                    _ = model.predict(parameters)
+                retries = 200
+
+                parameter_dummies = [np.random.uniform(0,1,parameters.shape) for q in range(retries)]
+                for q in range(retries):
+                    _ = model.predict(parameter_dummies[q])
                 end = time.time()
 
-                eval_times.append((end-start)/50)
+                eval_times.append((end-start)/retries)
 
             print()
 
         table.add_row(["evaluation (on {} parameters)".format(parameters.shape[0]),
                        np.min(eval_times), np.max(eval_times), np.mean(eval_times)])
 
-        table.set_title("Runtimes for " + data_source_name + " " + func_name + " over network parameters in in {}".format(args.json_file))
+        table.set_title("Runtimes for " + data_source_name + " " + func_name + " over network parameters in {} (on {})".format(args.json_file, get_processor_name()))
         table.print_table(data_source_name + " " + func_name + args.output_table)
