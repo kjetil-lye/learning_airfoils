@@ -23,7 +23,14 @@ fi
 if [ ! -f ${AIRFOILS_DLMC_KH_DATAPATH}/qmc_large.txt ];
 then
     echo "The exported variable AIRFOILS_DLMC_KH_DATAPATH does not contain qmc_large.txt"
-    echo "Please update $0 and set it to a folder containing kh_1.nc and qmc_large.txt"
+    echo "Please update $0 and set it to a folder containing kh_1.nc, qmc_points.txt and qmc_large.txt"
+    exit 1
+fi
+
+if [ ! -f ${AIRFOILS_DLMC_KH_DATAPATH}/qmc_points.txt ];
+then
+    echo "The exported variable AIRFOILS_DLMC_KH_DATAPATH does not contain qmc_points.txt"
+    echo "Please update $0 and set it to a folder containing kh_1.nc, qmc_points.txt and qmc_large.txt"
     exit 1
 fi
 
