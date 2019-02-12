@@ -75,6 +75,23 @@ if args.data_source is None:
 else:
     data_source_names = args.data_source
 
+
+if not args.try_best_network_sizes and not args.do_not_train_single_size_first:
+    for data_source_name in data_source_names:
+        parameters, data_per_func, monte_carlo_parameters, monte_carlo_values = data_sources[data_source_name][0]()
+        network = data_sources[data_source_name][1]()
+        if args.functional_name is None:
+            functional_names = data_per_func.keys()
+        else:
+            functional_names = args.functional_name
+        for func_name in functional_names:
+
+            os.environ['MACHINE_LEARNING_NUMBER_OF_WIDTHS'] = '1'
+            os.environ['MACHINE_LEARNING_NUMBER_OF_DEPTHS'] = '1'
+            try_best_network_sizes_in_json(json_file, parameters=parameters,
+                                   samples=data_per_func[func_name],
+                                   base_title='{} {}'.format(data_source_name, func_name))
+
 for data_source_name in data_source_names:
     parameters, data_per_func, monte_carlo_parameters, monte_carlo_values = data_sources[data_source_name][0]()
     network = data_sources[data_source_name][1]()
@@ -89,13 +106,6 @@ for data_source_name in data_source_names:
                                    samples=data_per_func[func_name],
                                    base_title='{} {}'.format(data_source_name, func_name))
         else:
-            if not args.do_not_train_single_size_first:
-                os.environ['MACHINE_LEARNING_NUMBER_OF_WIDTHS'] = '1'
-                os.environ['MACHINE_LEARNING_NUMBER_OF_DEPTHS'] = '1'
-                try_best_network_sizes_in_json(json_file, parameters=parameters,
-                                       samples=data_per_func[func_name],
-                                       base_title='{} {}'.format(data_source_name, func_name))
-
             if not args.train_monte_carlo:
                 compute_for_all_in_json(json_file, parameters=parameters,
                                        samples=data_per_func[func_name],
