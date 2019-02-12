@@ -114,11 +114,11 @@ for data_source_name in data_source_names:
                     _ = model.predict(parameter_dummies[q])
                 end = time.time()
 
-                eval_times.append((end-start)/retries)
+                eval_times.append((end-start)/(retries*parameters.shape[0]))
 
             print()
 
-        table.add_row(["evaluation (on {} parameters)".format(parameters.shape[0]),
+        table.add_row(["evaluation (per sample)".format(parameters.shape[0]),
                        np.min(eval_times), np.max(eval_times), np.mean(eval_times)])
 
         table.set_title("Runtimes for " + data_source_name + " " + func_name + " over network parameters in {} (on {})".format(args.json_file, get_processor_name()))
