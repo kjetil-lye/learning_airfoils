@@ -7,10 +7,10 @@ python3 ../python/split_best_networks_into_individual_files.py
 
 for network in 'Lift' 'Drag' 'effective'
 do
-    python3 ../python/speedtest.py --json_file ../data/${network}_best_network.json --data_source 'Airfoils' --functional_name Lift --functional_name Drag &> log_speedtest_${network}_airfoils.txt;
+    python3 ../python/speedtest.py --json_file ../data/${network}_best_network.json --data_source 'Airfoils' --functional_name Lift --functional_name Drag
 done
 
 for network in 'Q1' 'Q2' 'Q3' 'effective'
 do
-  python3 ../python/speedtest.py --json_file ../data/${network}_best_network.json --data_source 'SodShockTubeQMC' --functional_name Q1 --functional_name Q2 --functional_name Q3 &> log_speedtest_${network}_sod.txt;
+  python3 ../python/speedtest.py --json_file ../data/${network}_best_network.json --data_source 'SodShockTubeQMC' --functional_name Q1 --functional_name Q2 --functional_name Q3
 done
