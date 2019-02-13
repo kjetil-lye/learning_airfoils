@@ -65,6 +65,6 @@ Open a web browser on your computer and enter the address
 
      http://127.0.0.1:8888/?token=TOKEN_FROM_OUTPUT
 
-with the above output ```TOKEN_FROM_OUTPTU``` would bee ```ffb2462e780fcf14e7dc3823eb2667d0c4653112626f8c4a``` (this changes for every run).
+with the above output ```TOKEN_FROM_OUTPUT``` would bee ```ffb2462e780fcf14e7dc3823eb2667d0c4653112626f8c4a``` (this changes for every run).
 
     
