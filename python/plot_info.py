@@ -150,7 +150,7 @@ def only_alphanum(s):
 
 def get_current_title():
     try:
-        return plt.gcf().texts[0].get_text()
+        return copy.deepcopy(plt.gcf().texts[0].get_text())
     except:
         return ''
 
