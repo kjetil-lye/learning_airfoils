@@ -34,6 +34,7 @@ User
        bash -c 'cd /project/notebooks; bash <script to run>'
 
 where ```PATH_TO_GIT_REPO``` is the local path to this git repo (base folder) and ```<script to run>``` is the name of the (shell) script you wish to run. Replace
+
     bash <script to run>
 
 with
