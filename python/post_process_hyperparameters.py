@@ -149,7 +149,7 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
 
         targets_to_store = [
             'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source),
-            'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_mean_l2_relative'.format(data_source=data_source)
+            'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_l2_relative'.format(data_source=data_source)
 
         ]
         found_configs = {}
@@ -371,8 +371,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
         "wasserstein_error_cut" : "Wasserstein",
         "mean_bilevel_error_relative": "relative error bilevel mean",
         "var_bilevel_error_relative" :"relative error bilevel variance",
-        "prediction_mean_l1_relative": 'relative prediction error ($L^1$)',
-        "prediction_mean_l2_relative" : 'relative prediction error ($L^2$)',
+        "prediction_l1_relative": 'relative prediction error ($L^1$)',
+        "prediction_l2_relative" : 'relative prediction error ($L^2$)',
         'wasserstein_speedup_raw' : 'Raw Wasserstein speedup',
         'wasserstein_speedup_real' : 'Wasserstein speedup with convergence rate',
     }
@@ -383,8 +383,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
         "wasserstein_error_cut" : "results.best_network.base_sampling_error.wasserstein_error_cut",
         "mean_bilevel_error_relative": "results.best_network.base_sampling_error.mean_error_relative",
         "var_bilevel_error_relative" :"results.best_network.base_sampling_error.var_error_relative",
-        "prediction_mean_l1_relative": 'results.best_network.algorithms.{data_source}.lsq.ordinary.prediction_mean_l1_relative'.format(data_source=data_source),
-        "prediction_mean_l2_relative" :  'results.best_network.algorithms.{data_source}.lsq.ordinary.prediction_mean_l2_relative'.format(data_source=data_source),
+        "prediction_l1_relative": 'results.best_network.algorithms.{data_source}.lsq.ordinary.prediction_l1_relative'.format(data_source=data_source),
+        "prediction_l2_relative" :  'results.best_network.algorithms.{data_source}.lsq.ordinary.prediction_l2_relative'.format(data_source=data_source),
         'wasserstein_speedup_raw' : "results.best_network.base_sampling_error.wasserstein_speedup",
         'wasserstein_speedup_real' : "results.best_network.base_sampling_error.wasserstein_speedup",
     }
@@ -395,8 +395,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
         "wasserstein_error_cut" : sampling_method,
         "mean_bilevel_error_relative": sampling_method,
         "var_bilevel_error_relative" : sampling_method,
-        "prediction_mean_l1_relative": 'LSQ (with {})'.format(sampling_method),
-        "prediction_mean_l2_relative" : 'LSQ (with {})'.format(sampling_method),
+        "prediction_l1_relative": 'LSQ (with {})'.format(sampling_method),
+        "prediction_l2_relative" : 'LSQ (with {})'.format(sampling_method),
          'wasserstein_speedup_raw' : sampling_method,
         'wasserstein_speedup_real' : sampling_method
     }
@@ -1090,8 +1090,8 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
         "wasserstein_error_cut" : "Wasserstein",
         "mean_bilevel_error_relative": "relative error bilevel mean",
         "var_bilevel_error_relative" :"relative error bilevel variance",
-        "prediction_mean_l1_relative": 'relative prediction error ($L^1$)',
-        "prediction_mean_l2_relative" : 'relative prediction error ($L^2$)',
+        "prediction_l1_relative": 'relative prediction error ($L^1$)',
+        "prediction_l2_relative" : 'relative prediction error ($L^2$)',
         'wasserstein_speedup_raw' : 'Raw Wasserstein speedup',
         'wasserstein_speedup_real' : 'Wasserstein speedup with convergence rate',
     }
