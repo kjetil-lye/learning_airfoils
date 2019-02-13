@@ -1146,6 +1146,6 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
                     functional=functional, title1 = title1, title2 = title2, train_size = train_size, tactic = tactic, error = error, main_title=main_title
                 ))
 
-                if train_size == 128:
-                    plt.show()
+                #if train_size == 128:
+                #   plt.show()
                 plt.close('all')
