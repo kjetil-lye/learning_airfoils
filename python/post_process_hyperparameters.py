@@ -694,7 +694,8 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                 plt.plot(regularization_sizes, reg_errors, '-o', label=names[error], linewidth=3)
 
                 xticks_regularization_sizes = [0]
-                xticks_regularization_sizes.extend(regularization_sizes[2:])
+                xticks_regularization_sizes.append(regularization_sizes[-1]/2)
+                
                 plt.xticks(xticks_regularization_sizes, ['{:.1e}'.format(k) for k in xticks_regularization_sizes])
 
                 if 'speedup' not in error:
