@@ -1,6 +1,7 @@
 #!/bin/bash
 # This corresponds to 128 training samples
 export MACHINE_LEARNING_TRAINING_SIZE=2
+export MACHINE_LEARNING_DO_NOT_SAVE_PLOTS=on
 export OMP_NUM_THREADS=1
 set -e
 python3 ../python/split_best_networks_into_individual_files.py
