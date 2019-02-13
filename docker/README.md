@@ -30,8 +30,8 @@ where ```${userid}``` is the user id of your user.
 
 User
 
-    docker run --user ${userid} --rm airfoils_learning:git -v PATH_TO_GIT_REPO:/project \
-       bash -c 'cd /project/notebooks; bash <script to run>'
+    docker run --user ${userid} --rm  -v PATH_TO_GIT_REPO:/project \
+       airfoils_learning:git bash -c 'cd /project/notebooks; bash <script to run>'
 
 where ```PATH_TO_GIT_REPO``` is the local path to this git repo (base folder) and ```<script to run>``` is the name of the (shell) script you wish to run. Replace
 
@@ -44,7 +44,11 @@ with
 in the last part if it is a python script. ```${userid}``` is the user id.
 
 
+## Running the notebook
 
+Run
 
+    docker run -p 8888:8888 --user ${userid} --rm -v PATH_TO_GIT_REPO:/project \
+       airfoils_learning:git bash -c 'cd /project/notebooks; jupyter notebook'
 
-    
+where ```PATH_TO_GIT_REPO``` is the local path to this git repo (base folder). ```${userid}``` is the user id.
