@@ -695,6 +695,8 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
 
                 xticks_regularization_sizes = [0]
                 xticks_regularization_sizes.append(regularization_sizes[-1]/2)
+                xticks_regularization_sizes.append(regularization_sizes[-1])
+
 
                 plt.xticks(xticks_regularization_sizes, ['{:.1e}'.format(k) for k in xticks_regularization_sizes])
 
