@@ -690,14 +690,17 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                 reg_errors_var = [np.var(errors_local_regularization[k]) for k in regularization_sizes]
                 reg_errors_min = [np.min(errors_local_regularization[k]) for k in regularization_sizes]
                 reg_errors_max = [np.max(errors_local_regularization[k]) for k in regularization_sizes]
-                plt.errorbar(regularization_sizes, reg_errors, yerr=reg_errors_var, label=names[error], linewidth=3)
+                #plt.errorbar(regularization_sizes, reg_errors, yerr=reg_errors_var, label=names[error], linewidth=3)
+                plt.plot(regularization_sizes, reg_errors, '-o', label=names[error], linewidth=3)
 
-                plt.xticks(regularization_sizes, ['{:.1e}' for k in regularization_sizes])
+                xticks_regularization_sizes = [0]
+                xticks_regularization_sizes.extend(regularization_sizes[2:])
+                plt.xticks(xticks_regularization_sizes, ['{:.1e}'.format(k) for k in xticks_regularization_sizes])
 
                 if 'speedup' not in error:
-                    plt.plot(regularization_sizes, reg_errors_min, '--o', label='minimum')
+                    plt.plot(regularization_sizes, reg_errors_min, '--o', label='minimum', linewidth=3)
                 else:
-                    plt.plot(regularization_sizes, reg_errors_max, '--*', label='maximum')
+                    plt.plot(regularization_sizes, reg_errors_max, '--*', label='maximum', linewidth=3)
                 plot_info.legendLeft()
                 plt.title("Average error as a function of regularization size\n{functional}, configurations:{config},\nError: {error}, training size: {train_size}, tactic: {tactic}".
                     format(functional=functional, config=title, error=names[error], train_size=train_size, tactic=tactic))
