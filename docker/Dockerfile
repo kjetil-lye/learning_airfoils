@@ -1,7 +1,10 @@
-FROM ubuntu:18.04
-LABEL learning_airfoils_version="git"
+ARG TENSORFLOW_VERSION="1.12.0"
 
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip
+FROM tensorflow/tensorflow:${TENSORFLOW_VERSION}
 
-RUN pip3 install tensorflow keras jupyter[notebook] matplotlib matplotlib2tikz GitPython numpy scipy scikit-learn netcdf4 h5py tabulate
+RUN apt-get update && apt-get install --yes git python3-matplotlib python3-numpy libnetcdf-dev libhdf5-dev 
+RUN pip install gitpython matplotlib2tikz h5py netcdf4 tabulate sobol sobol_seq keras
+
+    
+
+
