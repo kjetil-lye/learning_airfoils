@@ -184,7 +184,7 @@ def savePlot(name):
 
     if gitMetadata['git_short_commit'] != "unkown":
         if not name.endswith("_notitle"):
-            ax.text(0.13, 0.93, "@" + gitMetadata['git_short_commit'], fontsize=10,
+            ax.text(0.2, 0.93, "@" + gitMetadata['git_short_commit'], fontsize=10,
             ha='right', va='bottom', alpha=0.5, transform=ax.transAxes)
 
     # We don't want all the output from matplotlib2tikz
