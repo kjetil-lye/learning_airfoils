@@ -370,12 +370,12 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
 
     sampling_method = re.search(r'(^[Q]?MC)_from_data$', data_source).group(1)
     names = {
-        "mean_error_relative" : "mean relative error",
-        "var_error_relative" : "variance relative error",
+        #"mean_error_relative" : "mean relative error",
+        #"var_error_relative" : "variance relative error",
         "wasserstein_error_cut" : "Wasserstein",
-        "mean_bilevel_error_relative": "relative error bilevel mean",
-        "var_bilevel_error_relative" :"relative error bilevel variance",
-        "prediction_l1_relative": 'relative prediction error ($L^1$)',
+        #"mean_bilevel_error_relative": "relative error bilevel mean",
+        #"var_bilevel_error_relative" :"relative error bilevel variance",
+        #"prediction_l1_relative": 'relative prediction error ($L^1$)',
         "prediction_l2_relative" : 'relative prediction error ($L^2$)',
         'wasserstein_speedup_raw' : 'Raw Wasserstein speedup',
         'wasserstein_speedup_real' : 'Wasserstein speedup with convergence rate',
@@ -695,7 +695,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
 
                 xticks_regularization_sizes = [0]
                 xticks_regularization_sizes.append(regularization_sizes[-1]/2)
-                
+
                 plt.xticks(xticks_regularization_sizes, ['{:.1e}'.format(k) for k in xticks_regularization_sizes])
 
                 if 'speedup' not in error:
@@ -1109,12 +1109,12 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
 
     sampling_method = re.search(r'(^[Q]?MC)_from_data$', data_source).group(1)
     names = {
-        "mean_error_relative" : "mean relative error",
-        "var_error_relative" : "variance relative error",
+        #"mean_error_relative" : "mean relative error",
+        #"var_error_relative" : "variance relative error",
         "wasserstein_error_cut" : "Wasserstein",
-        "mean_bilevel_error_relative": "relative error bilevel mean",
-        "var_bilevel_error_relative" :"relative error bilevel variance",
-        "prediction_l1_relative": 'relative prediction error ($L^1$)',
+        #"mean_bilevel_error_relative": "relative error bilevel mean",
+        #"var_bilevel_error_relative" :"relative error bilevel variance",
+        #"prediction_l1_relative": 'relative prediction error ($L^1$)',
         "prediction_l2_relative" : 'relative prediction error ($L^2$)',
         'wasserstein_speedup_raw' : 'Raw Wasserstein speedup',
         'wasserstein_speedup_real' : 'Wasserstein speedup with convergence rate',
