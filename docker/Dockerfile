@@ -7,6 +7,8 @@ RUN pip3 install gitpython matplotlib2tikz h5py netcdf4 tabulate sobol sobol_seq
 
 ARG USERID='1000'
 RUN useradd -r -u ${USERID}  appuser
+RUN mkdir /home/appuser
+RUN chown appuser /home/appuser
 USER appuser
     
 
