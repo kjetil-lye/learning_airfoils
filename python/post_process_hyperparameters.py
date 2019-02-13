@@ -176,15 +176,16 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
         'All configurations' : lambda x: True,
         'Only Adam with ($L^2$ and no regularization) or ($L^1$)' : only_adam_and_no_regularization_for_mse,
         'Only Adam with ($L^2$ and no regularization) or ($L^1$ with regularization)' : only_adam_and_no_regularization_for_mse_and_reg_for_l1,
+        'Only Adam with ($L^2$ and low regularization) or ($L^1$ with regularization)' : only_adam_and_low_regularization_for_mse_and_reg_for_l1
     }
 
     filters_single = {}
     #for f in [best_configuration_1, best_configuration_2, best_configuration_3, best_configuration_4]:
     #    filters_single[f.__doc__] = f
-    if not os.path.exists('acceptable.json'):
-        raise Exception("You should run the notebook Intersection.ipynb to generate the acceptable.json file!")
-    for f in get_filters_from_file('acceptable.json'):
-        filters_single[f.name] = f
+    #if not os.path.exists('acceptable.json'):
+    #    raise Exception("You should run the notebook Intersection.ipynb to generate the acceptable.json file!")
+    #for f in get_filters_from_file('acceptable.json'):
+    #    filters_single[f.name] = f
 
 
     latex = LatexWithAllPlots()
@@ -841,12 +842,12 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                                         solid_capstyle='projecting', capsize=5, linewidth =3)
                                                 else:
                                                     p = plt.loglog(train_sizes, pairing['mean_error'][0][tactic], '--*',
-                                                        label='DNN selected retraining' + tactic_added_name, basex=2, basey=2, linewidth=3)
+                                                        label='DNN selected retraining' + tactic_added_name, basex=2, basey=2, linewidth=3, markersize=15)
+                                                if 'speedup' not in error:
+                                                    poly = np.polyfit(np.log(train_sizes), np.log(pairing['mean_error'][0][tactic]), 1)
 
-                                                poly = np.polyfit(np.log(train_sizes), np.log(pairing['mean_error'][0][tactic]), 1)
-
-                                                plt.loglog(train_sizes, np.exp(poly[1])*train_sizes**poly[0],
-                                                           '--', label='$\\mathcal{O}(M^{%.2f})$' % poly[0])
+                                                    plt.loglog(train_sizes, np.exp(poly[1])*train_sizes**poly[0],
+                                                               '--', label='$\\mathcal{O}(M^{%.2f})$' % poly[0])
 
                                                 if include_max:
                                                     plt.loglog(train_sizes, pairing['max_error'][0][tactic], 'v', label='Max DNN selected retraining' + tactic_added_name,
@@ -856,8 +857,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                                     plt.loglog(train_sizes, pairing['min_error'][0][tactic], '^', label='Min DNN selected retraining' + tactic_added_name,
                                                         markersize=12,
                                                                 color=p[0].get_color())
-                                            if 'prediction' in error:
-                                                plot_info.set_percentage_ticks(plt.gca().yaxis)
+
                                             if include_retraining:
                                                  if include_std:
                                                      p = plt.errorbar(train_sizes, pairing['mean_error_retraining'][0][tactic],
@@ -884,6 +884,8 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                             plt.grid(True)
                                             plt.xlabel("Number of traning samples")
                                             plt.ylabel(names[error])
+                                            if 'prediction' in error:
+                                                plot_info.set_percentage_ticks(plt.gca().yaxis)
                                             if not tactics_in_same_plot:
                                                 plot_info.legendLeft()
                                                 plt.title("{error} as a function of training samples\n({functional}, {tactic})\nConfigurations: {config}".\
