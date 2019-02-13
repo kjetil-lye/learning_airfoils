@@ -553,7 +553,7 @@ def plot_as_training_size(functional, data, title="all configurations"):
                                                                                                         functional=functional, title=title, train_size=train_size, tactic=tactic
                     ))
 
-                    plt.show()
+
                     plt.close()
 
                     plt.figure()
@@ -566,9 +566,11 @@ def plot_as_training_size(functional, data, title="all configurations"):
                     plt.title("{error} for {functional} as a function of depth\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
                                                                                                                                                               functional=functional, title=title, train_size=train_size, tactic=tactic
                     ))
-                    plot_info.showAndSave("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                    plot_info.savePlot("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                                                                                                            functional=functional, title=title, train_size=train_size, tactic=tactic
                     ))
+
+                    plt.close()
 
                 plt.figure(10*(len(tactics)+1))
                 plt.hist(errors_local, bins=20)
