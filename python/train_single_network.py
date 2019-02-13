@@ -115,12 +115,10 @@ def train_single_network(*, parameters, samples, base_title, network,
                                         mean_error= copy.deepcopy(output_information.stat_error['mean'])
                                         variance_error = copy.deepcopy(output_information.stat_error['var'])
                                         wasserstein_error = copy.deepcopy(output_information.stat_error['wasserstein'])
-                                        selection_error = copy.deepcopy(output_information.selection_error)
 
                                         error_map = {"main_error" : mean_error,
                                                     "variance_error" : variance_error,
                                                     "wasserstein_error" : wasserstein_error,
-                                                    "selection_error" : selection_error,
                                                     "prediction_error" : prediction_error}
 
                                         with open('results/' + showAndSave.prefix + '_errors.json', 'w') as out:

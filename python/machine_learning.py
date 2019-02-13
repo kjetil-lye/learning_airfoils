@@ -230,6 +230,11 @@ def get_network(parameters, data, *, network_information, output_information):
     reg = linear_model.LinearRegression()
     lsq_predictor = reg.fit(parameters[:train_size,:], y_train)
 
+
+    loss = network_information.loss
+
+    if loss == "mean_m2":
+        loss = mean_m2
     if network_information.network_weights_filename is not None:
         # see https://machinelearningmastery.com/save-load-keras-deep-learning-models/
         with open(network_information.network_structure_filename) as json_file:
@@ -262,10 +267,6 @@ def get_network(parameters, data, *, network_information, output_information):
 
 
 
-        loss = network_information.loss
-
-        if loss == "mean_m2":
-            loss = mean_m2
 
         model.compile(optimizer=optimizer(lr=network_information.learning_rate),
                       loss=loss)
