@@ -22,11 +22,11 @@ supplied Docker container (documented under ```docker```).
 
 ## Recreating the tables for the network size analysis
 
-Run the script file ```notebooks/network_size_analysis.sh```
+Run the script file ```notebooks/network_size_analysis.sh``` from the folder ```notebooks```
 
 ## Recreating the plots for single configurations
 
-Run the script ```notebooks/run_best_and_effective_networks.sh```
+Run the script ```notebooks/run_best_and_effective_networks.sh``` from the folder ```notebooks``
 
 ## Recreating the plots for the combined configurations
 
