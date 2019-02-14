@@ -2,6 +2,8 @@
 
 The ```Dockerfile``` in this subfolder can be used to generate a docker image that can be used run all experiments.
 
+To run the experiments you need to know your user id for the current computer (see below)
+
 ## Getting Docker
 
 [Consult the online documentation](https://docs.docker.com/install/). Install the CE (Community Edition) version.
@@ -11,12 +13,19 @@ These files were last tested with
     Docker version 18.09.1-ce, build 4c52b901c6
 
 ## Getting your user id
+For other operating system, search online for "user id <Operating system name>".
+
+### Linux
 
 On Linux, you do
 
     userid=$(id -u)
 
-for other operating system, consult the manual.
+### OS X
+
+On Mac OS X, you do
+
+    userid=$(id -u)
 
 ## Building the docker container
 
@@ -66,5 +75,3 @@ Open a web browser on your computer and enter the address
      http://127.0.0.1:8888/?token=TOKEN_FROM_OUTPUT
 
 with the above output ```TOKEN_FROM_OUTPUT``` would bee ```ffb2462e780fcf14e7dc3823eb2667d0c4653112626f8c4a``` (this changes for every run).
-
-    
