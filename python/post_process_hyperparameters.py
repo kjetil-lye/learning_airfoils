@@ -847,8 +847,8 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
         on_array = [True]
         for include_selected in on_array:
             for include_retraining in off_array:
-                for include_min in ['speedup' not in error]:
-                    for include_max in ['speedup' in error]:
+                for include_min in on_off_array:
+                    for include_max in on_off_array:
                         for include_std in off_array:
                             for include_competitor in on_off_array:
                                 for tactics_in_same_plot in off_array:
@@ -1042,7 +1042,9 @@ def only_adam_and_low_regularization_for_mse_and_reg_for_l1(config):
     if get_loss(config) == 'mean_absolute_error':
         return has_regularization(config)
     else:
-        return (not has_regularization(config)) or (get_regularization_type(config) == "l2" and get_regularization_size(config) < 1e-6)
+        return (not has_regularization(config)) or \
+            (get_regularization_type(config) == "l2" \
+                and get_regularization_size(config) < 1e-5)
 
 def get_only_sgd(config):
     return get_optimizer(config) == "SGD"
