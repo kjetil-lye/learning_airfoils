@@ -873,7 +873,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                                                 if 'speedup' not in error:
                                                     poly = np.polyfit(np.log(train_sizes), np.log(pairing['mean_error'][0][tactic]), 1)
 
-                                                    constant = nop.exp(poly[1])
+                                                    constant = np.exp(poly[1])
                                                     if constant <= 10 and constant >= 1:
                                                         constant_latex = str(constant)
                                                     else:
