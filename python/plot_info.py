@@ -155,6 +155,7 @@ def get_current_title():
             return title
     except:
         pass
+
     try:
         title = plt.gcf()._suptitle.get_text()
         print(title)
@@ -270,7 +271,7 @@ def savePlot(name):
         title = "None"
 
 savePlot.callback = None
-savePlot.saveTikz = True
+savePlot.saveTikz = False
 
 def showAndSave(name):
     savePlot(name)
