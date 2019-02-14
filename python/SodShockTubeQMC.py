@@ -23,7 +23,7 @@ import SodShockTube
 def get_sod_data_qmc():
 
     data = []
-    with open('../SOD_QMC_DATA.dat', 'r') as inputfile:
+    with open('../data/SOD_QMC_DATA.dat', 'r') as inputfile:
         for l in inputfile:
             data.append([float(x) for x in l.split(',')])
     data = np.array(data)

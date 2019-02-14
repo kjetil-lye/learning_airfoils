@@ -30,11 +30,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 
 def get_airfoils_mc_data(highres=False):
-    mc_points_preprocessed = np.loadtxt('../mc6.txt')
+    mc_points_preprocessed = np.loadtxt('../data/mc6.txt')
     if highres:
-        forces = np.loadtxt('../force_L2_mc_scaled.dat')
+        forces = np.loadtxt('../data/force_L2_mc_scaled.dat')
     else:
-        forces = np.loadtxt('../force_6_params_mc.dat')
+        forces = np.loadtxt('../data/force_6_params_mc.dat')
     mc_points = []
     for f in forces[:,0]:
         for n in range(mc_points_preprocessed.shape[0]):
@@ -59,12 +59,12 @@ def get_airfoils_mc_data_highres_with_qmc():
     mc_points, mc_data_per_func = get_airfoils_mc_data(True)
 
 
-    qmc_points = np.loadtxt('../sobol_6_8000.txt')
+    qmc_points = np.loadtxt('../data/sobol_6_8000.txt')
     qmc_points = qmc_points[1:].reshape((8000,6))
 
-    large_qmc_points = np.loadtxt('../sobol_6_131072.txt')
+    large_qmc_points = np.loadtxt('../data/sobol_6_131072.txt')
     all_points = qmc_points.copy()
-    forces = np.array(np.loadtxt('../force_6_params.dat'))
+    forces = np.array(np.loadtxt('../data/force_6_params.dat'))
 
 
     N = min(qmc_points.shape[0], forces.shape[0])

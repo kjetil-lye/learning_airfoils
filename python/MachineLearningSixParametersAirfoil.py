@@ -31,12 +31,12 @@ def get_airfoil_data():
     # In[2]:
 
 
-    qmc_points = np.loadtxt('../sobol_6_8000.txt')
+    qmc_points = np.loadtxt('../data/sobol_6_8000.txt')
     qmc_points = qmc_points[1:].reshape((8000,6))
 
-    large_qmc_points = np.loadtxt('../sobol_6_131072.txt')
+    large_qmc_points = np.loadtxt('../data/sobol_6_131072.txt')
     all_points = qmc_points.copy()
-    forces = np.array(np.loadtxt('../force_6_params.dat'))
+    forces = np.array(np.loadtxt('../data/force_6_params.dat'))
 
 
     N = min(qmc_points.shape[0], forces.shape[0])

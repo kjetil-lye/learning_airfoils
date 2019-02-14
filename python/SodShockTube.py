@@ -23,7 +23,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 def get_sod_data():
     data = []
-    with open('../SOD_MC_DATA.dat', 'r') as inputfile:
+    with open('../data/SOD_MC_DATA.dat', 'r') as inputfile:
         for l in inputfile:
             data.append([float(x) for x in l.split(',')])
     data = np.array(data)
