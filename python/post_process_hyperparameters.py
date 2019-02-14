@@ -715,6 +715,8 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                 plt.xlabel("Regularization size")
                 plt.ylabel(names[error])
                 plt.gca().set_yscale("log", nonposy='clip', basey=2)
+                if 'prediction' in error:
+                    plot_info.set_percentage_ticks(plt.gca().yaxis)
                 plt.grid(True)
                 if not only_network_sizes:
                     plot_info.savePlot('error_regularization_{functional}_{config}_{error}_{train_size}_{tactic}'.format(tactic=tactic, functional=functional, config=title, error=error, train_size=train_size))
@@ -872,7 +874,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                                                     poly = np.polyfit(np.log(train_sizes), np.log(pairing['mean_error'][0][tactic]), 1)
 
                                                     plt.loglog(train_sizes, np.exp(poly[1])*train_sizes**poly[0],
-                                                               '--', label='$\\mathcal{O}(M^{%.2f})$' % poly[0])
+                                                               '--', label='$\\mathcal{O}(N^{%.2f})$' % poly[0])
 
                                                 if include_max:
                                                     plt.loglog(train_sizes, pairing['max_error'][0][tactic], 'v', label='Max DNN selected retraining' + tactic_added_name,
@@ -907,7 +909,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                                             plt.gca().set_xscale("log", nonposx='clip', basex=2)
                                             plt.gca().set_yscale("log", nonposy='clip', basey=2)
                                             plt.grid(True)
-                                            plt.xlabel("Number of traning samples")
+                                            plt.xlabel("Number of traning samples ($N$)")
                                             plt.ylabel(names[error])
                                             if 'prediction' in error:
                                                 plot_info.set_percentage_ticks(plt.gca().yaxis)
