@@ -359,7 +359,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
         train_size = int(configuration['settings']['train_size'])
         if train_size not in train_sizes:
             train_sizes.append(train_size)
-    print(train_sizes)
+
     train_sizes = sorted(train_sizes)
 
     data_source_names = data['configurations'][0]['results']['best_network']['algorithms'].keys()
