@@ -881,7 +881,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
 
                                                         r = constant / 10**(power-1)
 
-                                                        constant_latex = "{:2f}\\cdot 10^{{{}}}".format(r, power-1)
+                                                        constant_latex = "{:.2f}\\cdot 10^{{{}}}".format(r, power-1)
 
                                                     plt.loglog(train_sizes, np.exp(poly[1])*train_sizes**poly[0],
                                                                '--', label='$%s\\cdot N^{%.2f}$' % (constant_latex, poly[0]))
