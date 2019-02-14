@@ -526,8 +526,6 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                 depths = np.array(sorted([k for k in errors_local_network_size.keys()]))
                 widths = np.array(sorted([k for k in errors_local_network_size[depths[0]].keys()]))
 
-                print(depths)
-                print(widths)
 
                 errors_per_width = []
 
@@ -973,7 +971,7 @@ def filter_configs(data, excludes={}, onlys={}, test_functions = []):
         if k != 'configurations':
             data_copy[k] = copy.deepcopy(data[k])
     data_copy['configurations'] = []
-    print(len(data['configurations']))
+
     for config in data['configurations']:
         keep = True
         for exclude_path in excludes.keys():
@@ -1016,7 +1014,7 @@ def filter_configs(data, excludes={}, onlys={}, test_functions = []):
 
 
         data_copy['configurations'].append(copy.deepcopy(config))
-    print(len(data_copy['configurations']))
+
     return data_copy
 
 
@@ -1119,7 +1117,7 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
         train_size = int(configuration['settings']['train_size'])
         if train_size not in train_sizes:
             train_sizes.append(train_size)
-    print(train_sizes)
+
     train_sizes = sorted(train_sizes)
 
     data_source_names = data1['configurations'][0]['results']['best_network']['algorithms'].keys()
