@@ -20,24 +20,25 @@ def print_network_size_tables(prefixes):
         #"var_bilevel_error_relative" :"relative error bilevel variance",
         #"prediction_l1_relative": 'relative prediction error ($L^1$)',
         "prediction_l2_relative" : 'relative prediction error ($L^2$)',
-        'wasserstein_speedup_raw' : 'Raw Wasserstein speedup',
-        'wasserstein_speedup_real' : 'Wasserstein speedup with convergence rate',
+        #'wasserstein_speedup_raw' : 'Raw Wasserstein speedup',
+        #'wasserstein_speedup_real' : 'Wasserstein speedup with convergence rate',
     }
 
 
-    for error in names.keys():
+    for error_key in names.keys():
         table = TableBuilder()
-        table.set_header(["Width/Row", *[str(k) for k in prefixes[prefixes.keys()[0]].keys()]])
+        table.set_header(["Width/Depth", *[str(k) for k in prefixes[list(prefixes.keys())[0]].keys()]])
         for depth in prefixes.keys():
             row = [str(depth)]
-            for width in prefixes.keys():
+            for width in prefixes[depth].keys():
                 result_filename = os.path.join('results', prefixes[depth][width] + "_combination_stats.json")
-                with open(results_filename) as f:
-                    json = json.load(f)
-                    error = json['results']['best_network']['algorithms']['QMC_from_data']['ml']['ordinary'][error]
+                with open(result_filename) as f:
+                    json_content = json.load(f)
+                    error = json_content['algorithms']['QMC_from_data']['ml']['ordinary'][error_key]
                     row.append(str(error))
-        table.set_title("Effects on varying network sizes for {}".format(names[error]))
-        table.print_table("network_size_variation_" +error)
+            table.add_row(row)
+        table.set_title("Effects on varying network sizes for {}".format(names[error_key]))
+        table.print_table("network_size_variation_" +error_key)
 
 
 
