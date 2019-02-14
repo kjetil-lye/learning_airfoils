@@ -6,13 +6,26 @@ The following steps are needed to recreate all the plots (details about doing th
 
 See the ```docker``` folder for information on how to run this in Docker.
 
-*IMPORTANT* this repository requires [git-lfs](https://git-lfs.github.com/) installed. After checking out the repository, do
+*IMPORTANT* this repository requires [git-lfs](https://git-lfs.github.com/) installed. Make sure you have this package installed (```git lfs install``` is **not** enough)
+
+After checking out the repository, and after installing git-lfs, do
 
     git lfs install
 
+in the repository directory.
+
+## Running these scripts
+
+Every script can be run from a BASH compatible command line, our through the
+supplied Docker container (documented under ```docker```).
+
+## Recreating the tables for the network size analysis
+
+Run the script file ```notebooks/network_size_analysis.sh```
+
 ## Recreating the plots for single configurations
 
-Run the script ```notebooks/submit_screen_compute_best_networks.sh``` (requires the program [GNU Screen](https://www.gnu.org/software/screen/))
+Run the script ```notebooks/run_best_and_effective_networks.sh```
 
 ## Recreating the plots for the combined configurations
 
