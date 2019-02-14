@@ -11,8 +11,9 @@ See the ```docker``` folder for information on how to run this in Docker.
 After checking out the repository, and after installing git-lfs, do
 
     git lfs install
+    git lfs pull
 
-in the repository directory.
+in the repository directory. This will fetch all the additional data files (except the KH data files -- these are not needed for any of the currently described runs).
 
 ## Running these scripts
 
