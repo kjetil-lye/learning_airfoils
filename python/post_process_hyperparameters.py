@@ -467,7 +467,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
 
     for error in errors.keys():
 
-        tactics=['ordinary', 'replace']#, 'remove', 'add']
+        tactics=['ordinary']#, 'replace']#, 'remove', 'add']
         error_per_tactics = {}
         var_error_per_tactics = {}
         min_error_per_tactics = {}
