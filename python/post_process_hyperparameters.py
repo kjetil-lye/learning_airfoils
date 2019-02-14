@@ -884,7 +884,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                                                         constant_latex = "{:2f}\\cdot 10^{{{}}}".format(r, power)
 
                                                     plt.loglog(train_sizes, np.exp(poly[1])*train_sizes**poly[0],
-                                                               '--', label='${%.2e}\\cdot N^{%.2f}$' % (constant_latex, poly[0]))
+                                                               '--', label='$%s\\cdot N^{%.2f}$' % (constant_latex, poly[0]))
 
                                                 if include_max:
                                                     plt.loglog(train_sizes, pairing['max_error'][0][tactic], 'v', label='Max DNN selected retraining' + tactic_added_name,
