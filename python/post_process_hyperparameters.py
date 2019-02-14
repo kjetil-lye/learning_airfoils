@@ -587,16 +587,21 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                     functional=functional, title=title, train_size=train_size,
                     tactic=tactic
                 ))
-
-                plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
-                plt.text(competitor[error][n], 0.2*np.diff(plt.gca().get_ylim())[0], competitor_names[error],rotation=90)
-                plot_info.savePlot("hist_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                plot_info.savePlot("hist_no_competitor_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                     functional=functional, title=title, train_size=train_size, tactic=tactic
                 ))
 
+
+                plt.axvline(x=competitor[error][n], linestyle='--',color='grey')
+                plt.text(competitor[error][n], 0.5*np.diff(plt.gca().get_ylim())[0], competitor_names[error],rotation=90)
+                if not only_network_sizes:
+                    plot_info.savePlot("hist_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                        functional=functional, title=title, train_size=train_size, tactic=tactic
+                    ))
+
                 if error in extra_competitor_keys.keys():
                     plt.axvline(x=extra_competitor, linestyle='--',color='green')
-                    plt.text(extra_competitor,  0.2*np.diff(plt.gca().get_ylim())[0], extra_competitor_names[error],rotation=90)
+                    plt.text(extra_competitor,  0.5*np.diff(plt.gca().get_ylim())[0], extra_competitor_names[error],rotation=90)
                     if not only_network_sizes:
                         plot_info.savePlot("hist_lsq_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                         functional=functional, title=title, train_size=train_size,
