@@ -581,9 +581,9 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                     plot_info.set_percentage_ticks(plt.gca().xaxis)
                 plt.xlabel(names[error])
                 plt.ylabel("Number of configurations")
-                plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
+                plt.title("Histograms for distribution for {error} for {functional}\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}\nNumber of configurations: {number_of_configurations}".format(error=names[error],
                     functional=functional, title=title, train_size=train_size,
-                    tactic=tactic
+                    tactic=tactic, number_of_configurations=len(errors_local)
                 ))
                 plot_info.savePlot("hist_no_competitor_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                     functional=functional, title=title, train_size=train_size, tactic=tactic
@@ -932,7 +932,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                                                                     include_extra_competitor and has_extra_competitor,
                                                                     tactics_in_same_plot))
 
-                                                if tactic == 'ordinary' and include_competitor:
+                                                if tactic == 'ordinary' and include_competitor and include_min and include_max:
                                                     plt.show()
                                                 plt.close('all')
 
@@ -1168,8 +1168,9 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
 
                 min_value = np.amin([np.amin(errors_local[source]) for source in source_names])
                 max_value = np.amax([np.amax(errors_local[source]) for source in source_names])
-
+                number_in_each_str = ""
                 for source in sources.keys():
+                    number_in_each_str += "{}: {} configurations\n".format(source, len(errors_local[source]))
                     plt.hist(errors_local[source], bins=20, label=source, alpha=0.5, range=[min_value, max_value])
 
                 plt.xlabel(names[error])
@@ -1178,11 +1179,12 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
                 plt.legend()
                 if 'prediction' in error.lower():
                     plot_info.set_percentage_ticks(plt.gca().xaxis)
-                plt.title("Comparison histograms for distribution for {error} for {functional}\nConfigurations: {title1} versus {title2}\n{main_title}\nUsing {train_size} samples\nTactic: {tactic}".format(
+                plt.title("Comparison histograms for distribution for {error} for {functional}\nConfigurations: {title1} versus {title2}\n{main_title}\nUsing {train_size} samples\nTactic: {tactic}\nNumber of configurations:\n{number_in_each_str}".format(
                     error=names[error],
                     functional=functional, title2=title2, title1=title1, train_size=train_size,
                     main_title = main_title,
-                    tactic=tactic
+                    tactic=tactic,
+                    number_in_each_str = number_in_each_str
                 ))
 
                 plot_info.savePlot('comparison_histogram_{error}_{functional}_{title1}_{title2}_{train_size}_{tactic}_{main_title}'.format(
