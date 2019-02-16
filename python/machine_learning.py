@@ -1164,7 +1164,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 row = [error_functional]
 
                 for modifier in modifiers.keys():
-                    row.append("{:.3f}".format(all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional]))
+                    row.append("{:.4e}".format(all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional]))
                 table_speedup.add_row(row)
 
             table_speedup.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}, using {parameter_source_name} as parameters".format(epochs=network_information.epochs,
@@ -1182,7 +1182,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 row = [error_functional]
 
                 for modifier in modifiers.keys():
-                    row.append("{:.3f}".format(all_results_with_information['mc_speedup_vs_qmc'][parameter_source_name][modifier][error_functional]))
+                    row.append("{:.4e}".format(all_results_with_information['mc_speedup_vs_qmc'][parameter_source_name][modifier][error_functional]))
                 table_speedup_qmc.add_row(row)
 
             table_speedup_qmc.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics (|mc_values[:128]-qmc_reference|/|predicted_values-qmc_reference|), with {epochs}, {learning_rate}, using {parameter_source_name} as parameters".format(epochs=network_information.epochs,
@@ -1198,7 +1198,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 row = [error_functional]
 
                 for modifier in modifiers.keys():
-                    row.append("{:.3f}".format(all_results_with_information['mc_errors'][parameter_source_name][modifier][error_functional]))
+                    row.append("{:.4e}".format(all_results_with_information['mc_errors'][parameter_source_name][modifier][error_functional]))
                 table_error.add_row(row)
 
             table_error.set_title("Errors of Machine learning compared to Monte Carlo for various errors and tactics, with {epochs}, {learning_rate}, using {parameter_source_name} as parameters".format(epochs=network_information.epochs,
