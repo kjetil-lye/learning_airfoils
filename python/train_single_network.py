@@ -100,8 +100,8 @@ def train_single_network(*, parameters, samples, base_title, network,
 
                                     with RedirectStdStreamsToNull() as _:
                                         if load_network_weights:
-                                            network_weight_filename ='results/' + showAndSave.prefix +  'model.h5'
-                                            network_structure_filename = 'results/' + showAndSave.prefix +  'model.json'
+                                            network_weight_filename ='results/' + showAndSave.prefix +  'model_stored.h5'
+                                            network_structure_filename = 'results/' + showAndSave.prefix +  'model_stored.json'
 
 
                                             network_information.network_weights_filename = network_weight_filename
