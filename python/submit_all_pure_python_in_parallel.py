@@ -97,12 +97,17 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
 
 
                                     should_run = not only_missing
+                                    reason_to_run = None
+                                    if not only_missing:
+                                        reason_to_run = "Running every configuration"
                                     if only_missing:
                                         if folder_missing:
                                             should_run = True
+                                            reason_to_run = "folder_missing"
                                         lsf_files = glob.glob('lsf.*')
                                         if len(lsf_files)==0:
                                             should_run = True
+                                            reason_to_run = "no lsf files found"
 
                                         else:
                                             found_success = False
@@ -113,6 +118,7 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                                     if 'Successfully completed'  in lsf_content:
                                                         found_success = True
                                             if not found_success:
+                                                reason_to_run = "no successfully completed found"
                                                 should_run = True
 
                                     if should_run:
@@ -131,7 +137,7 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                             name_with_arguments = notebook_name
                                             if arguments is not None:
                                                 name_with_arguments += " " + arguments
-                                            print("Would run\n\tpython {}".format(name_with_arguments))
+                                            print("Would run (reason: {}, folder exists: {}, in {})\n\tpython {}".format(reason_to_run, not folder_missing, folder_name, name_with_arguments))
                                         else:
                                             submit('python {notebook}'.format(
                                                 notebook = notebook_name
