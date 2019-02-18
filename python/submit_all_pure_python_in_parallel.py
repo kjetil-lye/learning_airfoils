@@ -53,7 +53,7 @@ def submit(command, exports, arguments):
 
     os.system(command_to_run)
 
-def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=None, only_missing=False, prefix=''):
+def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=None, only_missing=False, prefix='', dry_run = False):
     exports = {}
     exports['MACHINE_LEARNING_NUMBER_OF_WIDTHS'] = str(width)
     exports["MACHINE_LEARNING_NUMBER_OF_DEPTHS"] = str(depth)
@@ -85,28 +85,40 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                     folder_name = "_".join([exports[k] for k in exports.keys()])
                                     folder_name = os.path.splitext(notebook_name)[0] +prefix + "_"+ folder_name
                                     folder_name = ''.join(ch for ch in folder_name if ch.isalnum() or ch =='_')
-                                    print(folder_name)
-                                    if not only_missing:
+
+                                    folder_missing = False
+                                    if not only_missing and not dry_run:
                                         os.mkdir(folder_name)
-                                    os.chdir(folder_name)
-                                    print(os.getcwd())
+                                    if only_missing and not os.path.exists(folder_name) and not dry_run:
+                                        os.mkdir(folder_name)
+                                        folder_missing = True
+                                    if not dry_run:
+                                        os.chdir(folder_name)
+
 
                                     should_run = not only_missing
                                     if only_missing:
+                                        if folder_missing:
+                                            should_run = True
                                         lsf_files = glob.glob('lsf.*')
                                         if len(lsf_files)==0:
                                             should_run = True
 
                                         else:
-                                            with open(lsf_files[0]) as lsf_file:
-                                                lsf_content = lsf_file.read()
+                                            found_success = False
+                                            for f in lsf_files:
+                                                with open(f) as lsf_file:
+                                                    lsf_content = lsf_file.read()
 
-                                                if 'Successfully completed' not in lsf_content:
-                                                    should_run = True
+                                                    if 'Successfully completed'  in lsf_content:
+                                                        found_success = True
+                                            if not found_success:
+                                                should_run = True
 
                                     if should_run:
-                                        shutil.copyfile('../python/{}'.format(notebook_name), '{}'.format(notebook_name))
-                                        if not only_missing:
+                                        if not dry_run:
+                                            shutil.copyfile('../python/{}'.format(notebook_name), '{}'.format(notebook_name))
+                                        if (not only_missing or folder_missing ) and not dry_run:
                                             os.mkdir('img')
                                             os.mkdir('img_tikz')
                                             os.mkdir('tables')
@@ -115,22 +127,28 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                         arguments = None
                                         if functional_name is not None:
                                             arguments = "--functional_name {}".format(functional_name)
-                                        submit('python {notebook}'.format(
-                                            notebook = notebook_name
-                                        ), exports, arguments)
+                                        if dry_run:
+                                            name_with_arguments = notebook_name
+                                            if arguments is not None:
+                                                name_with_arguments += " " + arguments
+                                            print("Would run\n\tpython {}".format(name_with_arguments))
+                                        else:
+                                            submit('python {notebook}'.format(
+                                                notebook = notebook_name
+                                            ), exports, arguments)
 
-                                        writeConfig(depth=depth,
-                                            width=width,
-                                            optimizer = optimizer,
-                                            loss = loss,
-                                            selection_type = selection_type,
-                                            selection = selection,
-                                            train_size = train_size,
-                                            regularizer = regularizer,
-                                            learning_rate = learning_rate,
-                                            epochs=epoch)
-
-                                    os.chdir('..')
+                                            writeConfig(depth=depth,
+                                                        width=width,
+                                                        optimizer = optimizer,
+                                                        loss = loss,
+                                                        selection_type = selection_type,
+                                                        selection = selection,
+                                                        train_size = train_size,
+                                                        regularizer = regularizer,
+                                                        learning_rate = learning_rate,
+                                                        epochs=epoch)
+                                    if not dry_run:
+                                        os.chdir('..')
 
 if __name__ == '__main__':
     import argparse
@@ -142,7 +160,7 @@ if __name__ == '__main__':
     parser.add_argument('--number_of_depths', default=5, type=int, help='The number of depths to use')
 
     parser.add_argument('--only_missing',  action='store_true', help='Only submit configurations that did not complete')
-
+    parser.add_argument('--dry_run',  action='store_true', help='Dry run, no configurations run, only prints what it would do')
     parser.add_argument('--functional_name',
                         default=None,
                         help='The functional to use options: depends on the script (optional)')
@@ -165,4 +183,5 @@ if __name__ == '__main__':
     submit_notebook_in_parallel(notebook, depth, width,
         functional_name = args.functional_name,
         only_missing=args.only_missing,
-        prefix=prefix)
+                                prefix=prefix,
+                                dry_run = args.dry_run)
