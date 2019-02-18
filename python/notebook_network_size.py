@@ -9,6 +9,40 @@ import keras
 import network_parameters
 import copy
 import os
+import json
+
+def print_network_size_tables(prefixes):
+    names = {
+        #"mean_error_relative" : "mean relative error",
+        #"var_error_relative" : "variance relative error",
+        "wasserstein_error_cut" : "Wasserstein",
+        #"mean_bilevel_error_relative": "relative error bilevel mean",
+        #"var_bilevel_error_relative" :"relative error bilevel variance",
+        #"prediction_l1_relative": 'relative prediction error ($L^1$)',
+        "prediction_l2_relative" : 'relative prediction error ($L^2$)',
+        #'wasserstein_speedup_raw' : 'Raw Wasserstein speedup',
+        #'wasserstein_speedup_real' : 'Wasserstein speedup with convergence rate',
+    }
+
+
+    for error_key in names.keys():
+        table = TableBuilder()
+        table.set_header(["Width/Depth", *[str(k) for k in prefixes[list(prefixes.keys())[0]].keys()]])
+        for depth in prefixes.keys():
+            row = [str(depth)]
+            for width in prefixes[depth].keys():
+                result_filename = os.path.join('results', prefixes[depth][width] + "_combination_stats.json")
+                with open(result_filename) as f:
+                    json_content = json.load(f)
+                    error = json_content['algorithms']['QMC_from_data']['ml']['ordinary'][error_key]
+                    row.append(str(error))
+            table.add_row(row)
+        table.set_title("Effects on varying network sizes for {}".format(names[error_key]))
+        table.print_table("network_size_variation_" +error_key)
+
+
+
+
 
 def try_best_network_sizes_in_json(json_file,*, parameters, samples, base_title):
     with open(json_file) as infile:
@@ -184,7 +218,13 @@ def find_best_network_size_notebook(*, network_information,
     training_times = np.zeros_like(selection_errors)
     training_times_parameters = {}
     training_times_parameters_count = {}
+
+
+    prefixes = {}
+
     for (n,depth) in enumerate(depths):
+        if depth not in prefixes.keys():
+            prefixes[depth] = {}
         for (m,width) in enumerate(widths):
             print("Config {} x {} ([{} x {}] / [{} x {}])".format(depths[n], widths[m], n, m, len(depths), len(widths)))
             console_log("Config {} x {} ([{} x {}] / [{} x {}])".format(depths[n], widths[m], n, m, len(depths), len(widths)))
@@ -208,6 +248,7 @@ def find_best_network_size_notebook(*, network_information,
             start_all_training = time.time()
             with RedirectStdStreamsToNull():
                 run_function(network_information, output_information)
+                prefixes[depth][width] = showAndSave.prefix
             end_all_training = time.time()
 
             duration = end_all_training - start_all_training
@@ -235,7 +276,10 @@ def find_best_network_size_notebook(*, network_information,
 
 
 
+
     showAndSave.prefix = prefix
+
+    print_network_size_tables(prefixes)
     errors_map = {"Prediction error" : prediction_errors,
                   "Error mean" : mean_errors,
                   "Error variance" : variance_errors,

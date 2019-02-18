@@ -35,7 +35,8 @@ def train_single_network(*, parameters, samples, base_title, network,
     losses = losses or network_parameters.get_losses()
     selections = network_parameters.get_selections()
 
-
+    prefixes = []
+    networks = []
 
     for selection_type in selections.keys():
 
@@ -93,31 +94,31 @@ def train_single_network(*, parameters, samples, base_title, network,
                                         only_alphanum(selection), loss, only_alphanum(optimizer), train_size,
                                         str(epoch),
                                         only_alphanum("{}".format(learning_rate)))
+
+                                    prefixes.append(showAndSave.prefix)
                                     print("Training: {}".format(title))
 
                                     with RedirectStdStreamsToNull() as _:
                                         if load_network_weights:
-                                            network_weight_filename ='results/' + showAndSave.prefix +  'model.h5'
-                                            network_structure_filename = 'results/' + showAndSave.prefix +  'model.json'
+                                            network_weight_filename ='results/' + showAndSave.prefix +  'model_stored.h5'
+                                            network_structure_filename = 'results/' + showAndSave.prefix +  'model_stored.json'
 
 
                                             network_information.network_weights_filename = network_weight_filename
                                             network_information.network_structure_filename = network_structure_filename
 
-                                        get_network_and_postprocess(parameters, samples, network_information = network_information,
+                                        model, _, _ = get_network_and_postprocess(parameters, samples, network_information = network_information,
                                         output_information = output_information)
-
+                                        networks.append(model)
                                         prediction_error = output_information.prediction_error[2]
 
                                         mean_error= copy.deepcopy(output_information.stat_error['mean'])
                                         variance_error = copy.deepcopy(output_information.stat_error['var'])
                                         wasserstein_error = copy.deepcopy(output_information.stat_error['wasserstein'])
-                                        selection_error = copy.deepcopy(output_information.selection_error)
 
                                         error_map = {"main_error" : mean_error,
                                                     "variance_error" : variance_error,
                                                     "wasserstein_error" : wasserstein_error,
-                                                    "selection_error" : selection_error,
                                                     "prediction_error" : prediction_error}
 
                                         with open('results/' + showAndSave.prefix + '_errors.json', 'w') as out:
@@ -126,6 +127,7 @@ def train_single_network(*, parameters, samples, base_title, network,
                                         print(json.dumps(error_map))
                                         console_log(json.dumps(error_map))
                                         tables.write_tables()
+    return prefixes, networks
 
 
 def compute_for_all_in_json(json_file, *, parameters, samples, base_title, network,
@@ -135,6 +137,8 @@ def compute_for_all_in_json(json_file, *, parameters, samples, base_title, netwo
     monte_carlo_parameters = None,
     load_network_weights = False):
 
+    prefixes = []
+    networks = []
     with open(json_file) as infile:
         configurations = json.load(infile)
 
@@ -151,7 +155,7 @@ def compute_for_all_in_json(json_file, *, parameters, samples, base_title, netwo
 
             display(HTML("<h1>{}</h1>".format(configuration_name)))
 
-            train_single_network(parameters=parameters,
+            prefixes_new, networks_new = train_single_network(parameters=parameters,
                                  samples=samples,
                                  base_title=base_title,
                                  network=network,
@@ -161,3 +165,7 @@ def compute_for_all_in_json(json_file, *, parameters, samples, base_title, netwo
                                  monte_carlo_values = monte_carlo_values,
                                  monte_carlo_parameters = monte_carlo_parameters,
                                  load_network_weights = load_network_weights)
+
+            prefixes.extend(prefixes_new)
+            networks.extend(networks_new)
+    return prefixes, networks

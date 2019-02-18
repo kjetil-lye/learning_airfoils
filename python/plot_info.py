@@ -16,6 +16,7 @@ import os.path
 import datetime
 import traceback
 import inspect
+import copy
 from IPython.core.display import display, HTML
 try:
     import git
@@ -149,11 +150,27 @@ def only_alphanum(s):
 
 def get_current_title():
     try:
-        return plt.gcf().texts[0].get_text()
+        title = plt.gca().get_title()
+        if title is not None and title.strip() !="":
+            return title
+    except:
+        pass
+
+    try:
+        title = plt.gcf()._suptitle.get_text()
+        print(title)
+        if title is not None and title.strip() != "":
+            return copy.deepcopy(title)
+    except:
+        pass
+    try:
+        print()
+        return copy.deepcopy(plt.gcf().texts[0].get_text())
     except:
         return ''
 
 def savePlot(name):
+    original_name = copy.deepcopy(name)
     if savePlot.disabled:
         return
 
@@ -182,7 +199,7 @@ def savePlot(name):
 
     if gitMetadata['git_short_commit'] != "unkown":
         if not name.endswith("_notitle"):
-            ax.text(0.13, 0.93, "@" + gitMetadata['git_short_commit'], fontsize=10,
+            ax.text(0.2, 0.93, "@" + gitMetadata['git_short_commit'], fontsize=10,
             ha='right', va='bottom', alpha=0.5, transform=ax.transAxes)
 
     # We don't want all the output from matplotlib2tikz
@@ -247,14 +264,14 @@ def savePlot(name):
     if not name.endswith("_notitle"):
         old_title = get_current_title()
         plt.title("")
-        savePlot(name + "_notitle")
+        savePlot(original_name + "_notitle")
         plt.title(old_title)
         title = old_title
     else:
         title = "None"
 
 savePlot.callback = None
-savePlot.saveTikz = True
+savePlot.saveTikz = False
 
 def showAndSave(name):
     savePlot(name)

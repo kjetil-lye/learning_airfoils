@@ -155,6 +155,17 @@ class OutputInformation(object):
     def write_tables(self):
         self.tables.write_tables()
 
+def load_network_from_file(base_filename):
+    with open(base_filename + ".json") as json_file:
+
+        loaded_model_json = json_file.read()
+
+        loaded_model = keras.models.model_from_json(loaded_model_json)
+        # load weights into new model
+        loaded_model.load_weights(base_filename + ".h5")
+
+        return loaded_model
+
 
 def compute_mean_prediction_error(data, data_predicted, train_size, norm_ord):
     base = np.mean(abs(data)**norm_ord)
@@ -219,6 +230,11 @@ def get_network(parameters, data, *, network_information, output_information):
     reg = linear_model.LinearRegression()
     lsq_predictor = reg.fit(parameters[:train_size,:], y_train)
 
+
+    loss = network_information.loss
+
+    if loss == "mean_m2":
+        loss = mean_m2
     if network_information.network_weights_filename is not None:
         # see https://machinelearningmastery.com/save-load-keras-deep-learning-models/
         with open(network_information.network_structure_filename) as json_file:
@@ -235,7 +251,7 @@ def get_network(parameters, data, *, network_information, output_information):
 
 
             return loaded_model, data, parameters
-
+    runtimes = []
     for trylearn in range(network_information.tries):
         model = Sequential()
         model.add(Dense(network_information.network[0],
@@ -251,10 +267,6 @@ def get_network(parameters, data, *, network_information, output_information):
 
 
 
-        loss = network_information.loss
-
-        if loss == "mean_m2":
-            loss = mean_m2
 
         model.compile(optimizer=optimizer(lr=network_information.learning_rate),
                       loss=loss)
@@ -283,7 +295,7 @@ def get_network(parameters, data, *, network_information, output_information):
                          validation_data=(x_train[training_ray_samples:, :], y_train[training_ray_samples:]),verbose=0)
         print()
         end_training_time = time.time()
-
+        runtimes.append(end_training_time-start_training_time)
 
         print("Training took {} seconds".format(end_training_time-start_training_time))
         console_log("Training took {} seconds".format(end_training_time-start_training_time))
@@ -362,7 +374,7 @@ def get_network(parameters, data, *, network_information, output_information):
     output_information.selection_error = best_learning_rate
     end_total_learning = time.time()
 
-
+    np.save("results/" + showAndSave.prefix + "runtimes.npy", runtimes)
     print("Best network index: %d" % best_network_index)
     console_log("Best network index: %d" % best_network_index)
     print("Total learning time took: %d s" % (end_total_learning-start_total_learning))
@@ -929,6 +941,8 @@ def var_bilevel_alternative(x, all_data, train_size):
     return np.mean((all_data[:min(train_size, x.shape[0])]-m)**2-(x[:min(train_size, x.shape[0])]-m)**2)+np.mean((x-m)**2)
 
 
+
+
 def compute_stats_with_reuse(network, lsq_predictor, network_information, output_information, parameters, data, train_size, postfix=""):
     dim = parameters.shape[1]
     M_self_generated = 2**15
@@ -1087,7 +1101,7 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
     all_results_with_information['mc_speedup'] = {}
     all_results_with_information['mc_errors'] = {}
-
+    all_results_with_information['mc_speedup_vs_qmc']= {}
 
     if network_information.monte_carlo_parameters is not None:
 
@@ -1116,22 +1130,32 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
 
         for parameter_source_name in parameter_sources.keys():
             all_results_with_information['mc_speedup'][parameter_source_name] = {}
+            all_results_with_information['mc_speedup_vs_qmc'][parameter_source_name] = {}
             all_results_with_information['mc_errors'][parameter_source_name] = {}
             predicted_data = predictors['ml'](parameter_sources[parameter_source_name])
             all_results_with_information['mc_errors'][parameter_source_name]['mc_base_error'] = {}
             for modifier in modifiers.keys():
                 all_results_with_information['mc_speedup'][parameter_source_name][modifier] = {}
                 all_results_with_information['mc_errors'][parameter_source_name][modifier] = {}
+                all_results_with_information['mc_speedup_vs_qmc'][parameter_source_name][modifier] = {}
 
                 modified_data = modifiers[modifier](predicted_data, mc_values, train_size)
                 for error_functional in errors_functionals.keys():
                     error = errors_functionals[error_functional](modified_data, mc_values)
+
                     base_error = errors_functionals[error_functional](mc_values[:train_size], mc_values)
                     all_results_with_information['mc_errors'][parameter_source_name][modifier][error_functional] = error
                     try:
                         all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional] = base_error / error
                     except:
                         all_results_with_information['mc_speedup'][parameter_source_name][modifier][error_functional] = 0.1
+
+                    error_qmc = errors_functionals[error_functional](modified_data, data)
+                    error_mc_qmc = errors_functionals[error_functional](mc_values[:train_size], data)
+                    try:
+                        all_results_with_information['mc_speedup_vs_qmc'][parameter_source_name][modifier][error_functional] = error_mc_qmc/error_qmc
+                    except:
+                        all_results_with_information['mc_speedup_vs_qmc'][parameter_source_name][modifier][error_functional] = 0.1
             all_results_with_information['mc_errors'][parameter_source_name]['mc_base_error'][error_functional] = base_error
             table_speedup = TableBuilder()
             table_speedup.set_header(["Error name", *modifiers.keys()])
@@ -1147,6 +1171,24 @@ def compute_stats_with_reuse(network, lsq_predictor, network_information, output
                 learning_rate=network_information.learning_rate,
                 parameter_source_name=parameter_source_name))
             table_speedup.print_table("mc_speedups_{}".format(parameter_source_name.lower()))
+
+
+
+
+            table_speedup_qmc = TableBuilder()
+            table_speedup_qmc.set_header(["Error name", *modifiers.keys()])
+
+            for error_functional in errors_functionals.keys():
+                row = [error_functional]
+
+                for modifier in modifiers.keys():
+                    row.append("{:.3f}".format(all_results_with_information['mc_speedup_vs_qmc'][parameter_source_name][modifier][error_functional]))
+                table_speedup_qmc.add_row(row)
+
+            table_speedup_qmc.set_title("Speedup of Machine learning compared to Monte Carlo for various errors and tactics (|mc_values[:128]-qmc_reference|/|predicted_values-qmc_reference|), with {epochs}, {learning_rate}, using {parameter_source_name} as parameters".format(epochs=network_information.epochs,
+                learning_rate=network_information.learning_rate,
+                parameter_source_name=parameter_source_name))
+            table_speedup.print_table("mc_speedups_vs_qmc_{}".format(parameter_source_name.lower()))
 
 
             table_error = TableBuilder()

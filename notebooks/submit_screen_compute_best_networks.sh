@@ -3,23 +3,19 @@
 export MACHINE_LEARNING_TRAINING_SIZE=2
 export OMP_NUM_THREADS=1
 set -e
+python3 ../python/split_best_networks_into_individual_files.py
 
-for func in 'Lift' 'Drag';
+for network in 'Lift' 'Drag' 'effective'
 do
-
-    screen -S $func -dm bash -c "python3 ../python/ComputingBestNetworks.py --data_source 'Airfoils' --functional_name ${func}&> log_best_airfoils_${func//\//}.txt";
-
+  screen -S "airfoils${network}" -dm bash -c "python3 ../python/ComputingBestNetworks.py --json_file ../data/${network}_best_network.json --data_source 'Airfoils' --functional_name Lift --functional_name Drag &> log_best_${network}_airfoils.txt";
 done
 
-
-for func in 'Q1' 'Q2' 'Q3';
+for network in 'Q1' 'Q2' 'Q3' 'effective'
 do
-
-    screen -S $func -dm bash -c "python3 ../python/ComputingBestNetworks.py --data_source 'SodShockTubeQMC' --functional_name ${func}&> log_sod_${func//\//}.txt";
+  screen -S "sodshock${network}" -dm bash -c "python3 ../python/ComputingBestNetworks.py --json_file ../data/${network}_best_network.json --data_source 'SodShockTubeQMC' --functional_name Q1 --functional_name Q2 --functional_name Q3 &> log_${network}_sod.txt";
 done
 
-for func in 'Sine' 'Sine/d' 'Sine/d3';
+for network in 'effective';
 do
-
-    screen -S ${func//\//} -dm bash -c "python3 ../python/ComputingBestNetworks.py --data_source 'Sine' --functional_name ${func}&> log_best_sine_${func//\//}.txt";
+    screen -S "sine${network}" -dm bash -c "python3 ../python/ComputingBestNetworks.py --json_file ../data/${network}_best_network.json --data_source 'Sine' --functional_name 'Sine' --functional_name 'Sine/d' --functional_name 'Sine/d3' &> log_best_${network}_sine.txt";
 done
