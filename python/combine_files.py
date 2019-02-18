@@ -224,7 +224,7 @@ with open('{}.json'.format(outname), 'w') as out:
 
 for compressor in compressors:
     # see https://stackoverflow.com/a/39451012
-    json_str = json.dumps(data) + "\n"               # 2. string (i.e. JSON)
+    json_str = json.dumps(configuration_top) + "\n"               # 2. string (i.e. JSON)
     json_bytes = json_str.encode('utf-8')            # 3. bytes (i.e. UTF-8)
         
     with compressors[compressor]('{}.json.{}'.format(outname, compressor), 'w') as out:
