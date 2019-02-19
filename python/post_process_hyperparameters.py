@@ -555,6 +555,7 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
 
                 errors_per_width = []
 
+
                 for width in widths:
                     errors_per_width.append([])
                     for depth in depths:
@@ -569,24 +570,29 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                     for width in widths:
                         errors_per_depth[-1].extend(errors_local_network_size[depth][width])
 
+
+
+
                 errors_per_depth = np.array(errors_per_depth)
                 errors_per_width = np.array(errors_per_width)
-                #print(errors_per_depth)
+
 
                 if train_size == 128:
                     plt.figure()
-                    
+
                     plt.loglog(widths, np.mean(errors_per_width, axis=1), '-o', label='DNN selected retraining', basex=2, basey=2)
-                    plt.loglog(widths, np.max(errors_per_width, axis=1), 'v', markersize=12, label='Max')
-                    plt.loglog(widths, np.min(errors_per_width, axis=1), '^', markersize=12, label='Min')
+                    plt.loglog(widths, np.max(errors_per_width, axis=1), 'v', markersize=12, label='Max', basex=2)
+                    plt.loglog(widths, np.min(errors_per_width, axis=1), '^', markersize=12, label='Min', basey=2)
                     plt.xlabel('Network width')
                     plt.ylabel(names[error])
                     plt.grid(True)
-                    plt.title("{error} for {functional} as a function of width\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
-                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic
+                    plt.legend()
+                    plt.title("{error} for {functional} as a function of width\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}\nConfigurations per width: {configs_per_width}".format(error=names[error],
+                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic,
+                                                                                                                                                              configs_per_width = errors_per_width.shape[1]
                                                                                                                                                               ))
                     if only_network_sizes:
-                        plot_info.savePlot("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                        plot_info.savePlot("size_width_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                                                                                                         functional=functional, title=title, train_size=train_size, tactic=tactic
                                                                                                         ))
 
@@ -595,16 +601,17 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
 
                     plt.figure()
                     plt.loglog(depths, np.mean(errors_per_depth, axis=1), '-o', label='DNN selected retraining', basex=2, basey=2)
-                    plt.loglog(depths, np.max(errors_per_depth, axis=1), 'v', markersize=12, label='Max')
-                    plt.loglog(depths, np.min(errors_per_depth, axis=1), '^', markersize=12, label='Min')
+                    plt.loglog(depths, np.max(errors_per_depth, axis=1), 'v', markersize=12, label='Max', basex=2, basey=2)
+                    plt.loglog(depths, np.min(errors_per_depth, axis=1), '^', markersize=12, label='Min', basex=2, basey=2)
                     plt.xlabel('Network depth')
                     plt.ylabel(names[error])
                     plt.grid(True)
-                    plt.title("{error} for {functional} as a function of depth\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
-                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic
+                    plt.title("{error} for {functional} as a function of depth\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}\nconfigs_per_depth = {configs_per_depth}".format(error=names[error],
+                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic,
+                                                                                                                                                              configs_per_depth=errors_per_depth.shape[1]
                     ))
                     if only_network_sizes:
-                        plot_info.savePlot("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                        plot_info.savePlot("size_depth_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                                                                                                            functional=functional, title=title, train_size=train_size, tactic=tactic
                                                                                                            ))
 
