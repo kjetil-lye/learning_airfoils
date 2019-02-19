@@ -37,13 +37,13 @@ def writeConfig(*,
 
 
 
-def submit(command, exports, arguments):
+def submit(command, exports, arguments, additional_bsub_options=""):
     exports = copy.deepcopy(exports)
     exports['MACHINE_LEARNING_DO_NOT_SAVE_PLOTS'] = 'on'
     exports['MACHINE_LEARNING_DO_NOT_PRINT_TABLES'] = 'on'
     exports['MACHINE_LEARNING_DO_NOT_SAVE_NP_DATA'] = 'on'
     export_str = " ".join("{}={}".format(k, exports[k]) for k in exports.keys())
-    command_to_run = "{} bsub -n 1 -W 120:00 {}".format(export_str, command)
+    command_to_run = "{} bsub {} -n 1 -W 120:00 {}".format(export_str, additional_bsub_options, command)
     with open('exports.sh', 'w') as exp_file:
         for k in exports.keys():
             exp_file.write("export {}={}\n".format(k, exports[k]))
@@ -53,7 +53,7 @@ def submit(command, exports, arguments):
 
     os.system(command_to_run)
 
-def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=None, only_missing=False, prefix='', dry_run = False):
+def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=None, only_missing=False, prefix='', dry_run = False, additional_bsub_options=""):
     exports = {}
     exports['MACHINE_LEARNING_NUMBER_OF_WIDTHS'] = str(width)
     exports["MACHINE_LEARNING_NUMBER_OF_DEPTHS"] = str(depth)
@@ -89,20 +89,30 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                     folder_missing = False
                                     if not only_missing and not dry_run:
                                         os.mkdir(folder_name)
-                                    if only_missing and not os.path.exists(folder_name) and not dry_run:
-                                        os.mkdir(folder_name)
+                                    if only_missing and not os.path.exists(folder_name):
                                         folder_missing = True
+                                        if not dry_run:
+                                            os.mkdir(folder_name)
+
                                     if not dry_run:
                                         os.chdir(folder_name)
 
 
                                     should_run = not only_missing
+                                    reason_to_run = None
+                                    if not only_missing:
+                                        reason_to_run = "Running every configuration"
                                     if only_missing:
                                         if folder_missing:
                                             should_run = True
-                                        lsf_files = glob.glob('lsf.*')
+                                            reason_to_run = "folder_missing"
+                                        if dry_run:
+                                            lsf_files = glob.glob(os.path.join(folder_name, 'lsf.*'))
+                                        else:
+                                            lsf_files = glob.glob('lsf.*')
                                         if len(lsf_files)==0:
                                             should_run = True
+                                            reason_to_run = "no lsf files found"
 
                                         else:
                                             found_success = False
@@ -113,6 +123,7 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                                     if 'Successfully completed'  in lsf_content:
                                                         found_success = True
                                             if not found_success:
+                                                reason_to_run = "no successfully completed found"
                                                 should_run = True
 
                                     if should_run:
@@ -131,11 +142,11 @@ def submit_notebook_in_parallel(notebook_name, depth, width, functional_name=Non
                                             name_with_arguments = notebook_name
                                             if arguments is not None:
                                                 name_with_arguments += " " + arguments
-                                            print("Would run\n\tpython {}".format(name_with_arguments))
+                                            print("Would run (reason: {}, folder exists: {}, in {})\n\tpython {}".format(reason_to_run, not folder_missing, folder_name, name_with_arguments))
                                         else:
                                             submit('python {notebook}'.format(
                                                 notebook = notebook_name
-                                            ), exports, arguments)
+                                            ), exports, arguments, additional_bsub_options=additional_bsub_options)
 
                                             writeConfig(depth=depth,
                                                         width=width,
@@ -165,6 +176,8 @@ if __name__ == '__main__':
                         default=None,
                         help='The functional to use options: depends on the script (optional)')
 
+    parser.add_argument('--additional_bsub_options', default='', help='Additional arguments to pass to bsub (eg \'-R "rusage[mem=XXX]"\' where XXX is required number of MB RAM')
+
     args = parser.parse_args()
     functional_name = args.functional_name
 
@@ -184,4 +197,5 @@ if __name__ == '__main__':
         functional_name = args.functional_name,
         only_missing=args.only_missing,
                                 prefix=prefix,
-                                dry_run = args.dry_run)
+                                dry_run = args.dry_run,
+                                additional_bsub_options=args.additional_bsub_options)

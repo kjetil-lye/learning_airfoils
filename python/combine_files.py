@@ -223,14 +223,12 @@ with open('{}.json'.format(outname), 'w') as out:
     json.dump(configuration_top, out)
 
 for compressor in compressors:
-    try:
-        with compressors[compressor]('{}.pic.{}'.format(outname, compressor), 'w') as out:
-            pickle.dump(configuration_top, out)
-    except:
-        pass
+    # see https://stackoverflow.com/a/39451012
+    json_str = json.dumps(configuration_top) + "\n"               # 2. string (i.e. JSON)
+    json_bytes = json_str.encode('utf-8')            # 3. bytes (i.e. UTF-8)
         
     with compressors[compressor]('{}.json.{}'.format(outname, compressor), 'w') as out:
-        json.dump(configuration_top, out)
+        out.write(json_bytes)
         
     
                                  
