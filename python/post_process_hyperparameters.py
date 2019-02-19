@@ -587,6 +587,9 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                     plt.ylabel(names[error])
                     plt.grid(True)
                     plt.legend()
+                    plot_info.legendLeft()
+                    if 'prediction' in error.lower():
+                        plot_info.set_percentage_ticks(plt.gca().yaxis)
                     plt.title("{error} for {functional} as a function of width\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}\nConfigurations per width: {configs_per_width}".format(error=names[error],
                                                                                                                                                               functional=functional, title=title, train_size=train_size, tactic=tactic,
                                                                                                                                                               configs_per_width = errors_per_width.shape[1]
@@ -605,11 +608,14 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                     plt.loglog(depths, np.min(errors_per_depth, axis=1), '^', markersize=12, label='Min', basex=2, basey=2)
                     plt.xlabel('Network depth')
                     plt.ylabel(names[error])
+                    if 'prediction' in error.lower():
+                        plot_info.set_percentage_ticks(plt.gca().yaxis)
                     plt.grid(True)
                     plt.title("{error} for {functional} as a function of depth\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}\nconfigs_per_depth = {configs_per_depth}".format(error=names[error],
                                                                                                                                                               functional=functional, title=title, train_size=train_size, tactic=tactic,
                                                                                                                                                               configs_per_depth=errors_per_depth.shape[1]
                     ))
+                    plot_info.legendLeft()
                     if only_network_sizes:
                         plot_info.savePlot("size_depth_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                                                                                                            functional=functional, title=title, train_size=train_size, tactic=tactic
