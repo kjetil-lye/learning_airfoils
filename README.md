@@ -17,7 +17,7 @@ in the repository directory. This will fetch all the additional data files (exce
 
 ## Running these scripts
 
-Every script can be run from a BASH compatible command line, our through the
+Every script can be run from a BASH compatible command line, or through the
 supplied Docker container (documented under ```docker```).
 
 ## Recreating the tables for the network size analysis
@@ -26,7 +26,7 @@ Run the script file ```notebooks/network_size_analysis.sh``` from the folder ```
 
 ## Recreating the plots for single configurations
 
-Run the script ```notebooks/run_best_and_effective_networks.sh``` from the folder ```notebooks``
+Run the script ```notebooks/run_best_and_effective_networks.sh``` from the folder ```notebooks```
 
 ## Recreating the plots for the combined configurations
 
