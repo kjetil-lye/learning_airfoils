@@ -4,6 +4,7 @@ import post_process_hyperparameters
 import copy
 import numpy as np
 import print_table
+import bz2
 def get_dict_path(dictionary, path):
     split = path.split('.')
     for s in split:
@@ -86,22 +87,29 @@ def print_configurations_to_file(filename, configurations):
     with open(filename, 'w') as outfile:
         json.dump({"configurations": configurations_postprocssed}, outfile)
 def find_intersections_acceptable(filenames, data_source, convergence_rate,
- max_prediction=0.05, min_speedup=2, print_filename=None, table_filename = None):
+    targets = None,
+    max_prediction=0.05, min_speedup=2, print_filename=None, table_filename = None,
+    accepted = None,
+    additional_printout_keys = True
+    ):
 
     functionals = [k for k in filenames.keys()]
-    targets = [
-        'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source),
-        'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_mean_l2_relative'.format(data_source=data_source)
 
-    ]
+    if targets is None:
+        targets = [
+            'results.best_network.algorithms.{data_source}.ml.ordinary.wasserstein_speedup_raw'.format(data_source=data_source),
+            'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_mean_l2_relative'.format(data_source=data_source)
 
-    accepted = {
-        'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source) : lambda x: x>min_speedup,
-        'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_mean_l2_relative'.format(data_source=data_source) : lambda x: x<max_prediction
-    }
+        ]
+
+        accepted = {
+            'results.best_network.algorithms.{data_source}.ml.ordinary.wasserstein_speedup_raw'.format(data_source=data_source) : lambda x: x>min_speedup,
+            'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_mean_l2_relative'.format(data_source=data_source) : lambda x: x<max_prediction
+        }
 
     targets_to_store = copy.deepcopy(targets)
-    targets_to_store.append('results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_real'.format(data_source=data_source))
+    if additional_printout_keys:
+        targets_to_store.append('results.best_network.algorithms.{data_source}.ml.ordinary.wasserstein_speedup_real'.format(data_source=data_source))
     stats = {
         'min' : lambda x, target: np.min(get_retraining_values(x, target)),
         'selected' : lambda x, target: get_dict_path(x, target),
@@ -120,15 +128,15 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate,
         all_stats[stat] = {}
     for functional in filenames.keys():
         filename = filenames[functional]
-        with open(filename, 'r') as f:
-            json_content = json.load(f)
-            # only look at best performing
 
-            post_process_hyperparameters.fix_bilevel(json_content)
-            post_process_hyperparameters.add_wasserstein_speedup(json_content, convergence_rate)
-            json_content = post_process_hyperparameters.filter_configs(json_content, onlys={"settings.selection_type":["Best performing"],
-                "settings.train_size":[128]})
-            data[functional] = copy.deepcopy(json_content)
+        json_content = load_all_configurations(filename)
+        # only look at best performing
+
+        #post_process_hyperparameters.fix_bilevel(json_content)
+        post_process_hyperparameters.add_wasserstein_speedup(json_content, convergence_rate)
+        json_content = post_process_hyperparameters.filter_configs(json_content, onlys={"settings.selection_type":["Best performing"],
+            "settings.train_size":[128]})
+        data[functional] = copy.deepcopy(json_content)
 
         found_configs = {}
         # check for uniqueness
@@ -176,12 +184,12 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate,
                 intersected_configurations = intersected_configurations.intersection(set(configurations_as_str))
             else:
                 intersected_configurations = set(configurations_as_str)
-            print("size2={}".format(len(intersected_configurations)))
+
         if all_intersections is None:
             all_intersections = intersected_configurations
         else:
             all_intersections = all_intersections.intersection(intersected_configurations)
-        print("size={}".format(len(all_intersections)))
+
 
     print()
     print()
@@ -237,6 +245,14 @@ def config_to_row(configuration):
     ]
 def config_header_row():
     return ["Optimizer", "Loss", "Selection", "L1reg", "L2reg"]
+
+def load_all_configurations(filename):
+    if filename.endswith('.bz2'):
+        with bz2.BZ2File(filename) as infile:
+            return json.loads(infile.read().decode('utf-8'))
+    else:
+        with open(filename) as infile:
+            return json.load(infile)
 
 def print_table_from_config(filename, configurations, targets, functionals, all_stats):
     stats = {

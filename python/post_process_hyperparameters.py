@@ -17,6 +17,7 @@ import copy
 import pprint
 import re
 import os
+import bz2
 
 
 def fix_bilevel(configuration):
@@ -121,6 +122,7 @@ class FilterFromConfiguration(object):
 
 def get_filters_from_file(filename):
     filters = []
+
     with open(filename) as infile:
         json_content = json.load(infile)
 
@@ -130,7 +132,13 @@ def get_filters_from_file(filename):
     return filters
 
 
-
+def load_all_configurations(filename):
+    if filename.endswith('.bz2'):
+        with bz2.BZ2File(filename) as infile:
+            return json.loads(infile.read().decode('utf-8'))
+    else:
+        with open(filename) as infile:
+            return json.load(infile)
 
 def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data', only_network_sizes=False):
     functionals = [k for k in filenames.keys()]
@@ -141,11 +149,10 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
 
         filename =filenames[functional]
 
-        with open(filename, 'r') as f:
-            json_content = json.load(f)
-            fix_bilevel(json_content)
-            add_wasserstein_speedup(json_content, convergence_rate)
-            data[functional] = copy.deepcopy(json_content)
+        json_content = load_all_configurations(filename)
+        fix_bilevel(json_content)
+        add_wasserstein_speedup(json_content, convergence_rate)
+        data[functional] = copy.deepcopy(json_content)
 
         targets_to_store = [
             'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source),
@@ -169,11 +176,20 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
         "" : {},
         "Best performing": {"settings.selection_type":["Best performing"]},
         "Emperically optimal" :{"settings.selection_type":["Emperically optimal"]},
+
+        "Best performing mean_m2": {"settings.selection_type":["Best performing"], "settings.loss": ["mean_m2"]},
+        "Emperically optimal mean_m2" :{"settings.selection_type":["Emperically optimal"], "settings.loss": ["mean_m2"]},
+
+        "Best performing mse mae": {"settings.selection_type":["Best performing"], "settings.loss": ["mean_squared_error", "mean_absolute_error"]},
+        "Emperically optimal mse mae" :{"settings.selection_type":["Emperically optimal"], "settings.loss": ["mean_squared_error", "mean_absolute_error"]},
+
+
     }
 
 
     filters = {
         'All configurations' : lambda x: True,
+
         'Only Adam with ($L^2$ and no regularization) or ($L^1$)' : only_adam_and_no_regularization_for_mse,
         'Only Adam with ($L^2$ and no regularization) or ($L^1$ with regularization)' : only_adam_and_no_regularization_for_mse_and_reg_for_l1,
         'Only Adam with ($L^2$ and low regularization) or ($L^1$ with regularization)' : only_adam_and_low_regularization_for_mse_and_reg_for_l1
@@ -208,6 +224,9 @@ def plot_all(filenames, convergence_rate, latex_out, data_source='QMC_from_data'
         latex.text+= "\\{latex_code}{{{title}}}\n\n".format(latex_code=latex_code, title=content)
 
     comparisons = [
+        ["mean_m2", get_only_mean_m2, "MSE and MAE", complement(get_only_mean_m2)],
+        ["mean_m2", get_only_mean_m2, "MSE", get_only_mse],
+        ["mean_m2", get_only_mean_m2, "MAE", get_only_mae],
         ["Good Adam", only_adam_and_low_regularization_for_mse_and_reg_for_l1, "Bad Adam", and_config(get_only_adam, complement(only_adam_and_low_regularization_for_mse_and_reg_for_l1))],
         ["SGD", get_only_sgd, "Adam", get_only_adam],
         ["Good Adam MSE", and_config(get_only_mse, only_adam_and_low_regularization_for_mse_and_reg_for_l1), "Good Adam MAE", and_config(get_only_mae, only_adam_and_low_regularization_for_mse_and_reg_for_l1)],
@@ -520,7 +539,14 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                             if width not in errors_local_network_size[depth].keys():
                                 errors_local_network_size[depth][width] = []
 
-                            errors_local_network_size[depth][width].append(size_configuration['results']['best_network']['algorithms'][data_source]['ml'][tactic][error])
+                            error_at_size = size_configuration['results']['best_network']['algorithms'][data_source]['ml'][tactic][error]
+                            if not np.isnan(error_at_size):
+                                errors_local_network_size[depth][width].append(error_at_size)
+                            else:
+                                if 'speedup' in error:
+                                    errors_local_network_size[depth][width].append(0.00001)
+                                else:
+                                    errors_local_network_size[depth][width].append(1)
 
 
                 depths = np.array(sorted([k for k in errors_local_network_size.keys()]))
@@ -529,29 +555,47 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
 
                 errors_per_width = []
 
+
                 for width in widths:
                     errors_per_width.append([])
                     for depth in depths:
-                        errors_per_width[-1].append(errors_local_network_size[depth][width])
+                        errors_per_width[-1].extend(errors_local_network_size[depth][width])
+
+
+
 
                 errors_per_depth = []
-                for width in widths:
+                for depth in depths:
                     errors_per_depth.append([])
-                    for depth in depths:
-                        errors_per_depth[-1].append(errors_local_network_size[depth][width])
+                    for width in widths:
+                        errors_per_depth[-1].extend(errors_local_network_size[depth][width])
+
+
+
+
+                errors_per_depth = np.array(errors_per_depth)
+                errors_per_width = np.array(errors_per_width)
+
+
                 if train_size == 128:
                     plt.figure()
-                    plt.loglog(widths, np.mean(errors_per_width), '-o', label='DNN selected retraining', basex=2, basey=2)
-                    plt.loglog(widths, np.max(errors_per_width), 'v', markersize=12, label='Max')
-                    plt.loglog(widths, np.min(errors_per_width), '^', markersize=12, label='Min')
+
+                    plt.loglog(widths, np.mean(errors_per_width, axis=1), '-o', label='DNN selected retraining', basex=2, basey=2)
+                    plt.loglog(widths, np.max(errors_per_width, axis=1), 'v', markersize=12, label='Max', basex=2)
+                    plt.loglog(widths, np.min(errors_per_width, axis=1), '^', markersize=12, label='Min', basey=2)
                     plt.xlabel('Network width')
                     plt.ylabel(names[error])
                     plt.grid(True)
-                    plt.title("{error} for {functional} as a function of width\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
-                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic
+                    plt.legend()
+                    plot_info.legendLeft()
+                    if 'prediction' in error.lower():
+                        plot_info.set_percentage_ticks(plt.gca().yaxis)
+                    plt.title("{error} for {functional} as a function of width\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}\nConfigurations per width: {configs_per_width}".format(error=names[error],
+                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic,
+                                                                                                                                                              configs_per_width = errors_per_width.shape[1]
                                                                                                                                                               ))
                     if only_network_sizes:
-                        plot_info.savePlot("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                        plot_info.savePlot("size_width_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                                                                                                         functional=functional, title=title, train_size=train_size, tactic=tactic
                                                                                                         ))
 
@@ -559,17 +603,21 @@ def plot_as_training_size(functional, data, title="all configurations", only_net
                     plt.close()
 
                     plt.figure()
-                    plt.loglog(depths, np.mean(errors_per_depth), '-o', label='DNN selected retraining', basex=2, basey=2)
-                    plt.loglog(depths, np.max(errors_per_depth), 'v', markersize=12, label='Max')
-                    plt.loglog(depths, np.min(errors_per_depth), '^', markersize=12, label='Min')
+                    plt.loglog(depths, np.mean(errors_per_depth, axis=1), '-o', label='DNN selected retraining', basex=2, basey=2)
+                    plt.loglog(depths, np.max(errors_per_depth, axis=1), 'v', markersize=12, label='Max', basex=2, basey=2)
+                    plt.loglog(depths, np.min(errors_per_depth, axis=1), '^', markersize=12, label='Min', basex=2, basey=2)
                     plt.xlabel('Network depth')
                     plt.ylabel(names[error])
+                    if 'prediction' in error.lower():
+                        plot_info.set_percentage_ticks(plt.gca().yaxis)
                     plt.grid(True)
-                    plt.title("{error} for {functional} as a function of depth\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}".format(error=names[error],
-                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic
+                    plt.title("{error} for {functional} as a function of depth\nConfigurations: {title}\nUsing {train_size} samples\nTactic: {tactic}\nconfigs_per_depth = {configs_per_depth}".format(error=names[error],
+                                                                                                                                                              functional=functional, title=title, train_size=train_size, tactic=tactic,
+                                                                                                                                                              configs_per_depth=errors_per_depth.shape[1]
                     ))
+                    plot_info.legendLeft()
                     if only_network_sizes:
-                        plot_info.savePlot("size_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
+                        plot_info.savePlot("size_depth_{error}_{functional}_{title}_{train_size}_{tactic}".format(error=error,
                                                                                                            functional=functional, title=title, train_size=train_size, tactic=tactic
                                                                                                            ))
 
@@ -1065,6 +1113,9 @@ def get_only_adam(config):
 def get_only_mse(config):
     return get_loss(config) == 'mean_squared_error'
 
+def get_only_mean_m2(config):
+    return get_loss(config) == "mean_m2"
+
 def get_only_mae(config):
     return get_loss(config) == 'mean_absolute_error'
 
@@ -1142,7 +1193,7 @@ def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
 
     for error in names.keys():
 
-        tactics=['ordinary', 'replace']#, 'remove', 'add']
+        tactics=['ordinary']#, 'replace']#, 'remove', 'add']
 
 
 
