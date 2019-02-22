@@ -32,7 +32,7 @@ configuration_top['working_directory'] = os.getcwd()
 
 # The following two lines limits the output severely.
 only_data_sources = ['MC_from_data']
-only_tactics = ['ordinary']
+only_tactics = ['ordinary', 'replace']
 only_competitor_retraining_network_size = ['ml']
 only_keys_retraining_network_size = ['algorithms', 'mc_errors']
 
