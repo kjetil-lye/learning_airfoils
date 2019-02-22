@@ -42,6 +42,11 @@ def filter_config(config, only_tactics, only_data_sources, only_competitor_retra
     Filters out unused information from the configuration (otherwise each output file easily gets up to 18 GB)
     """
 
+    
+    if not 'best_network' in config['results']:
+        print (config.keys())
+        print(config['results'].keys())
+        return
 
     sub_configs = [config['results']['best_network'],
                    *[config['network_sizes'][k]['results']['best_network'] for k in range(len(config['network_sizes']))],
@@ -137,6 +142,7 @@ def filter_config(config, only_tactics, only_data_sources, only_competitor_retra
 
 
 for folder in folders:
+    print(folder)
     lsf = glob.glob(os.path.join(folder, 'lsf.o*'))
     if len (lsf) == 0:
         continue
