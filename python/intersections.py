@@ -97,19 +97,19 @@ def find_intersections_acceptable(filenames, data_source, convergence_rate,
 
     if targets is None:
         targets = [
-            'results.best_network.algorithms.{data_source}.ml.ordinary.wasserstein_speedup_raw'.format(data_source=data_source),
+            'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source),
             'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_mean_l2_relative'.format(data_source=data_source)
 
         ]
 
         accepted = {
-            'results.best_network.algorithms.{data_source}.ml.ordinary.wasserstein_speedup_raw'.format(data_source=data_source) : lambda x: x>min_speedup,
+            'results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_raw'.format(data_source=data_source) : lambda x: x>min_speedup,
             'results.best_network.algorithms.{data_source}.ml.ordinary.prediction_mean_l2_relative'.format(data_source=data_source) : lambda x: x<max_prediction
         }
 
     targets_to_store = copy.deepcopy(targets)
     if additional_printout_keys:
-        targets_to_store.append('results.best_network.algorithms.{data_source}.ml.ordinary.wasserstein_speedup_real'.format(data_source=data_source))
+        targets_to_store.append('results.best_network.algorithms.{data_source}.ml.replace.wasserstein_speedup_real'.format(data_source=data_source))
     stats = {
         'min' : lambda x, target: np.min(get_retraining_values(x, target)),
         'selected' : lambda x, target: get_dict_path(x, target),
