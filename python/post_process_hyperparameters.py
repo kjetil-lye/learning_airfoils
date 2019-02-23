@@ -1156,7 +1156,7 @@ def only_mean_train(config):
 
 
 def compare_two_sets(functional, *, data1, title1, data2, title2, main_title):
-    if len(data1['configurations']) + len(data2['configurations']) == 0:
+    if len(data1['configurations']) ==0 or len(data2['configurations']) == 0:
 
         print("No configurations!")
 
