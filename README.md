@@ -1,6 +1,6 @@
 # Repository to reproduce the experiments in the paper "Deep learning observables in computational fluid dynamics"
 
-This repository should contain everything needed to reproduce the experiments in the paper "Deep learning observables in computational fluid dynamics" by K. Lye, S. Mishra and D. Ray. (not yet published).
+This repository should contain everything needed to reproduce the experiments in the paper ["Deep learning observables in computational fluid dynamics" by K. Lye, S. Mishra and D. Ray. (preprint, arXiv:1903.03040)](https://arxiv.org/abs/1903.03040).
 
 The following steps are needed to recreate all the plots (details about doing the ensemble runs coming).
 
