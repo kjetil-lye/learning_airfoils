@@ -2,6 +2,8 @@
 
 This repository should contain everything needed to reproduce the experiments in the paper ["Deep learning observables in computational fluid dynamics" by K. Lye, S. Mishra and D. Ray. (preprint, arXiv:1903.03040)](https://arxiv.org/abs/1903.03040).
 
+The associated repository for the shock tube experiment can be found at https://github.com/kjetil-lye/lax_sod_shock_tube_machine_learning
+
 The following steps are needed to recreate all the plots (details about doing the ensemble runs coming).
 
 See the ```docker``` folder for information on how to run this in Docker.
